@@ -36,10 +36,10 @@ contract Dagora is IArbitrable, Ownable {
         bytes32 listingHash;
         address payable buyer;
         address payable commissioner;
-        ERC20 token;
+        address token;
         uint total;
         uint shippingCost;
-        uint offerExpiration;
+        uint expiration;
         uint confirmationTimeout;
     }
 
@@ -83,7 +83,17 @@ contract Dagora is IArbitrable, Ownable {
         DisputeStatus status;
     }
 
+    event TokenGranted (address indexed addr);
+    event TokenRevoked (address indexed addr);
+
+    event TokenDeposit (address indexed sender, uint value);
+    event TokenWithdraw (address indexed sender, uint value);
+
+    event ListingApproved (bytes32 indexed hash);
     event ListingCancelled (bytes32 indexed hash);
+
+    event OrderApproved (bytes32 indexed hash);
+    event OrderCancelled (bytes32 indexed hash);
 
     event HasToPayFee (bytes32 indexed _hash, Party _party);
 
@@ -131,6 +141,7 @@ contract Dagora is IArbitrable, Ownable {
     {
         require(!contracts[addr]);
         contracts[addr] = true;
+        emit TokenGranted(addr);
     }
 
     function revokeAuthentication (address addr)
@@ -138,6 +149,7 @@ contract Dagora is IArbitrable, Ownable {
         onlyOwner
     {
         contracts[addr] = false;
+        emit TokenRevoked(addr);
     }
 
     function depositTokens(uint value)
@@ -145,7 +157,7 @@ contract Dagora is IArbitrable, Ownable {
     {
         require(marketToken.transferFrom(msg.sender, address(this), value));
         sellers[msg.sender].balance += value;
-        // TODO EMIT TOKENS DEPOSIT
+        emit TokenDeposit(msg.sender, value);
     }
 
     function withdrawTokens(uint value)
@@ -155,7 +167,7 @@ contract Dagora is IArbitrable, Ownable {
         require(seller.balance - seller.lockedTokens >= value, "You don't have enoght tokens");
         require(marketToken.transferFrom(msg.sender, address(this), value));
         sellers[msg.sender].balance -= value;
-        // TODO EMIT TOKENS WITHDRAW
+        emit TokenWithdraw(msg.sender, value);
     }
 
     function approveListing(Listing memory _listing)
@@ -172,7 +184,7 @@ contract Dagora is IArbitrable, Ownable {
         /* EFFECTS */
         /* Mark listing as approved. */
         approvedHashes[hash] = true;
-        // EMIT LISTING APPROVED
+        emit ListingApproved(hash);
         return true;
     }
 
@@ -194,6 +206,44 @@ contract Dagora is IArbitrable, Ownable {
 
         /* Log cancel event. */
         emit ListingCancelled(hash);
+    }
+
+    function approveOrder(Order memory order)
+        public returns (bool)
+    {
+        /* CHECKS */
+        /* Assert sender is authorized to approve listing. */
+        require(msg.sender == order.buyer, "Sender is not order signer");
+        /* Calculate listing hash. */
+        bytes32 hash = hashOrderToSign(order);
+        /* Assert listing has not already been approved. */
+        require(!approvedHashes[hash], "Already approved");
+        /* EFFECTS */
+        /* Mark order as approved. */
+        approvedHashes[hash] = true;
+        
+        emit OrderApproved(hash);
+        return true;
+    }
+
+    function cancelOrder(Order memory order, Sig memory sig)
+        internal
+    {
+        /* CHECKS */
+
+        /* Calculate listing hash. */
+        bytes32 hash = requireValidOrder(order, sig);
+
+        /* Assert sender is authorized to cancel listing. */
+        require(msg.sender == order.buyer);
+  
+        /* EFFECTS */
+      
+        /* Mark listing as cancelled, preventing it from being matched. */
+        cancelledOrFinalized[hash] = true;
+
+        /* Log cancel event. */
+        emit OrderCancelled(hash);
     }
 
     function report(Listing memory _listing, Sig memory sig)
@@ -455,6 +505,40 @@ contract Dagora is IArbitrable, Ownable {
         return false;
     }
 
+    function validateOrder(bytes32 hash, Order memory order, Sig memory sig)
+        internal
+        view
+        returns (bool)
+    {
+        /* Order has expired */
+        if (order.expiration != 0 && now > order.expiration) {
+            return false;
+        }
+
+        /* Token contract must be allowed */
+        if (!contracts[order.token]) {
+            return false;
+        }
+        
+        /* Listing must have not been canceled or already filled. */
+        if (cancelledOrFinalized[hash]) {
+            return false;
+        }
+
+        /* Order authentication. Order must be either:
+        /* (a) previously approved */
+        if (approvedHashes[hash]) {
+            return true;
+        }
+
+        /* or (b) ECDSA-signed by buyer. */
+        if (ecrecover(hash, sig.v, sig.r, sig.s) == order.buyer) {
+            return true;
+        }
+
+        return false;
+    }
+
     function hashListing(Listing memory listing)
         internal
         pure
@@ -467,6 +551,21 @@ contract Dagora is IArbitrable, Ownable {
                                             listing.commissionPercentage,
                                             listing.warrantyTimeout,
                                             listing.expiration));
+        return hash;
+    }
+
+    function hashOrder(Order memory order)
+        internal
+        pure
+        returns (bytes32 hash)
+    {
+        hash = keccak256(abi.encodePacked(order.listingHash,
+                                            order.buyer,
+                                            order.commissioner,
+                                            order.token,
+                                            order.total,
+                                            order.shippingCost,
+                                            order.expiration));
         return hash;
     }
 
@@ -486,6 +585,14 @@ contract Dagora is IArbitrable, Ownable {
         return hashToSign(hashListing(listing));
     }
 
+    function hashOrderToSign(Order memory order)
+        internal
+        pure
+        returns (bytes32)
+    {
+        return hashToSign(hashOrder(order));
+    }
+
     function requireValidListing(Listing memory listing, Sig memory sig)
         internal
         view
@@ -493,6 +600,16 @@ contract Dagora is IArbitrable, Ownable {
     {
         bytes32 hash = hashListingToSign(listing);
         require(validateListing(hash, listing, sig), "Invalid listing");
+        return hash;
+    }
+
+    function requireValidOrder(Order memory order, Sig memory sig)
+        internal
+        view
+        returns (bytes32)
+    {
+        bytes32 hash = hashOrderToSign(order);
+        require(validateOrder(hash, order, sig), "Invalid order");
         return hash;
     }
 }

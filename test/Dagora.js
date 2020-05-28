@@ -93,16 +93,10 @@ contract("Dagora", async (accounts) => {
     const approveSeller = await token.approve(instance.address, 10, {
       from: accounts[0],
     });
-    console.log(approveSeller.receipt.gasUsed);
-    const approveSeller2 = await token.approve(instance.address, 10, {
-        from: accounts[0],
-      });
-    console.log(approveSeller2.receipt.gasUsed);
     sellerGasUsed += approveSeller.receipt.gasUsed;
     const approveBuyer = await token.approve(instance.address, 500, {
       from: accounts[1],
     });
-    console.log(approveBuyer.receipt.gasUsed);
     buyerGasUsed += approveBuyer.receipt.gasUsed;
     const deposit = await instance.depositTokens(10, { from: accounts[0] });
     sellerGasUsed += deposit.receipt.gasUsed;
@@ -137,6 +131,7 @@ contract("Dagora", async (accounts) => {
     let order = {
       listing: listing,
       buyer: accounts[1],
+      fundsHolder: accounts[1],
       commissioner: accounts[1],
       token: token.address,
       total: 500,
@@ -148,6 +143,7 @@ contract("Dagora", async (accounts) => {
     var orderHash = web3.utils.soliditySha3(
       hashToSign,
       order.buyer,
+      order.fundsHolder,
       order.commissioner,
       order.token,
       order.total,
@@ -162,15 +158,16 @@ contract("Dagora", async (accounts) => {
     let orderHashToSign = await instance.createTransaction(
       order,
       orderSignature,
-      // listing,
       listingSignature,
       { from: accounts[0] }
     );
+    console.log(`createTransaction() gas used: ${orderHashToSign.receipt.gasUsed}`);
     sellerGasUsed += orderHashToSign.receipt.gasUsed;
     const confirm = await instance.confirmReceipt(order, {
       from: accounts[1],
     });
-    buyerGasUsed += confirm.receipt.gasUsed;
+    console.log(`confirmReceipt() gas used: ${confirm.receipt.gasUsed}`);
+    sellerGasUsed += confirm.receipt.gasUsed;
     console.log(`Seller gas used: ${sellerGasUsed}`);
     console.log(`Buyer gas used: ${buyerGasUsed}`);
   });

@@ -48,6 +48,7 @@ contract Dagora is IArbitrable, Ownable {
 
     struct Order {
         Listing listing;
+        address payable fundsHolder;
         address payable buyer;
         address payable commissioner;
         ERC20 token;
@@ -261,7 +262,7 @@ contract Dagora is IArbitrable, Ownable {
     function approveOrder(Order memory order) public returns (bool) {
         /* CHECKS */
         /* Assert sender is authorized to approve listing. */
-        require(msg.sender == order.buyer, "Sender is not order signer");
+        require(msg.sender == order.fundsHolder, "Sender is not order signer");
         /* Calculate listing hash. */
         bytes32 hash = hashOrderToSign(order);
         /* Assert listing has not already been approved. */
@@ -304,7 +305,7 @@ contract Dagora is IArbitrable, Ownable {
         );
         uint256 amount = _order.total + _order.shippingCost;
         require(
-            _order.token.transferFrom(_order.buyer, address(this), amount),
+            _order.token.transferFrom(_order.fundsHolder, address(this), amount),
             "Failed to transfer buyer's funds."
         );
         transactions[hash].lastStatusUpdate = now;
@@ -1012,6 +1013,7 @@ contract Dagora is IArbitrable, Ownable {
             abi.encodePacked(
                 hashListingToSign(order.listing),
                 order.buyer,
+                order.fundsHolder,
                 order.commissioner,
                 order.token,
                 order.total,

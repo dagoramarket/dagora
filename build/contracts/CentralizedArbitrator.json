@@ -7417,10 +7417,74 @@
       "links": {},
       "address": "0x0011470AafC4cb93610efA2504192C1bCfa8336b",
       "transactionHash": "0x3b5df4ba6d55997ccfac709afd7fd28e37b615126ab818f57019c2fd4d220178"
+    },
+    "1590690756709": {
+      "events": {
+        "0x9c9b64db9e130f48381bf697abf638e73117dbfbfd7a4484f2da3ba188f4187d": {
+          "anonymous": false,
+          "inputs": [
+            {
+              "indexed": true,
+              "internalType": "uint256",
+              "name": "_disputeID",
+              "type": "uint256"
+            },
+            {
+              "indexed": true,
+              "internalType": "contract Arbitrable",
+              "name": "_arbitrable",
+              "type": "address"
+            }
+          ],
+          "name": "AppealDecision",
+          "type": "event"
+        },
+        "0xa5d41b970d849372be1da1481ffd78d162bfe57a7aa2fe4e5fb73481fa5ac24f": {
+          "anonymous": false,
+          "inputs": [
+            {
+              "indexed": true,
+              "internalType": "uint256",
+              "name": "_disputeID",
+              "type": "uint256"
+            },
+            {
+              "indexed": true,
+              "internalType": "contract Arbitrable",
+              "name": "_arbitrable",
+              "type": "address"
+            }
+          ],
+          "name": "AppealPossible",
+          "type": "event"
+        },
+        "0x141dfc18aa6a56fc816f44f0e9e2f1ebc92b15ab167770e17db5b084c10ed995": {
+          "anonymous": false,
+          "inputs": [
+            {
+              "indexed": true,
+              "internalType": "uint256",
+              "name": "_disputeID",
+              "type": "uint256"
+            },
+            {
+              "indexed": true,
+              "internalType": "contract Arbitrable",
+              "name": "_arbitrable",
+              "type": "address"
+            }
+          ],
+          "name": "DisputeCreation",
+          "type": "event"
+        }
+      },
+      "links": {},
+      "address": "0xFD6d4eF83BEc1Ce63Cb8dA113046b80B6A7253bB",
+      "transactionHash": "0x688298675283eb197f0035cbb8f901011b64e08a067b2109468797c027698ce0"
     }
   },
   "schemaVersion": "3.2.0",
-  "updatedAt": "2020-05-28T06:05:04.713Z",
+  "updatedAt": "2020-05-28T19:04:29.192Z",
   "networkType": "ethereum",
   "devdoc": {
     "details": "This is a centralized arbitrator deciding alone on the result of disputes. No appeals are possible.",

@@ -119,7 +119,7 @@ contract("Dagora", async (accounts) => {
       expiration: 0,
     };
 
-    var hash = web3.utils.soliditySha3(
+    var listingHash = web3.utils.soliditySha3(
       listing.ipfsHash,
       listing.seller,
       listing.stakeOwner,
@@ -129,13 +129,13 @@ contract("Dagora", async (accounts) => {
       listing.cashbackPercentage,
       listing.expiration
     );
-    let listingSignature = await signHelper.generateSignature(hash, address);
+    let listingSignature = await signHelper.generateSignature(listingHash, address);
     var hashToSign = web3.utils.soliditySha3(
       "\x19Ethereum Signed Message:\n32",
-      hash
+      listingHash
     );
     let order = {
-      listingHash: hashToSign,
+      listing: listing,
       buyer: accounts[1],
       commissioner: accounts[1],
       token: token.address,
@@ -146,7 +146,7 @@ contract("Dagora", async (accounts) => {
     };
 
     var orderHash = web3.utils.soliditySha3(
-      order.listingHash,
+      hashToSign,
       order.buyer,
       order.commissioner,
       order.token,
@@ -162,12 +162,12 @@ contract("Dagora", async (accounts) => {
     let orderHashToSign = await instance.createTransaction(
       order,
       orderSignature,
-      listing,
+      // listing,
       listingSignature,
       { from: accounts[0] }
     );
     sellerGasUsed += orderHashToSign.receipt.gasUsed;
-    const confirm = await instance.confirmReceipt(order, listing, {
+    const confirm = await instance.confirmReceipt(order, {
       from: accounts[1],
     });
     buyerGasUsed += confirm.receipt.gasUsed;

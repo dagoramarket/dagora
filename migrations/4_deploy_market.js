@@ -15,6 +15,6 @@ module.exports = function(_deployer) {
   }).then(function(instance) {
     arbitrator = instance.address;
     // Get the deployed instance of B
-    return _deployer.deploy(DagoraMarket, arbitrator, token, 300, 300,  web3.utils.toHex("a"), web3.utils.toHex("a"), "http://ipfs.infura.io/ipfs/");
+    return _deployer.deploy(DagoraMarket, arbitrator, token, arbitrator, 300, 300, 300,  web3.utils.toHex("a"), web3.utils.toHex("a"), "http://ipfs.infura.io/ipfs/");
   })
 };

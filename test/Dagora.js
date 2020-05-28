@@ -22,8 +22,8 @@ contract("Dagora", async accounts => {
             stakeOwner: address,
             stakedAmount: 10,
             commissionPercentage: 0,
-            creationTimestamp: block.timestamp,
-            warrantyTimeout: 0,
+            warranty: 0,
+            cashbackPercentage: 0,
             expiration: 0
         };
 
@@ -32,8 +32,8 @@ contract("Dagora", async accounts => {
                                             listing.stakeOwner,
                                             listing.stakedAmount,
                                             listing.commissionPercentage,
-                                            listing.creationTimestamp,
-                                            listing.warrantyTimeout,
+                                            listing.warranty,
+                                            listing.cashbackPercentage,
                                             listing.expiration);
         var hashReturned = await instance._hashListing(listing);
         assert.equal(hash, hashReturned);
@@ -61,8 +61,8 @@ contract("Dagora", async accounts => {
             stakeOwner: address,
             stakedAmount: 10,
             commissionPercentage: 0,
-            creationTimestamp: block.timestamp,
-            warrantyTimeout: 0,
+            warranty: 0,
+            cashbackPercentage: 0,
             expiration: 0
         };
 

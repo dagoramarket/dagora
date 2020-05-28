@@ -17,18 +17,19 @@ contract Dagora is IArbitrable, Ownable {
     uint8 constant AMOUNT_OF_CHOICES = 2;
 
     enum Party {Prosecution, Defendant}
-    enum DisputeType {Report, Order}
+    enum DisputeType { None, Report, Order}
     enum RulingOptions {NoRuling, ProsecutionWins, DefendantWins}
     enum DisputeStatus {NoDispute, WaitingProsecution, WaitingDefendant, DisputeCreated, Resolved}
-    enum Status {Invalid, WaitingConfirmation, InDispute, Finished}
+    enum Status {NoTransaction, WaitingConfirmation, Warranty, WarrantyConfirmation, InDispute, Finalized}
 
     struct Listing {
         bytes32 ipfsHash;
         address payable seller;
         address payable stakeOwner;
         uint stakedAmount;
-        uint commissionPercentage;
-        uint warrantyTimeout;
+        uint commissionPercentage; /* two decimal places */
+        uint warranty; /* In days */
+        uint cashbackPercentage; /* two decimal places */
         uint expiration;
     }
 
@@ -36,18 +37,19 @@ contract Dagora is IArbitrable, Ownable {
         bytes32 listingHash;
         address payable buyer;
         address payable commissioner;
-        address token;
+        ERC20 token;
         uint total;
         uint shippingCost;
         uint expiration;
-        uint confirmationTimeout;
+        uint confirmationTimeout; /* In days */
     }
 
     struct Transaction {
-        bytes32 orderHash;
-
-        uint lastInteraction;
-
+        /* Keep track of status update */
+        uint lastStatusUpdate;
+        /* Refund the seller can give */
+        uint refund;
+        /* Current status */
         Status status;
     }
 
@@ -80,20 +82,37 @@ contract Dagora is IArbitrable, Ownable {
         DisputeType disputeType;
         uint lastInteraction;
         uint metaEvidenceId;
+        uint disputeId;
         DisputeStatus status;
     }
 
     event TokenGranted (address indexed addr);
     event TokenRevoked (address indexed addr);
 
-    event TokenDeposit (address indexed sender, uint value);
-    event TokenWithdraw (address indexed sender, uint value);
+    event TokenDeposited (address indexed sender, uint value);
+    event TokenWithdrawed (address indexed sender, uint value);
 
     event ListingApproved (bytes32 indexed hash);
     event ListingCancelled (bytes32 indexed hash);
 
     event OrderApproved (bytes32 indexed hash);
     event OrderCancelled (bytes32 indexed hash);
+    
+
+    event TransactionCreated(bytes32 indexed hash,
+                            address indexed buyer,
+                            address indexed seller,
+                            address stakeOwner,
+                            address commissioner,
+                            ERC20 token,
+                            uint total,
+                            uint commissionPercentage,
+                            uint cashbackPercentage,
+                            uint confirmationTimeout);
+    event TransactionRefunded(bytes32 indexed hash, uint value);
+    event TransactionFinalized(bytes32 indexed hash);
+
+    event WarrantyClaimed(bytes32 indexed hash);
 
     event HasToPayFee (bytes32 indexed _hash, Party _party);
 
@@ -102,6 +121,8 @@ contract Dagora is IArbitrable, Ownable {
     mapping(bytes32 => bool) public cancelledOrFinalized;
     /* Orders and listings verified by on-chain approval (alternative to ECDSA signatures so that smart contracts can place orders and listings directly). */
     mapping(bytes32 => bool) public approvedHashes;
+
+    mapping (bytes32 => Transaction) public transactions; // Listing Hash to Dispute
 
     mapping (bytes32 => RunningDispute) public disputes; // Listing Hash to Dispute
     mapping (uint => bytes32) public disputeIDtoHash;
@@ -118,9 +139,16 @@ contract Dagora is IArbitrable, Ownable {
     uint public metaEvidenceCount;
     string public ipfsDomain;
 
+    uint protocolFeePercentage;
+    uint tokenOwnerFeePercentage;
+    address protocolFeeRecipient;
+
     constructor(address _arbitrator,
                 address _token,
+                address _protocolFeeRecipient,
                 uint _feeTimeout,
+                uint _protocolFeePercentage,
+                uint _tokenOwnerFeePercentage,
                 bytes memory _reportExtraData,
                 bytes memory _orderExtraData,
                 string memory _ipfsDomain)
@@ -129,7 +157,10 @@ contract Dagora is IArbitrable, Ownable {
     {
         arbitrator = Arbitrator(_arbitrator);
         marketToken = ERC20Burnable(_token);
+        protocolFeeRecipient = _protocolFeeRecipient;
         feeTimeout = _feeTimeout;
+        protocolFeePercentage = _protocolFeePercentage;
+        tokenOwnerFeePercentage = _tokenOwnerFeePercentage;
         reportExtraData = _reportExtraData;
         orderExtraData = _orderExtraData;
         ipfsDomain = _ipfsDomain;
@@ -157,7 +188,7 @@ contract Dagora is IArbitrable, Ownable {
     {
         require(marketToken.transferFrom(msg.sender, address(this), value));
         sellers[msg.sender].balance += value;
-        emit TokenDeposit(msg.sender, value);
+        emit TokenDeposited(msg.sender, value);
     }
 
     function withdrawTokens(uint value)
@@ -167,7 +198,7 @@ contract Dagora is IArbitrable, Ownable {
         require(seller.balance - seller.lockedTokens >= value, "You don't have enoght tokens");
         require(marketToken.transferFrom(msg.sender, address(this), value));
         sellers[msg.sender].balance -= value;
-        emit TokenWithdraw(msg.sender, value);
+        emit TokenWithdrawed(msg.sender, value);
     }
 
     function approveListing(Listing memory _listing)
@@ -221,7 +252,7 @@ contract Dagora is IArbitrable, Ownable {
         /* EFFECTS */
         /* Mark order as approved. */
         approvedHashes[hash] = true;
-        
+
         emit OrderApproved(hash);
         return true;
     }
@@ -246,6 +277,206 @@ contract Dagora is IArbitrable, Ownable {
         emit OrderCancelled(hash);
     }
 
+    function createTransaction(Order memory _order,
+                                Sig memory orderSig,
+                                Listing memory _listing,
+                                Sig memory listingSig)
+        public
+        returns (bytes32 hash)
+    {
+        require (_order.listingHash == requireValidListing(_listing, listingSig), "Listing isn't correct");
+        hash = requireValidOrder(_order, orderSig);
+        require (transactions[hash].status == Status.NoTransaction, "Order already has been processed");
+        uint amount = _order.total + _order.shippingCost;
+        require (_order.token.transferFrom(_order.buyer, address(this), amount), "Failed to transfer buyer's funds.");
+        transactions[hash].lastStatusUpdate = now;
+        transactions[hash].status = Status.WaitingConfirmation;
+        {
+            emit TransactionCreated(hash,
+                                    _order.buyer,
+                                    _listing.seller,
+                                    _listing.stakeOwner,
+                                    _order.commissioner,
+                                    _order.token,
+                                    amount,
+                                    _listing.commissionPercentage,
+                                    _listing.cashbackPercentage,
+                                    _order.confirmationTimeout);
+        }
+    }
+
+    function conrfirmReceipt(Order memory _order, Listing memory _listing)
+        public
+    {
+        require(_order.listingHash == hashListingToSign(_listing), "Listing isn't correct");
+        bytes32 hash = hashOrderToSign(_order);
+        require(
+            (transactions[hash].status == Status.WaitingConfirmation && msg.sender == _order.buyer) ||
+            (transactions[hash].status == Status.WarrantyConfirmation && msg.sender == _listing.seller), 
+                "You must be seller or buyer in the right phase.");
+        if (transactions[hash].refund == 0 && _listing.warranty > 0) {
+            transactions[hash].status = Status.Warranty;
+            transactions[hash].lastStatusUpdate = now;
+        } else {
+            uint total = SafeMath.add(_order.total, _order.shippingCost);
+            finalizeTransaction(hash,
+                                    _order.buyer, 
+                                    _listing.seller,
+                                    _order.commissioner,
+                                    _listing.stakeOwner,
+                                    _order.token,
+                                    total,
+                                    transactions[hash].refund,
+                                    _listing.commissionPercentage,
+                                    _listing.cashbackPercentage);
+        }
+    }
+
+    function executeTransaction(Order memory _order, Listing memory _listing)
+        public
+    {
+        require(_order.listingHash == hashListingToSign(_listing), "Listing isn't correct");
+        bytes32 hash = hashOrderToSign(_order);
+        Transaction storage transaction = transactions[hash];
+        require(    transaction.status == Status.WaitingConfirmation || 
+                    transaction.status == Status.Warranty || 
+                    transaction.status == Status.WarrantyConfirmation,
+                    "Invalid phase");
+        uint cashbackPercentage = 0;
+        if(transaction.status == Status.WaitingConfirmation || transaction.status == Status.WarrantyConfirmation) {
+            require(transaction.lastStatusUpdate + (_order.confirmationTimeout * (1 days)) > now, "Timeout time has not passed yet.");
+        } else {
+            require(transaction.lastStatusUpdate + (_listing.warranty * (1 days)) > now, "Timeout time has not passed yet.");
+            cashbackPercentage = _listing.cashbackPercentage;
+        }
+        uint total = SafeMath.add(_order.total, _order.shippingCost);
+        finalizeTransaction(hash,
+                                _order.buyer, 
+                                _listing.seller,
+                                _order.commissioner,
+                                _listing.stakeOwner,
+                                _order.token,
+                                total,
+                                transaction.refund,
+                                _listing.commissionPercentage,
+                                cashbackPercentage);
+    }
+
+    function finalizeTransaction(bytes32 hash,
+                                    address buyer,
+                                    address seller,
+                                    address commissioner,
+                                    address stakeHolder,
+                                    ERC20 token,
+                                    uint total,
+                                    uint refund,
+                                    uint commissionPercentage,
+                                    uint cashbackPercentage)
+        internal
+    {
+        require(address(token) != address(0));
+        require(contracts[address(token)]);
+
+        
+        transactions[hash].status = Status.Finalized;
+        transactions[hash].lastStatusUpdate = now;
+
+        uint price = SafeMath.sub(total, refund);
+
+        if (protocolFeePercentage > 0) {
+            uint protocolFee = SafeMath.div(SafeMath.mul(protocolFeePercentage, price), INVERSE_BASIS_POINT);
+            price = SafeMath.sub(price, protocolFee);
+            require(token.transfer(protocolFeeRecipient, protocolFee));
+        }
+
+        if (tokenOwnerFeePercentage > 0 && seller != stakeHolder){
+            uint stakeOwnerFee = SafeMath.div(SafeMath.mul(tokenOwnerFeePercentage, price), INVERSE_BASIS_POINT);
+            price = SafeMath.sub(price, stakeOwnerFee);
+            require(token.transfer(stakeHolder, stakeOwnerFee));
+        }
+
+        if (commissionPercentage > 0 && commissioner != address(0x0)){
+            uint commissionFee = SafeMath.div(SafeMath.mul(commissionPercentage, price), INVERSE_BASIS_POINT);
+            price = SafeMath.sub(price, commissionFee);
+            require(token.transfer(commissioner, commissionFee));
+        }
+
+        if(cashbackPercentage > 0) {
+            uint cashback = SafeMath.div(SafeMath.mul(cashbackPercentage, price), INVERSE_BASIS_POINT);
+            price = SafeMath.sub(price, cashback);
+            require(token.transfer(buyer, cashback + refund));
+        }
+
+        if(price > 0)
+            require(token.transfer(seller, price));
+        emit TransactionFinalized(hash);
+    }
+
+    function claimWarranty(Order memory _order, Listing memory _listing)
+        public
+    {
+        require(_order.listingHash == hashListingToSign(_listing), "Listing isn't correct");
+        bytes32 hash = hashOrderToSign(_order);
+        Transaction storage transaction = transactions[hash];
+        require(transaction.status == Status.Warranty, "Invalid phase");
+        require(msg.sender == _order.buyer, "You must be buyer");
+        require(now <= transaction.lastStatusUpdate + (_listing.warranty * (1 days)), "Warranty time has timed out.");
+
+        transaction.status = Status.WarrantyConfirmation;
+        transaction.refund = _order.total;
+        transaction.lastStatusUpdate = now;
+        emit WarrantyClaimed(hash);
+    }
+
+    function disputeTransaction(Order memory _order, Listing memory _listing)
+        public
+        payable
+        returns (bytes32 hash)
+    {
+        require(_order.listingHash == hashListingToSign(_listing), "Listing isn't correct");
+        hash = hashOrderToSign(_order);
+        Transaction storage transaction = transactions[hash];
+        require(transaction.status == Status.WaitingConfirmation || transaction.status == Status.WarrantyConfirmation, "Invalid phase");
+        require(now <= transaction.lastStatusUpdate + (_order.confirmationTimeout * (1 days)), "Confirmation time has timed out.");
+        uint arbitrationCost = arbitrator.arbitrationCost(reportExtraData);
+        require(msg.value >= arbitrationCost, "Value must be greater than arbitrationCost");
+        address payable prosecution;
+        address payable defendant;
+        if (transaction.status == Status.WaitingConfirmation) {
+            require(msg.sender == _order.buyer, "Only buyer can dispute.");
+            prosecution = _order.buyer;
+            defendant = _listing.seller;
+        } else {
+            require(msg.sender == _listing.seller, "Only seller can dispute.");
+            prosecution = _order.buyer;
+            defendant = _listing.seller;
+        }
+        transaction.status = Status.InDispute;
+        transaction.lastStatusUpdate = now;
+        RunningDispute storage dispute = _createDispute(hash,
+                                                        prosecution,
+                                                        defendant,
+                                                        _order.total,
+                                                        _order.token,
+                                                        msg.value,
+                                                        DisputeType.Order);
+        emit MetaEvidence(dispute.metaEvidenceId, string(abi.encodePacked(ipfsDomain, _listing.ipfsHash)));
+    }
+
+    function updateRefund(Order memory _order, Listing memory _listing, uint refund)
+        public
+    {
+        require(_order.listingHash == hashListingToSign(_listing), "Listing isn't correct");
+        require(msg.sender == _listing.seller, "You must be the listing seller");
+        bytes32 hash = hashOrderToSign(_order);
+        Transaction storage transaction = transactions[hash];
+        require(transaction.status == Status.WaitingConfirmation, "Invalid phase");
+        require(now <= transaction.lastStatusUpdate + (_order.confirmationTimeout * (1 days)), "Confirmation time has timed out.");
+        require(refund <= _order.total, "Refund can't be greater than total.");
+        transaction.refund = refund;
+        emit TransactionRefunded(hash, refund);
+    }
+
     function report(Listing memory _listing, Sig memory sig)
         public
         payable
@@ -264,6 +495,7 @@ contract Dagora is IArbitrable, Ownable {
             prosecution.balance += _listing.stakedAmount - availableBalance;
         }
         /* EFFECTS */
+        
         Seller storage defendant = sellers[_listing.stakeOwner];
         prosecution.lockedTokens += _listing.stakedAmount;
         defendant.lockedTokens += _listing.stakedAmount;
@@ -275,7 +507,6 @@ contract Dagora is IArbitrable, Ownable {
                                                         msg.value,
                                                         DisputeType.Report);
         emit MetaEvidence(dispute.metaEvidenceId, string(abi.encodePacked(ipfsDomain, _listing.ipfsHash)));
-       
     }
 
     function _createDispute(bytes32 hash,
@@ -302,7 +533,7 @@ contract Dagora is IArbitrable, Ownable {
         emit HasToPayFee(hash, Party.Defendant);
     }
 
-    function disputeTimeOut(bytes32 hash)
+    function disputeTimeout(bytes32 hash)
         public
     {
         RunningDispute storage dispute = disputes[hash];
@@ -343,7 +574,7 @@ contract Dagora is IArbitrable, Ownable {
                 dispute.status = DisputeStatus.WaitingDefendant;
                 emit HasToPayFee(hash, Party.Defendant);
             } else { // The receiver has also paid the fee. We create the dispute.
-                raiseDispute(hash, arbitrationCost, reportExtraData);
+                raiseDispute(hash, arbitrationCost);
             }
         } else {
             dispute.defendantFee += msg.value;
@@ -353,20 +584,19 @@ contract Dagora is IArbitrable, Ownable {
                 dispute.status = DisputeStatus.WaitingProsecution;
                 emit HasToPayFee(hash, Party.Prosecution);
             } else { // The receiver has also paid the fee. We create the dispute.
-                raiseDispute(hash, arbitrationCost, reportExtraData);
+                raiseDispute(hash, arbitrationCost);
             }
         }
     }
 
-    function raiseDispute(bytes32 hash, uint _arbitrationCost, bytes memory extraData) 
+    function raiseDispute(bytes32 hash, uint _arbitrationCost) 
         internal
     {
         RunningDispute storage dispute = disputes[hash];
         dispute.status = DisputeStatus.DisputeCreated;
-        uint disputeId = arbitrator.createDispute{value: _arbitrationCost}(AMOUNT_OF_CHOICES, extraData);
+        uint disputeId = arbitrator.createDispute{value: _arbitrationCost}(AMOUNT_OF_CHOICES, dispute.disputeType == DisputeType.Order ? orderExtraData : reportExtraData);
         disputeIDtoHash[disputeId] = hash;
         emit Dispute(arbitrator, disputeId, dispute.metaEvidenceId, dispute.metaEvidenceId);
-
         // Refund sender if it overpaid.
         bool success;
         if (dispute.prosecutionFee > _arbitrationCost) {
@@ -383,17 +613,51 @@ contract Dagora is IArbitrable, Ownable {
         }
     }
 
+    /** @dev Submit a reference to evidence. EVENT.
+     *  @param _hash The hash of the order.
+     *  @param _evidence A link to an evidence using its URI.
+     */
+    function submitEvidence(bytes32 _hash, string memory _evidence) public {
+        RunningDispute storage dispute = disputes[_hash];
+        require(
+            msg.sender == dispute.prosecution || msg.sender == dispute.defendant,
+            "The caller must be the prosecution or the defendant."
+        );
+        require(dispute.disputeType == DisputeType.Order, "Evidences are only allowed for orders disputes.");
+        require(
+            dispute.status < DisputeStatus.Resolved,
+            "Must not send evidence if the dispute is resolved."
+        );
+
+        emit Evidence(arbitrator, dispute.metaEvidenceId, msg.sender, _evidence);
+    }
+
+    /** @dev Appeal an appealable ruling. UNTRUSTED.
+     *  Transfer the funds to the arbitrator.
+     *  Note that no checks are required as the checks are done by the arbitrator.
+     *  @param _hash The hash of the order.
+     */
+    function appeal(bytes32 _hash) public payable {
+        RunningDispute storage dispute = disputes[_hash];
+        require(dispute.disputeType == DisputeType.Order, "Appeals are only allowed for orders disputes.");
+
+        arbitrator.appeal{ value: msg.value }(dispute.disputeId, orderExtraData);
+    }
+
     function rule(uint _disputeID, uint _ruling)
         public
         override
     {
-        emit Ruling(Arbitrator(msg.sender), _disputeID, _ruling);
         bytes32 hash = disputeIDtoHash[_disputeID];
         RunningDispute storage dispute = disputes[hash];
+        require(msg.sender == address(arbitrator), "The caller must be the arbitrator.");
+        require(dispute.status == DisputeStatus.DisputeCreated, "The dispute has already been resolved.");
+        emit Ruling(Arbitrator(msg.sender), _disputeID, _ruling);
         if (dispute.disputeType == DisputeType.Report) {
             executeReportRuling(dispute, _ruling);
         } else {
             executeOrderRuling(dispute, _ruling);
+            transactions[hash].status = Status.Finalized;
         }
     }
 
@@ -516,7 +780,7 @@ contract Dagora is IArbitrable, Ownable {
         }
 
         /* Token contract must be allowed */
-        if (!contracts[order.token]) {
+        if (!contracts[address(order.token)]) {
             return false;
         }
         
@@ -549,7 +813,8 @@ contract Dagora is IArbitrable, Ownable {
                                             listing.stakeOwner,
                                             listing.stakedAmount,
                                             listing.commissionPercentage,
-                                            listing.warrantyTimeout,
+                                            listing.warranty,
+                                            listing.cashbackPercentage,
                                             listing.expiration));
         return hash;
     }
@@ -565,7 +830,8 @@ contract Dagora is IArbitrable, Ownable {
                                             order.token,
                                             order.total,
                                             order.shippingCost,
-                                            order.expiration));
+                                            order.expiration,
+                                            order.confirmationTimeout));
         return hash;
     }
 

@@ -8,15 +8,19 @@ contract TestDagora is Dagora {
 
     constructor(address _arbitrator,
                 address _token,
-                uint _reportTimeout,
+                address _protocolFeeRecipient,
                 uint _feeTimeout,
+                uint _protocolFeePercentage,
+                uint _tokenOwnerFeePercentage,
                 bytes memory _reportExtraData,
                 bytes memory _orderExtraData,
                 string memory _ipfsDomain)
                 Dagora(_arbitrator,
                         _token,
-                        _reportTimeout,
+                        _protocolFeeRecipient,
                         _feeTimeout,
+                        _protocolFeePercentage,
+                        _tokenOwnerFeePercentage,
                         _reportExtraData,
                         _orderExtraData,
                         _ipfsDomain) public {

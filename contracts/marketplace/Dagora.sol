@@ -326,7 +326,7 @@ contract Dagora is IArbitrable, Ownable {
         );
     }
 
-    function conrfirmReceipt(Order memory _order, Listing memory _listing)
+    function confirmReceipt(Order memory _order, Listing memory _listing)
         public
     {
         require(

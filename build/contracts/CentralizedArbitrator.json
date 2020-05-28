@@ -7415,12 +7415,12 @@
         }
       },
       "links": {},
-      "address": "0x72DA37DAe8c64520174285ccD7706Cc00f1f7b7e",
-      "transactionHash": "0xc421644e2a998118a2d45662e438b31ed341d0c4b8078b69677f2cae1e0e1f27"
+      "address": "0x0011470AafC4cb93610efA2504192C1bCfa8336b",
+      "transactionHash": "0x3b5df4ba6d55997ccfac709afd7fd28e37b615126ab818f57019c2fd4d220178"
     }
   },
   "schemaVersion": "3.2.0",
-  "updatedAt": "2020-05-28T01:04:46.573Z",
+  "updatedAt": "2020-05-28T06:05:04.713Z",
   "networkType": "ethereum",
   "devdoc": {
     "details": "This is a centralized arbitrator deciding alone on the result of disputes. No appeals are possible.",

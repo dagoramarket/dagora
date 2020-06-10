@@ -7,6 +7,7 @@
     "test": "test"
   },
   "dependencies": {
+    "@opengsn/gsn": "^0.10.0",
     "openzeppelin-solidity": "^3.0.1"
   },
   "devDependencies": {

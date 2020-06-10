@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.6.0;
+pragma solidity ^0.6.2;
 pragma experimental ABIEncoderV2;
 
 import "../arbitration/Arbitrator.sol";
@@ -9,9 +9,9 @@ import "@openzeppelin/contracts/token/ERC20/ERC20Burnable.sol";
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-import "@openzeppelin/contracts/GSN/GSNRecipient.sol";
+import "@opengsn/gsn/contracts/BaseRelayRecipient.sol";
 
-contract Dagora is IArbitrable, Ownable, GSNRecipient {
+contract Dagora is IArbitrable, Ownable, BaseRelayRecipient {
 	/* 2 decimal plates for percentage */
 	uint256 public constant INVERSE_BASIS_POINT = 10000;
 
@@ -183,8 +183,10 @@ contract Dagora is IArbitrable, Ownable, GSNRecipient {
 		uint256 _tokenOwnerFeePercentage,
 		bytes memory _reportExtraData,
 		bytes memory _orderExtraData,
-		string memory _ipfsDomain
+		string memory _ipfsDomain,
+		address _forwarder
 	) public Ownable() {
+		trustedForwarder = _forwarder;
 		arbitrator = Arbitrator(_arbitrator);
 		marketToken = ERC20Burnable(_token);
 		protocolFeeRecipient = _protocolFeeRecipient;
@@ -254,7 +256,8 @@ contract Dagora is IArbitrable, Ownable, GSNRecipient {
 
 		/* Assert sender is authorized to cancel listing. */
 		require(
-			_msgSender() == _listing.stakeOwner || _msgSender() == _listing.seller
+			_msgSender() == _listing.stakeOwner ||
+				_msgSender() == _listing.seller
 		);
 
 		/* EFFECTS */
@@ -269,7 +272,10 @@ contract Dagora is IArbitrable, Ownable, GSNRecipient {
 	function approveOrder(Order memory order) public returns (bool) {
 		/* CHECKS */
 		/* Assert sender is authorized to approve listing. */
-		require(_msgSender() == order.fundsHolder, "Sender is not order signer");
+		require(
+			_msgSender() == order.fundsHolder,
+			"Sender is not order signer"
+		);
 		/* Calculate listing hash. */
 		bytes32 hash = hashOrderToSign(order);
 		/* Assert listing has not already been approved. */
@@ -1148,48 +1154,23 @@ contract Dagora is IArbitrable, Ownable, GSNRecipient {
 		return (total * percentage) / INVERSE_BASIS_POINT;
 	}
 
-	function acceptRelayedCall(
-        address,
-        address from,
-        bytes memory,
-        uint256 transactionFee,
-        uint256 gasPrice,
-        uint256,
-        uint256,
-        bytes memory,
-        uint256 maxPossibleCharge
-    )
-        public
-        view
-        virtual
-        override
-        returns (uint256, bytes memory)
-    {
-    }
-
-    function _preRelayedCall(bytes memory context) internal virtual override returns (bytes32) {
-
-    }
-
-    function _postRelayedCall(bytes memory context, bool, uint256 actualCharge, bytes32) internal virtual override {
-
-    }
-
 	function _msgSender()
 		internal
-		override(Context, GSNRecipient)
+		virtual
+		override(Context, BaseRelayRecipient)
 		view
 		returns (address payable)
 	{
-		return GSNRecipient._msgSender();
+		return BaseRelayRecipient._msgSender();
 	}
 
-	function _msgData()
-		internal
-		override(Context, GSNRecipient)
+	function versionRecipient()
+		external
+		virtual
+		override
 		view
-		returns (bytes memory)
+		returns (string memory)
 	{
-		return GSNRecipient._msgData();
+		return "1.0";
 	}
 }

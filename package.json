@@ -1,0 +1,29 @@
+{
+  "name": "dagora",
+  "version": "1.0.0",
+  "description": "",
+  "directories": {
+    "example": "examples",
+    "test": "test"
+  },
+  "dependencies": {
+    "openzeppelin-solidity": "^3.0.1"
+  },
+  "devDependencies": {
+    "@openzeppelin/cli": "^2.8.2",
+    "@openzeppelin/contracts": "^3.0.1"
+  },
+  "scripts": {
+    "test": "truffle test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/flametuner/dagora.git"
+  },
+  "author": "GustavoInacio",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/flametuner/dagora/issues"
+  },
+  "homepage": "https://github.com/flametuner/dagora#readme"
+}

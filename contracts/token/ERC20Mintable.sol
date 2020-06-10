@@ -1,7 +1,7 @@
 pragma solidity >=0.5.0;
 
-import "./ERC20.sol";
-import "../utils/Ownable.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
 /**
  * @title ERC20Mintable

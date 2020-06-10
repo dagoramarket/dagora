@@ -5,9 +5,9 @@ pragma experimental ABIEncoderV2;
 import "../arbitration/Arbitrator.sol";
 import "../arbitration/IArbitrable.sol";
 
-import "../token/ERC20Burnable.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20Burnable.sol";
 
-import "../utils/Ownable.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
 
 contract Dagora is IArbitrable, Ownable {
@@ -19,6 +19,7 @@ contract Dagora is IArbitrable, Ownable {
     enum Party {Prosecution, Defendant}
     enum DisputeType {None, Report, Order}
     enum RulingOptions {NoRuling, ProsecutionWins, DefendantWins}
+    
     enum DisputeStatus {
         NoDispute,
         WaitingProsecution,
@@ -26,6 +27,7 @@ contract Dagora is IArbitrable, Ownable {
         DisputeCreated,
         Resolved
     }
+
     enum Status {
         NoTransaction,
         WaitingConfirmation,
@@ -53,9 +55,13 @@ contract Dagora is IArbitrable, Ownable {
         address payable commissioner;
         ERC20 token;
         uint256 total;
-        uint256 shippingCost;
+        uint256 cashback;
+        uint256 commission;
+        uint256 protocolFee;
+        uint256 stakeHolderFee;
         uint256 expiration;
         uint256 confirmationTimeout; /* In days */
+        uint256 timestamp; /* A buyer may want to buy the same product twice */
     }
 
     struct Transaction {
@@ -299,17 +305,17 @@ contract Dagora is IArbitrable, Ownable {
         Sig memory listingSig
     ) public returns (bytes32 hash) {
         hash = requireValidOrder(_order, orderSig, listingSig);
+        Transaction storage transaction = transactions[hash];
         require(
-            transactions[hash].status == Status.NoTransaction,
+            transaction.status == Status.NoTransaction,
             "Order already has been processed"
         );
-        uint256 amount = _order.total + _order.shippingCost;
         require(
-            _order.token.transferFrom(_order.fundsHolder, address(this), amount),
+            _order.token.transferFrom(_order.fundsHolder, address(this), _order.total),
             "Failed to transfer buyer's funds."
         );
-        transactions[hash].lastStatusUpdate = now;
-        transactions[hash].status = Status.WaitingConfirmation;
+        transaction.lastStatusUpdate = now;
+        transaction.status = Status.WaitingConfirmation;
         emit TransactionCreated(
             hash,
             _order.buyer,
@@ -317,11 +323,19 @@ contract Dagora is IArbitrable, Ownable {
             _order.listing.stakeOwner,
             _order.commissioner,
             _order.token,
-            amount,
-            _order.listing.commissionPercentage,
-            _order.listing.cashbackPercentage,
+            _order.total,
+            _order.commission,
+            _order.cashback,
             _order.confirmationTimeout
         );
+    }
+
+    function batchCreateTransaction(Order[] memory orders, Sig[] memory orderSignatures, Sig[] memory listingSignatures) public returns (bytes32[] memory hashes) {
+        require(orders.length == orderSignatures.length && orderSignatures.length == listingSignatures.length);
+        hashes = new bytes32[](orders.length);
+        for (uint256 i = 0; i < orders.length; i++) {
+            hashes[i] = createTransaction(orders[i], orderSignatures[i], listingSignatures[i]);
+        }
     }
 
     function confirmReceipt(Order memory _order)
@@ -340,19 +354,7 @@ contract Dagora is IArbitrable, Ownable {
             transaction.status = Status.Warranty;
             transaction.lastStatusUpdate = now;
         } else {
-            uint256 total = SafeMath.add(_order.total, _order.shippingCost);
-            finalizeTransaction(
-                hash,
-                _order.buyer,
-                _order.listing.seller,
-                _order.commissioner,
-                _order.listing.stakeOwner,
-                _order.token,
-                total,
-                transaction.refund,
-                _order.listing.commissionPercentage,
-                _order.listing.cashbackPercentage
-            );
+            finalizeTransaction(_order);
         }
     }
 
@@ -373,93 +375,63 @@ contract Dagora is IArbitrable, Ownable {
             transaction.status == Status.WarrantyConfirmation
         ) {
             require(
-                transaction.lastStatusUpdate +
-                    (_order.confirmationTimeout * (1 days)) >
-                    now,
+                now >= transaction.lastStatusUpdate +
+                    (_order.confirmationTimeout * (1 days)),
                 "Timeout time has not passed yet."
             );
             cashbackPercentage = 0;
         } else {
             require(
-                transaction.lastStatusUpdate + (_order.listing.warranty * (1 days)) >
-                    now,
+                now >= transaction.lastStatusUpdate + (_order.listing.warranty * (1 days))
+                    ,
                 "Timeout time has not passed yet."
             );
             cashbackPercentage = _order.listing.cashbackPercentage;
         }
-        uint256 total = _order.total + _order.shippingCost;
-        finalizeTransaction(
-            hash,
-            _order.buyer,
-            _order.listing.seller,
-            _order.commissioner,
-            _order.listing.stakeOwner,
-            _order.token,
-            total,
-            transaction.refund,
-            _order.listing.commissionPercentage,
-            cashbackPercentage
-        );
+        finalizeTransaction(_order);
+    }
+
+    function batchExecuteTransaction(Order[] memory orders) public {
+        for (uint256 i = 0; i < orders.length; i++) {
+            executeTransaction(orders[i]);
+        }
     }
 
     function finalizeTransaction(
-        bytes32 hash,
-        address buyer,
-        address seller,
-        address commissioner,
-        address stakeHolder,
-        ERC20 token,
-        uint256 total,
-        uint256 refund,
-        uint256 commissionPercentage,
-        uint256 cashbackPercentage
+        Order memory order
     ) internal {
-        require(address(token) != address(0));
-        require(contracts[address(token)]);
+        bytes32 hash = hashOrderToSign(order);
+        Transaction storage transaction = transactions[hash];
+        uint256 refund = transaction.refund;
+        uint256 price = SafeMath.sub(order.total, refund);
 
-        transactions[hash].status = Status.Finalized;
-        delete transactions[hash].lastStatusUpdate;
+        transaction.status = Status.Finalized;
+        delete transaction.lastStatusUpdate;
+        delete transaction.refund;
+        
 
-        uint256 price = SafeMath.sub(total, refund);
-
-        if (protocolFeePercentage > 0) {
-            uint256 protocolFee = SafeMath.div(
-                SafeMath.mul(protocolFeePercentage, price),
-                INVERSE_BASIS_POINT
-            );
-            price = SafeMath.sub(price, protocolFee);
-            require(token.transfer(protocolFeeRecipient, protocolFee));
+        if (order.protocolFee > 0) {
+            price -= order.protocolFee;
+            require(order.token.transfer(protocolFeeRecipient, order.protocolFee));
         }
 
-        if (tokenOwnerFeePercentage > 0 && seller != stakeHolder) {
-            uint256 stakeOwnerFee = SafeMath.div(
-                SafeMath.mul(tokenOwnerFeePercentage, price),
-                INVERSE_BASIS_POINT
-            );
-            price = SafeMath.sub(price, stakeOwnerFee);
-            require(token.transfer(stakeHolder, stakeOwnerFee));
+        if (order.stakeHolderFee > 0) {
+            price = SafeMath.sub(price, order.stakeHolderFee);
+            require(order.token.transfer(order.listing.stakeOwner, order.stakeHolderFee));
         }
 
-        if (commissionPercentage > 0 && commissioner != address(0x0)) {
-            uint256 commissionFee = SafeMath.div(
-                SafeMath.mul(commissionPercentage, price),
-                INVERSE_BASIS_POINT
-            );
-            price = SafeMath.sub(price, commissionFee);
-            require(token.transfer(commissioner, commissionFee));
+        if (order.commission > 0) {
+            price -= order.commission;
+            require(order.token.transfer(order.commissioner, order.commission));
         }
 
-        if (cashbackPercentage > 0) {
-            uint256 cashback = SafeMath.div(
-                SafeMath.mul(cashbackPercentage, price),
-                INVERSE_BASIS_POINT
-            );
-            price = SafeMath.sub(price, cashback);
-            require(token.transfer(buyer, cashback + refund));
+        if (order.cashback > 0) {
+            price -= order.cashback;
+            require(order.token.transfer(order.buyer, (order.cashback + refund)));
         }
 
         if (price > 0){
-            require(token.transfer(seller, price));
+            require(order.token.transfer(order.listing.seller, price));
         }
         emit TransactionFinalized(hash);
     }
@@ -554,7 +526,7 @@ contract Dagora is IArbitrable, Ownable {
                     (_order.confirmationTimeout * (1 days)),
             "Confirmation time has timed out."
         );
-        require(refund <= _order.total, "Refund can't be greater than total.");
+        require(refund + (_order.cashback + _order.protocolFee + _order.stakeHolderFee + _order.commission) <= _order.total, "Refund can't be greater than total allowed.");
         transaction.refund = refund;
         emit TransactionRefunded(hash, refund);
     }
@@ -970,6 +942,31 @@ contract Dagora is IArbitrable, Ownable {
             return false;
         }
 
+        /* Commission not enough */
+        if (order.commission < calculateTotalFromPercentage(order.total, order.listing.commissionPercentage)) {
+            return false;
+        }
+
+        /* Cashback not enough */
+        if (order.cashback < calculateTotalFromPercentage(order.total, order.listing.cashbackPercentage)) {
+            return false;
+        }
+
+        /* Cashback not enough */
+        if (order.protocolFee < calculateTotalFromPercentage(order.total, protocolFeePercentage)) {
+            return false;
+        }
+
+        /* Stake holder fee not enough */
+        if (order.listing.stakeOwner != order.listing.seller && order.stakeHolderFee < calculateTotalFromPercentage(order.total, tokenOwnerFeePercentage)) {
+            return false;
+        }
+
+        /* Now enough money for paying taxes */
+        if (order.total < (order.cashback + order.protocolFee + order.stakeHolderFee + order.commission)) {
+            return false;
+        }
+
         /* Order authentication. Order must be either:
         /* (a) previously approved */
         if (approvedHashes[hash]) {
@@ -1017,9 +1014,13 @@ contract Dagora is IArbitrable, Ownable {
                 order.commissioner,
                 order.token,
                 order.total,
-                order.shippingCost,
+                order.cashback,
+                order.commission,
+                order.protocolFee,
+                order.stakeHolderFee,
                 order.expiration,
-                order.confirmationTimeout
+                order.confirmationTimeout,
+                order.timestamp
             )
         );
         return hash;
@@ -1063,5 +1064,9 @@ contract Dagora is IArbitrable, Ownable {
     {
         require(validateListing(hashListingToSign(order.listing), order.listing, listingSig), "Invalid listing");
         require(validateOrder(hash = hashOrderToSign(order), order, orderSig), "Invalid order");
+    }
+
+    function calculateTotalFromPercentage(uint256 total, uint256 percentage) pure internal returns(uint256) {
+        return (total * percentage) / INVERSE_BASIS_POINT;
     }
 }

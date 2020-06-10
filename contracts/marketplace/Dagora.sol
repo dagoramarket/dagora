@@ -9,7 +9,9 @@ import "@openzeppelin/contracts/token/ERC20/ERC20Burnable.sol";
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract Dagora is IArbitrable, Ownable {
+import "@openzeppelin/contracts/GSN/GSNRecipient.sol";
+
+contract Dagora is IArbitrable, Ownable, GSNRecipient {
 	/* 2 decimal plates for percentage */
 	uint256 public constant INVERSE_BASIS_POINT = 10000;
 
@@ -207,31 +209,31 @@ contract Dagora is IArbitrable, Ownable {
 	}
 
 	function depositTokens(uint256 value) public {
-		require(marketToken.transferFrom(msg.sender, address(this), value));
-		sellers[msg.sender].balance += value;
-		emit TokenDeposited(msg.sender, value);
+		require(marketToken.transferFrom(_msgSender(), address(this), value));
+		sellers[_msgSender()].balance += value;
+		emit TokenDeposited(_msgSender(), value);
 	}
 
 	function withdrawTokens(uint256 value) public {
-		Seller storage seller = sellers[msg.sender];
+		Seller storage seller = sellers[_msgSender()];
 		require(
 			seller.balance - seller.lockedTokens >= value,
 			"You don't have enoght tokens"
 		);
-		require(marketToken.transferFrom(msg.sender, address(this), value));
-		sellers[msg.sender].balance -= value;
-		emit TokenWithdrawed(msg.sender, value);
+		require(marketToken.transferFrom(_msgSender(), address(this), value));
+		sellers[_msgSender()].balance -= value;
+		emit TokenWithdrawed(_msgSender(), value);
 	}
 
 	function approveListing(Listing memory _listing) public returns (bool) {
 		/* CHECKS */
 		/* Assert sender is authorized to approve listing. */
 		require(
-			msg.sender == _listing.stakeOwner,
+			_msgSender() == _listing.stakeOwner,
 			"Sender is not listing signer"
 		);
 		require(
-			sellers[msg.sender].balance >= _listing.stakedAmount,
+			sellers[_msgSender()].balance >= _listing.stakedAmount,
 			"You don't have enoght funds"
 		);
 		/* Calculate listing hash. */
@@ -252,7 +254,7 @@ contract Dagora is IArbitrable, Ownable {
 
 		/* Assert sender is authorized to cancel listing. */
 		require(
-			msg.sender == _listing.stakeOwner || msg.sender == _listing.seller
+			_msgSender() == _listing.stakeOwner || _msgSender() == _listing.seller
 		);
 
 		/* EFFECTS */
@@ -267,7 +269,7 @@ contract Dagora is IArbitrable, Ownable {
 	function approveOrder(Order memory order) public returns (bool) {
 		/* CHECKS */
 		/* Assert sender is authorized to approve listing. */
-		require(msg.sender == order.fundsHolder, "Sender is not order signer");
+		require(_msgSender() == order.fundsHolder, "Sender is not order signer");
 		/* Calculate listing hash. */
 		bytes32 hash = hashOrderToSign(order);
 		/* Assert listing has not already been approved. */
@@ -291,7 +293,7 @@ contract Dagora is IArbitrable, Ownable {
 		bytes32 hash = requireValidOrder(order, orderSig, listingSig);
 
 		/* Assert sender is authorized to cancel listing. */
-		require(msg.sender == order.buyer);
+		require(_msgSender() == order.buyer);
 
 		/* EFFECTS */
 
@@ -361,9 +363,9 @@ contract Dagora is IArbitrable, Ownable {
 		Transaction storage transaction = transactions[hash];
 		require(
 			(transaction.status == Status.WaitingConfirmation &&
-				msg.sender == _order.buyer) ||
+				_msgSender() == _order.buyer) ||
 				(transaction.status == Status.WarrantyConfirmation &&
-					msg.sender == _order.listing.seller),
+					_msgSender() == _order.listing.seller),
 			"You must be seller or buyer in the right phase."
 		);
 		if (transaction.refund == 0 && _order.listing.warranty > 0) {
@@ -462,7 +464,7 @@ contract Dagora is IArbitrable, Ownable {
 		bytes32 hash = hashOrderToSign(_order);
 		Transaction storage transaction = transactions[hash];
 		require(transaction.status == Status.Warranty, "Invalid phase");
-		require(msg.sender == _order.buyer, "You must be buyer");
+		require(_msgSender() == _order.buyer, "You must be buyer");
 		require(
 			now <=
 				transaction.lastStatusUpdate +
@@ -502,12 +504,12 @@ contract Dagora is IArbitrable, Ownable {
 		address payable prosecution;
 		address payable defendant;
 		if (transaction.status == Status.WaitingConfirmation) {
-			require(msg.sender == _order.buyer, "Only buyer can dispute.");
+			require(_msgSender() == _order.buyer, "Only buyer can dispute.");
 			prosecution = _order.buyer;
 			defendant = _order.listing.seller;
 		} else {
 			require(
-				msg.sender == _order.listing.seller,
+				_msgSender() == _order.listing.seller,
 				"Only seller can dispute."
 			);
 			prosecution = _order.buyer;
@@ -532,7 +534,7 @@ contract Dagora is IArbitrable, Ownable {
 
 	function updateRefund(Order memory _order, uint256 refund) public {
 		require(
-			msg.sender == _order.listing.seller,
+			_msgSender() == _order.listing.seller,
 			"You must be the listing seller"
 		);
 		bytes32 hash = hashOrderToSign(_order);
@@ -572,7 +574,7 @@ contract Dagora is IArbitrable, Ownable {
 			"Listing has already been reported"
 		);
 		require(
-			msg.sender != _listing.stakeOwner,
+			_msgSender() != _listing.stakeOwner,
 			"You can't report yourself. Use cancelListing()"
 		);
 		uint256 arbitrationCost = arbitrator.arbitrationCost(reportExtraData);
@@ -580,7 +582,7 @@ contract Dagora is IArbitrable, Ownable {
 			msg.value >= arbitrationCost,
 			"Value must be greater than arbitrationCost"
 		);
-		Seller storage prosecution = sellers[msg.sender];
+		Seller storage prosecution = sellers[_msgSender()];
 		require(
 			now > prosecution.blackListExpire,
 			"You are not allowed to report listings."
@@ -590,7 +592,7 @@ contract Dagora is IArbitrable, Ownable {
 		if (availableBalance < _listing.stakedAmount) {
 			require(
 				marketToken.transferFrom(
-					msg.sender,
+					_msgSender(),
 					address(this),
 					_listing.stakedAmount - availableBalance
 				),
@@ -605,7 +607,7 @@ contract Dagora is IArbitrable, Ownable {
 		defendant.lockedTokens += _listing.stakedAmount;
 		RunningDispute storage dispute = _createDispute(
 			hash,
-			msg.sender,
+			_msgSender(),
 			_listing.stakeOwner,
 			_listing.stakedAmount,
 			marketToken,
@@ -682,12 +684,12 @@ contract Dagora is IArbitrable, Ownable {
 			"Dispute has already been created."
 		);
 		require(
-			msg.sender == dispute.prosecution ||
-				msg.sender == dispute.defendant,
+			_msgSender() == dispute.prosecution ||
+				_msgSender() == dispute.defendant,
 			"The caller must be the sender."
 		);
 
-		if (msg.sender == dispute.prosecution) {
+		if (_msgSender() == dispute.prosecution) {
 			dispute.prosecutionFee += msg.value;
 			require(
 				dispute.prosecutionFee >= arbitrationCost,
@@ -762,8 +764,8 @@ contract Dagora is IArbitrable, Ownable {
 	function submitEvidence(bytes32 _hash, string memory _evidence) public {
 		RunningDispute storage dispute = disputes[_hash];
 		require(
-			msg.sender == dispute.prosecution ||
-				msg.sender == dispute.defendant,
+			_msgSender() == dispute.prosecution ||
+				_msgSender() == dispute.defendant,
 			"The caller must be the prosecution or the defendant."
 		);
 		require(
@@ -778,7 +780,7 @@ contract Dagora is IArbitrable, Ownable {
 		emit Evidence(
 			arbitrator,
 			dispute.metaEvidenceId,
-			msg.sender,
+			_msgSender(),
 			_evidence
 		);
 	}
@@ -805,14 +807,14 @@ contract Dagora is IArbitrable, Ownable {
 		bytes32 hash = disputeIDtoHash[_disputeID];
 		RunningDispute storage dispute = disputes[hash];
 		require(
-			msg.sender == address(arbitrator),
+			_msgSender() == address(arbitrator),
 			"The caller must be the arbitrator."
 		);
 		require(
 			dispute.status == DisputeStatus.DisputeCreated,
 			"The dispute has already been resolved."
 		);
-		emit Ruling(Arbitrator(msg.sender), _disputeID, _ruling);
+		emit Ruling(Arbitrator(_msgSender()), _disputeID, _ruling);
 		if (dispute.disputeType == DisputeType.Report) {
 			executeReportRuling(dispute, _ruling);
 		} else {
@@ -1144,5 +1146,50 @@ contract Dagora is IArbitrable, Ownable {
 		returns (uint256)
 	{
 		return (total * percentage) / INVERSE_BASIS_POINT;
+	}
+
+	function acceptRelayedCall(
+        address,
+        address from,
+        bytes memory,
+        uint256 transactionFee,
+        uint256 gasPrice,
+        uint256,
+        uint256,
+        bytes memory,
+        uint256 maxPossibleCharge
+    )
+        public
+        view
+        virtual
+        override
+        returns (uint256, bytes memory)
+    {
+    }
+
+    function _preRelayedCall(bytes memory context) internal virtual override returns (bytes32) {
+
+    }
+
+    function _postRelayedCall(bytes memory context, bool, uint256 actualCharge, bytes32) internal virtual override {
+
+    }
+
+	function _msgSender()
+		internal
+		override(Context, GSNRecipient)
+		view
+		returns (address payable)
+	{
+		return GSNRecipient._msgSender();
+	}
+
+	function _msgData()
+		internal
+		override(Context, GSNRecipient)
+		view
+		returns (bytes memory)
+	{
+		return GSNRecipient._msgData();
 	}
 }

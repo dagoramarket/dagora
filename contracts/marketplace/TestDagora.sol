@@ -5,28 +5,34 @@ pragma experimental ABIEncoderV2;
 import "./Dagora.sol";
 
 contract TestDagora is Dagora {
-
-    constructor(address _arbitrator,
-                address _token,
-                address _protocolFeeRecipient,
-                uint _feeTimeoutDays,
-                uint _blacklistTimeoutDays,
-                uint _protocolFeePercentage,
-                uint _tokenOwnerFeePercentage,
-                bytes memory _reportExtraData,
-                bytes memory _orderExtraData,
-                string memory _ipfsDomain)
-                Dagora(_arbitrator,
-                        _token,
-                        _protocolFeeRecipient,
-                        _feeTimeoutDays,
-                        _blacklistTimeoutDays,
-                        _protocolFeePercentage,
-                        _tokenOwnerFeePercentage,
-                        _reportExtraData,
-                        _orderExtraData,
-                        _ipfsDomain) public {
-    }
+    constructor(
+        address _arbitrator,
+        address _token,
+        address _protocolFeeRecipient,
+        uint256 _feeTimeoutDays,
+        uint256 _blacklistTimeoutDays,
+        uint256 _protocolFeePercentage,
+        uint256 _tokenOwnerFeePercentage,
+        bytes memory _reportExtraData,
+        bytes memory _orderExtraData,
+        string memory _ipfsDomain,
+        address _forwarder
+    )
+        public
+        Dagora(
+            _arbitrator,
+            _token,
+            _protocolFeeRecipient,
+            _feeTimeoutDays,
+            _blacklistTimeoutDays,
+            _protocolFeePercentage,
+            _tokenOwnerFeePercentage,
+            _reportExtraData,
+            _orderExtraData,
+            _ipfsDomain,
+            _forwarder
+        )
+    {}
 
     function _requireValidListing(Listing memory _listing, Sig memory sig)
         public
@@ -52,7 +58,11 @@ contract TestDagora is Dagora {
         return hashListingToSign(listing);
     }
 
-    function _ecrecover(bytes32 msgHash, Sig memory sig) public pure returns (address) {
+    function _ecrecover(bytes32 msgHash, Sig memory sig)
+        public
+        pure
+        returns (address)
+    {
         return ecrecover(msgHash, sig.v, sig.r, sig.s);
     }
 }

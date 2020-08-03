@@ -1,0 +1,1841 @@
+{
+  "contractName": "IPaymaster",
+  "abi": [
+    {
+      "inputs": [],
+      "name": "getHubAddr",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getRelayHubDeposit",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getGasLimits",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "acceptRelayedCallGasLimit",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "preRelayedCallGasLimit",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "postRelayedCallGasLimit",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct GSNTypes.GasLimits",
+          "name": "limits",
+          "type": "tuple"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "address",
+              "name": "target",
+              "type": "address"
+            },
+            {
+              "internalType": "bytes",
+              "name": "encodedFunction",
+              "type": "bytes"
+            },
+            {
+              "components": [
+                {
+                  "internalType": "uint256",
+                  "name": "gasLimit",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "gasPrice",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "pctRelayFee",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "baseRelayFee",
+                  "type": "uint256"
+                }
+              ],
+              "internalType": "struct GSNTypes.GasData",
+              "name": "gasData",
+              "type": "tuple"
+            },
+            {
+              "components": [
+                {
+                  "internalType": "address",
+                  "name": "senderAddress",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "senderNonce",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "address",
+                  "name": "relayWorker",
+                  "type": "address"
+                },
+                {
+                  "internalType": "address",
+                  "name": "paymaster",
+                  "type": "address"
+                },
+                {
+                  "internalType": "address",
+                  "name": "forwarder",
+                  "type": "address"
+                }
+              ],
+              "internalType": "struct GSNTypes.RelayData",
+              "name": "relayData",
+              "type": "tuple"
+            }
+          ],
+          "internalType": "struct GSNTypes.RelayRequest",
+          "name": "relayRequest",
+          "type": "tuple"
+        },
+        {
+          "internalType": "bytes",
+          "name": "signature",
+          "type": "bytes"
+        },
+        {
+          "internalType": "bytes",
+          "name": "approvalData",
+          "type": "bytes"
+        },
+        {
+          "internalType": "uint256",
+          "name": "maxPossibleGas",
+          "type": "uint256"
+        }
+      ],
+      "name": "acceptRelayedCall",
+      "outputs": [
+        {
+          "internalType": "bytes",
+          "name": "",
+          "type": "bytes"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes",
+          "name": "context",
+          "type": "bytes"
+        }
+      ],
+      "name": "preRelayedCall",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes",
+          "name": "context",
+          "type": "bytes"
+        },
+        {
+          "internalType": "bool",
+          "name": "success",
+          "type": "bool"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "preRetVal",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "uint256",
+          "name": "gasUseWithoutPost",
+          "type": "uint256"
+        },
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "gasLimit",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "gasPrice",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "pctRelayFee",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "baseRelayFee",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct GSNTypes.GasData",
+          "name": "gasData",
+          "type": "tuple"
+        }
+      ],
+      "name": "postRelayedCall",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "versionPaymaster",
+      "outputs": [
+        {
+          "internalType": "string",
+          "name": "",
+          "type": "string"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "metadata": "{\"compiler\":{\"version\":\"0.6.12+commit.27d51765\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"components\":[{\"internalType\":\"address\",\"name\":\"target\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"encodedFunction\",\"type\":\"bytes\"},{\"components\":[{\"internalType\":\"uint256\",\"name\":\"gasLimit\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"gasPrice\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"pctRelayFee\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"baseRelayFee\",\"type\":\"uint256\"}],\"internalType\":\"struct GSNTypes.GasData\",\"name\":\"gasData\",\"type\":\"tuple\"},{\"components\":[{\"internalType\":\"address\",\"name\":\"senderAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"senderNonce\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"relayWorker\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"paymaster\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"forwarder\",\"type\":\"address\"}],\"internalType\":\"struct GSNTypes.RelayData\",\"name\":\"relayData\",\"type\":\"tuple\"}],\"internalType\":\"struct GSNTypes.RelayRequest\",\"name\":\"relayRequest\",\"type\":\"tuple\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"approvalData\",\"type\":\"bytes\"},{\"internalType\":\"uint256\",\"name\":\"maxPossibleGas\",\"type\":\"uint256\"}],\"name\":\"acceptRelayedCall\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getGasLimits\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"acceptRelayedCallGasLimit\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"preRelayedCallGasLimit\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"postRelayedCallGasLimit\",\"type\":\"uint256\"}],\"internalType\":\"struct GSNTypes.GasLimits\",\"name\":\"limits\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getHubAddr\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getRelayHubDeposit\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"context\",\"type\":\"bytes\"},{\"internalType\":\"bool\",\"name\":\"success\",\"type\":\"bool\"},{\"internalType\":\"bytes32\",\"name\":\"preRetVal\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"gasUseWithoutPost\",\"type\":\"uint256\"},{\"components\":[{\"internalType\":\"uint256\",\"name\":\"gasLimit\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"gasPrice\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"pctRelayFee\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"baseRelayFee\",\"type\":\"uint256\"}],\"internalType\":\"struct GSNTypes.GasData\",\"name\":\"gasData\",\"type\":\"tuple\"}],\"name\":\"postRelayedCall\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"context\",\"type\":\"bytes\"}],\"name\":\"preRelayedCall\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"versionPaymaster\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{\"acceptRelayedCall((address,bytes,(uint256,uint256,uint256,uint256),(address,uint256,address,address,address)),bytes,bytes,uint256)\":{\"params\":{\"approvalData\":\"- extra dapp-specific data (e.g. signature from trusted party)\",\"maxPossibleGas\":\"- based on values returned from {@link getGasLimits},         the RelayHub will calculate the maximum possible amount of gas the user may be charged for.         In order to convert this value to wei, the Paymaster has to call \\\"relayHub.calculateCharge()\\\"\",\"relayRequest\":\"- the full relay request structure\",\"signature\":\"- user's EIP712-compatible signature of the {@link relayRequest}\"},\"returns\":{\"_0\":\"a context to be passed to preRelayedCall and postRelayedCall.\"}},\"getRelayHubDeposit()\":{\"returns\":{\"_0\":\"the paymaster's deposit in the RelayHub.\"}},\"postRelayedCall(bytes,bool,bytes32,uint256,(uint256,uint256,uint256,uint256))\":{\"params\":{\"gasUseWithoutPost\":\"- the actual amount of gas used by the entire transaction. Does not included any estimate of how much gas PostRelayCall itself will consume. NOTE: The gas overhead estimation is included in this number.\",\"preRetVal\":\"- preRelayedCall() return value passed back to the recipient Revert in this functions causes a revert of the client's relayed call but not in the entire transaction (that is, the relay will still get compensated)\",\"success\":\"- true if the relayed call succeeded, false if it reverted\"}}},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{\"acceptRelayedCall((address,bytes,(uint256,uint256,uint256,uint256),(address,uint256,address,address,address)),bytes,bytes,uint256)\":{\"notice\":\"Called by Relay (and RelayHub), to validate if this recipient accepts this call. revert to signal the paymaster will NOT pay for this call. Note: Accepting this call means paying for the tx whether the relayed call reverted or not.\"},\"getGasLimits()\":{\"notice\":\"The RelayHub will call accept-, pre-, and post-, RelayCall methods with these values for their gas limits.\"},\"getHubAddr()\":{\"notice\":\"return the relayHub of this contract.\"},\"getRelayHubDeposit()\":{\"notice\":\"Can be used to determine if the contract can pay for incoming calls before making any.\"},\"postRelayedCall(bytes,bool,bytes32,uint256,(uint256,uint256,uint256,uint256))\":{\"notice\":\"This method is called after the actual relayed function call. It may be used to record the transaction (e.g. charge the caller by some contract logic) for this call. the method is given all parameters of acceptRelayedCall, and also the success/failure status and actual used gas. NOTICE: if this method modifies the contract's state, it must be protected with access control i.e. require msg.sender == getHubAddr()\"},\"preRelayedCall(bytes)\":{\"notice\":\"this method is called before the actual relayed function call. It may be used to charge the caller before (in conjunction with refunding him later in postRelayedCall for example). the method is given all parameters of acceptRelayedCall and actual used gas. NOTICE: if this method modifies the contract's state, it must be protected with access control i.e. require msg.sender == getHubAddr() Revert in this functions causes a revert of the client's relayed call but not in the entire transaction (that is, the relay will still get compensated)\"}},\"version\":1}},\"settings\":{\"compilationTarget\":{\"@opengsn/gsn/contracts/interfaces/IPaymaster.sol\":\"IPaymaster\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"@opengsn/gsn/contracts/interfaces/IPaymaster.sol\":{\"keccak256\":\"0x90722dbfda6516ab14b979379bcbf7142f496d3905cf8e455fa8d5a531c55c28\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://bd3a1aa53ac7519f7be607c9d66f722dcd37fecb1b8322fb3b6c42941f3d662e\",\"dweb:/ipfs/QmPLwZx5wndpBg9U4kvQZgrRxxjmVAvr8j8pvzdx1d9ppD\"]},\"@opengsn/gsn/contracts/utils/EIP712Sig.sol\":{\"keccak256\":\"0x92fa01f58ce2ac5929fa164b6c3d29dbae60503d9e7ebf2740f887b0eb90cf0a\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://1d8f7d701f78f0e12a2bdcf8ffcb9b5ae5cd6f760a9badc9eabe52b3484c7b28\",\"dweb:/ipfs/QmYa5zsjRv5TuDuxTWnRnxo6Jefh6anJHETQMk7vrDFKYC\"]},\"@opengsn/gsn/contracts/utils/GSNTypes.sol\":{\"keccak256\":\"0xfe741e807b9a94ab4bb10ee8b02b4949e503d26c6870459428092637b6a8ad4e\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://79ebb4cdf6f4f0b886bae61a8e3f693359aadefde043b285cc0ef2ca487e41ed\",\"dweb:/ipfs/QmQodDCU2GKGMkEm8KWk1dq7x7L1Pr4fVKeWcGNMLmRYCs\"]},\"@openzeppelin/contracts/cryptography/ECDSA.sol\":{\"keccak256\":\"0x1efcb1ccef6b3bce65467c4b704cec8d0582e35ff48352269ba8cda4b54ae3da\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://f40d4c72c7f8dfdfb9fd048de5d3ece0020dfcd057b29f0630fd703e7fbe7301\",\"dweb:/ipfs/QmSw7Q9JVVbVDWwVbaJjHhkPmTm8GF3nwVTZUfnmPqTdNm\"]}},\"version\":1}",
+  "bytecode": "0x",
+  "deployedBytecode": "0x",
+  "immutableReferences": {},
+  "sourceMap": "",
+  "deployedSourceMap": "",
+  "source": "// SPDX-License-Identifier:MIT\npragma solidity ^0.6.2;\npragma experimental ABIEncoderV2;\n\nimport \"../utils/EIP712Sig.sol\";\n\ninterface IPaymaster {\n\n    /**\n     * return the relayHub of this contract.\n     */\n    function getHubAddr() external view returns (address);\n\n    /**\n     * Can be used to determine if the contract can pay for incoming calls before making any.\n     * @return the paymaster's deposit in the RelayHub.\n     */\n    function getRelayHubDeposit() external view returns (uint256);\n\n    /**\n     * The RelayHub will call accept-, pre-, and post-, RelayCall methods with these values for their gas limits.\n     */\n    function getGasLimits()\n    external\n    view\n    returns (\n        GSNTypes.GasLimits memory limits\n    );\n\n    /**\n     * Called by Relay (and RelayHub), to validate if this recipient accepts this call.\n     * revert to signal the paymaster will NOT pay for this call.\n     * Note: Accepting this call means paying for the tx whether the relayed call reverted or not.\n     *  @param relayRequest - the full relay request structure\n     *  @param signature - user's EIP712-compatible signature of the {@link relayRequest}\n     *  @param approvalData - extra dapp-specific data (e.g. signature from trusted party)\n     *  @param maxPossibleGas - based on values returned from {@link getGasLimits},\n     *         the RelayHub will calculate the maximum possible amount of gas the user may be charged for.\n     *         In order to convert this value to wei, the Paymaster has to call \"relayHub.calculateCharge()\"\n     *  @return a context to be passed to preRelayedCall and postRelayedCall.\n     */\n    function acceptRelayedCall(\n        GSNTypes.RelayRequest calldata relayRequest,\n        bytes calldata signature,\n        bytes calldata approvalData,\n        uint256 maxPossibleGas\n    )\n    external\n    view\n    returns (bytes memory);\n\n    /** this method is called before the actual relayed function call.\n     * It may be used to charge the caller before\n     * (in conjunction with refunding him later in postRelayedCall for example).\n     * the method is given all parameters of acceptRelayedCall and actual used gas.\n     *\n     *\n     * NOTICE: if this method modifies the contract's state, it must be\n     * protected with access control i.e. require msg.sender == getHubAddr()\n     *\n     *\n     * Revert in this functions causes a revert of the client's relayed call but not in the entire transaction\n     * (that is, the relay will still get compensated)\n     */\n    function preRelayedCall(bytes calldata context) external returns (bytes32);\n\n    /**\n     * This method is called after the actual relayed function call.\n     * It may be used to record the transaction (e.g. charge the caller by some contract logic) for this call.\n     * the method is given all parameters of acceptRelayedCall, and also the success/failure status and actual used gas.\n     *\n     *\n     * NOTICE: if this method modifies the contract's state,\n     * it must be protected with access control i.e. require msg.sender == getHubAddr()\n     *\n     *\n     * @param success - true if the relayed call succeeded, false if it reverted\n     * @param gasUseWithoutPost - the actual amount of gas used by the entire transaction.\n              Does not included any estimate of how much gas PostRelayCall itself will consume.\n              NOTE: The gas overhead estimation is included in this number.\n     * @param preRetVal - preRelayedCall() return value passed back to the recipient\n     *\n     * Revert in this functions causes a revert of the client's relayed call but not in the entire transaction\n     * (that is, the relay will still get compensated)\n     */\n    function postRelayedCall(\n        bytes calldata context,\n        bool success,\n        bytes32 preRetVal,\n        uint256 gasUseWithoutPost,\n        GSNTypes.GasData calldata gasData\n    ) external;\n\n    function versionPaymaster() external view returns (string memory);\n}\n",
+  "sourcePath": "@opengsn/gsn/contracts/interfaces/IPaymaster.sol",
+  "ast": {
+    "absolutePath": "@opengsn/gsn/contracts/interfaces/IPaymaster.sol",
+    "exportedSymbols": {
+      "IPaymaster": [
+        5049
+      ]
+    },
+    "id": 5050,
+    "license": "MIT",
+    "nodeType": "SourceUnit",
+    "nodes": [
+      {
+        "id": 4987,
+        "literals": [
+          "solidity",
+          "^",
+          "0.6",
+          ".2"
+        ],
+        "nodeType": "PragmaDirective",
+        "src": "31:23:15"
+      },
+      {
+        "id": 4988,
+        "literals": [
+          "experimental",
+          "ABIEncoderV2"
+        ],
+        "nodeType": "PragmaDirective",
+        "src": "55:33:15"
+      },
+      {
+        "absolutePath": "@opengsn/gsn/contracts/utils/EIP712Sig.sol",
+        "file": "../utils/EIP712Sig.sol",
+        "id": 4989,
+        "nodeType": "ImportDirective",
+        "scope": 5050,
+        "sourceUnit": 5523,
+        "src": "90:32:15",
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "abstract": false,
+        "baseContracts": [],
+        "contractDependencies": [],
+        "contractKind": "interface",
+        "documentation": null,
+        "fullyImplemented": false,
+        "id": 5049,
+        "linearizedBaseContracts": [
+          5049
+        ],
+        "name": "IPaymaster",
+        "nodeType": "ContractDefinition",
+        "nodes": [
+          {
+            "body": null,
+            "documentation": {
+              "id": 4990,
+              "nodeType": "StructuredDocumentation",
+              "src": "152:56:15",
+              "text": " return the relayHub of this contract."
+            },
+            "functionSelector": "74e861d6",
+            "id": 4995,
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "getHubAddr",
+            "nodeType": "FunctionDefinition",
+            "overrides": null,
+            "parameters": {
+              "id": 4991,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "232:2:15"
+            },
+            "returnParameters": {
+              "id": 4994,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 4993,
+                  "mutability": "mutable",
+                  "name": "",
+                  "nodeType": "VariableDeclaration",
+                  "overrides": null,
+                  "scope": 4995,
+                  "src": "258:7:15",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 4992,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "258:7:15",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "257:9:15"
+            },
+            "scope": 5049,
+            "src": "213:54:15",
+            "stateMutability": "view",
+            "virtual": false,
+            "visibility": "external"
+          },
+          {
+            "body": null,
+            "documentation": {
+              "id": 4996,
+              "nodeType": "StructuredDocumentation",
+              "src": "273:161:15",
+              "text": " Can be used to determine if the contract can pay for incoming calls before making any.\n @return the paymaster's deposit in the RelayHub."
+            },
+            "functionSelector": "2afe31c1",
+            "id": 5001,
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "getRelayHubDeposit",
+            "nodeType": "FunctionDefinition",
+            "overrides": null,
+            "parameters": {
+              "id": 4997,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "466:2:15"
+            },
+            "returnParameters": {
+              "id": 5000,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 4999,
+                  "mutability": "mutable",
+                  "name": "",
+                  "nodeType": "VariableDeclaration",
+                  "overrides": null,
+                  "scope": 5001,
+                  "src": "492:7:15",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 4998,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "492:7:15",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "491:9:15"
+            },
+            "scope": 5049,
+            "src": "439:62:15",
+            "stateMutability": "view",
+            "virtual": false,
+            "visibility": "external"
+          },
+          {
+            "body": null,
+            "documentation": {
+              "id": 5002,
+              "nodeType": "StructuredDocumentation",
+              "src": "507:125:15",
+              "text": " The RelayHub will call accept-, pre-, and post-, RelayCall methods with these values for their gas limits."
+            },
+            "functionSelector": "5ea54eee",
+            "id": 5007,
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "getGasLimits",
+            "nodeType": "FunctionDefinition",
+            "overrides": null,
+            "parameters": {
+              "id": 5003,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "658:2:15"
+            },
+            "returnParameters": {
+              "id": 5006,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 5005,
+                  "mutability": "mutable",
+                  "name": "limits",
+                  "nodeType": "VariableDeclaration",
+                  "overrides": null,
+                  "scope": 5007,
+                  "src": "705:32:15",
+                  "stateVariable": false,
+                  "storageLocation": "memory",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_struct$_GasLimits_$5560_memory_ptr",
+                    "typeString": "struct GSNTypes.GasLimits"
+                  },
+                  "typeName": {
+                    "contractScope": null,
+                    "id": 5004,
+                    "name": "GSNTypes.GasLimits",
+                    "nodeType": "UserDefinedTypeName",
+                    "referencedDeclaration": 5560,
+                    "src": "705:18:15",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_struct$_GasLimits_$5560_storage_ptr",
+                      "typeString": "struct GSNTypes.GasLimits"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "695:48:15"
+            },
+            "scope": 5049,
+            "src": "637:107:15",
+            "stateMutability": "view",
+            "virtual": false,
+            "visibility": "external"
+          },
+          {
+            "body": null,
+            "documentation": {
+              "id": 5008,
+              "nodeType": "StructuredDocumentation",
+              "src": "750:886:15",
+              "text": " Called by Relay (and RelayHub), to validate if this recipient accepts this call.\n revert to signal the paymaster will NOT pay for this call.\n Note: Accepting this call means paying for the tx whether the relayed call reverted or not.\n  @param relayRequest - the full relay request structure\n  @param signature - user's EIP712-compatible signature of the {@link relayRequest}\n  @param approvalData - extra dapp-specific data (e.g. signature from trusted party)\n  @param maxPossibleGas - based on values returned from {@link getGasLimits},\n         the RelayHub will calculate the maximum possible amount of gas the user may be charged for.\n         In order to convert this value to wei, the Paymaster has to call \"relayHub.calculateCharge()\"\n  @return a context to be passed to preRelayedCall and postRelayedCall."
+            },
+            "functionSelector": "50c74d3a",
+            "id": 5021,
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "acceptRelayedCall",
+            "nodeType": "FunctionDefinition",
+            "overrides": null,
+            "parameters": {
+              "id": 5017,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 5010,
+                  "mutability": "mutable",
+                  "name": "relayRequest",
+                  "nodeType": "VariableDeclaration",
+                  "overrides": null,
+                  "scope": 5021,
+                  "src": "1677:43:15",
+                  "stateVariable": false,
+                  "storageLocation": "calldata",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_struct$_RelayRequest_$5553_calldata_ptr",
+                    "typeString": "struct GSNTypes.RelayRequest"
+                  },
+                  "typeName": {
+                    "contractScope": null,
+                    "id": 5009,
+                    "name": "GSNTypes.RelayRequest",
+                    "nodeType": "UserDefinedTypeName",
+                    "referencedDeclaration": 5553,
+                    "src": "1677:21:15",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_struct$_RelayRequest_$5553_storage_ptr",
+                      "typeString": "struct GSNTypes.RelayRequest"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 5012,
+                  "mutability": "mutable",
+                  "name": "signature",
+                  "nodeType": "VariableDeclaration",
+                  "overrides": null,
+                  "scope": 5021,
+                  "src": "1730:24:15",
+                  "stateVariable": false,
+                  "storageLocation": "calldata",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bytes_calldata_ptr",
+                    "typeString": "bytes"
+                  },
+                  "typeName": {
+                    "id": 5011,
+                    "name": "bytes",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1730:5:15",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bytes_storage_ptr",
+                      "typeString": "bytes"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 5014,
+                  "mutability": "mutable",
+                  "name": "approvalData",
+                  "nodeType": "VariableDeclaration",
+                  "overrides": null,
+                  "scope": 5021,
+                  "src": "1764:27:15",
+                  "stateVariable": false,
+                  "storageLocation": "calldata",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bytes_calldata_ptr",
+                    "typeString": "bytes"
+                  },
+                  "typeName": {
+                    "id": 5013,
+                    "name": "bytes",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1764:5:15",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bytes_storage_ptr",
+                      "typeString": "bytes"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 5016,
+                  "mutability": "mutable",
+                  "name": "maxPossibleGas",
+                  "nodeType": "VariableDeclaration",
+                  "overrides": null,
+                  "scope": 5021,
+                  "src": "1801:22:15",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 5015,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1801:7:15",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "1667:162:15"
+            },
+            "returnParameters": {
+              "id": 5020,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 5019,
+                  "mutability": "mutable",
+                  "name": "",
+                  "nodeType": "VariableDeclaration",
+                  "overrides": null,
+                  "scope": 5021,
+                  "src": "1865:12:15",
+                  "stateVariable": false,
+                  "storageLocation": "memory",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bytes_memory_ptr",
+                    "typeString": "bytes"
+                  },
+                  "typeName": {
+                    "id": 5018,
+                    "name": "bytes",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1865:5:15",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bytes_storage_ptr",
+                      "typeString": "bytes"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "1864:14:15"
+            },
+            "scope": 5049,
+            "src": "1641:238:15",
+            "stateMutability": "view",
+            "virtual": false,
+            "visibility": "external"
+          },
+          {
+            "body": null,
+            "documentation": {
+              "id": 5022,
+              "nodeType": "StructuredDocumentation",
+              "src": "1885:632:15",
+              "text": "this method is called before the actual relayed function call.\n It may be used to charge the caller before\n (in conjunction with refunding him later in postRelayedCall for example).\n the method is given all parameters of acceptRelayedCall and actual used gas.\n NOTICE: if this method modifies the contract's state, it must be\n protected with access control i.e. require msg.sender == getHubAddr()\n Revert in this functions causes a revert of the client's relayed call but not in the entire transaction\n (that is, the relay will still get compensated)"
+            },
+            "functionSelector": "80274db7",
+            "id": 5029,
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "preRelayedCall",
+            "nodeType": "FunctionDefinition",
+            "overrides": null,
+            "parameters": {
+              "id": 5025,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 5024,
+                  "mutability": "mutable",
+                  "name": "context",
+                  "nodeType": "VariableDeclaration",
+                  "overrides": null,
+                  "scope": 5029,
+                  "src": "2546:22:15",
+                  "stateVariable": false,
+                  "storageLocation": "calldata",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bytes_calldata_ptr",
+                    "typeString": "bytes"
+                  },
+                  "typeName": {
+                    "id": 5023,
+                    "name": "bytes",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "2546:5:15",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bytes_storage_ptr",
+                      "typeString": "bytes"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "2545:24:15"
+            },
+            "returnParameters": {
+              "id": 5028,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 5027,
+                  "mutability": "mutable",
+                  "name": "",
+                  "nodeType": "VariableDeclaration",
+                  "overrides": null,
+                  "scope": 5029,
+                  "src": "2588:7:15",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bytes32",
+                    "typeString": "bytes32"
+                  },
+                  "typeName": {
+                    "id": 5026,
+                    "name": "bytes32",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "2588:7:15",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bytes32",
+                      "typeString": "bytes32"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "2587:9:15"
+            },
+            "scope": 5049,
+            "src": "2522:75:15",
+            "stateMutability": "nonpayable",
+            "virtual": false,
+            "visibility": "external"
+          },
+          {
+            "body": null,
+            "documentation": {
+              "id": 5030,
+              "nodeType": "StructuredDocumentation",
+              "src": "2603:1091:15",
+              "text": " This method is called after the actual relayed function call.\n It may be used to record the transaction (e.g. charge the caller by some contract logic) for this call.\n the method is given all parameters of acceptRelayedCall, and also the success/failure status and actual used gas.\n NOTICE: if this method modifies the contract's state,\n it must be protected with access control i.e. require msg.sender == getHubAddr()\n @param success - true if the relayed call succeeded, false if it reverted\n @param gasUseWithoutPost - the actual amount of gas used by the entire transaction.\nDoes not included any estimate of how much gas PostRelayCall itself will consume.\nNOTE: The gas overhead estimation is included in this number.\n @param preRetVal - preRelayedCall() return value passed back to the recipient\n Revert in this functions causes a revert of the client's relayed call but not in the entire transaction\n (that is, the relay will still get compensated)"
+            },
+            "functionSelector": "fbfbd0f2",
+            "id": 5043,
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "postRelayedCall",
+            "nodeType": "FunctionDefinition",
+            "overrides": null,
+            "parameters": {
+              "id": 5041,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 5032,
+                  "mutability": "mutable",
+                  "name": "context",
+                  "nodeType": "VariableDeclaration",
+                  "overrides": null,
+                  "scope": 5043,
+                  "src": "3733:22:15",
+                  "stateVariable": false,
+                  "storageLocation": "calldata",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bytes_calldata_ptr",
+                    "typeString": "bytes"
+                  },
+                  "typeName": {
+                    "id": 5031,
+                    "name": "bytes",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "3733:5:15",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bytes_storage_ptr",
+                      "typeString": "bytes"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 5034,
+                  "mutability": "mutable",
+                  "name": "success",
+                  "nodeType": "VariableDeclaration",
+                  "overrides": null,
+                  "scope": 5043,
+                  "src": "3765:12:15",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bool",
+                    "typeString": "bool"
+                  },
+                  "typeName": {
+                    "id": 5033,
+                    "name": "bool",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "3765:4:15",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bool",
+                      "typeString": "bool"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 5036,
+                  "mutability": "mutable",
+                  "name": "preRetVal",
+                  "nodeType": "VariableDeclaration",
+                  "overrides": null,
+                  "scope": 5043,
+                  "src": "3787:17:15",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bytes32",
+                    "typeString": "bytes32"
+                  },
+                  "typeName": {
+                    "id": 5035,
+                    "name": "bytes32",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "3787:7:15",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bytes32",
+                      "typeString": "bytes32"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 5038,
+                  "mutability": "mutable",
+                  "name": "gasUseWithoutPost",
+                  "nodeType": "VariableDeclaration",
+                  "overrides": null,
+                  "scope": 5043,
+                  "src": "3814:25:15",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 5037,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "3814:7:15",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 5040,
+                  "mutability": "mutable",
+                  "name": "gasData",
+                  "nodeType": "VariableDeclaration",
+                  "overrides": null,
+                  "scope": 5043,
+                  "src": "3849:33:15",
+                  "stateVariable": false,
+                  "storageLocation": "calldata",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_struct$_GasData_$5533_calldata_ptr",
+                    "typeString": "struct GSNTypes.GasData"
+                  },
+                  "typeName": {
+                    "contractScope": null,
+                    "id": 5039,
+                    "name": "GSNTypes.GasData",
+                    "nodeType": "UserDefinedTypeName",
+                    "referencedDeclaration": 5533,
+                    "src": "3849:16:15",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_struct$_GasData_$5533_storage_ptr",
+                      "typeString": "struct GSNTypes.GasData"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "3723:165:15"
+            },
+            "returnParameters": {
+              "id": 5042,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "3897:0:15"
+            },
+            "scope": 5049,
+            "src": "3699:199:15",
+            "stateMutability": "nonpayable",
+            "virtual": false,
+            "visibility": "external"
+          },
+          {
+            "body": null,
+            "documentation": null,
+            "functionSelector": "921276ea",
+            "id": 5048,
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "versionPaymaster",
+            "nodeType": "FunctionDefinition",
+            "overrides": null,
+            "parameters": {
+              "id": 5044,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "3929:2:15"
+            },
+            "returnParameters": {
+              "id": 5047,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 5046,
+                  "mutability": "mutable",
+                  "name": "",
+                  "nodeType": "VariableDeclaration",
+                  "overrides": null,
+                  "scope": 5048,
+                  "src": "3955:13:15",
+                  "stateVariable": false,
+                  "storageLocation": "memory",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_string_memory_ptr",
+                    "typeString": "string"
+                  },
+                  "typeName": {
+                    "id": 5045,
+                    "name": "string",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "3955:6:15",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_string_storage_ptr",
+                      "typeString": "string"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "3954:15:15"
+            },
+            "scope": 5049,
+            "src": "3904:66:15",
+            "stateMutability": "view",
+            "virtual": false,
+            "visibility": "external"
+          }
+        ],
+        "scope": 5050,
+        "src": "124:3848:15"
+      }
+    ],
+    "src": "31:3942:15"
+  },
+  "legacyAST": {
+    "absolutePath": "@opengsn/gsn/contracts/interfaces/IPaymaster.sol",
+    "exportedSymbols": {
+      "IPaymaster": [
+        5049
+      ]
+    },
+    "id": 5050,
+    "license": "MIT",
+    "nodeType": "SourceUnit",
+    "nodes": [
+      {
+        "id": 4987,
+        "literals": [
+          "solidity",
+          "^",
+          "0.6",
+          ".2"
+        ],
+        "nodeType": "PragmaDirective",
+        "src": "31:23:15"
+      },
+      {
+        "id": 4988,
+        "literals": [
+          "experimental",
+          "ABIEncoderV2"
+        ],
+        "nodeType": "PragmaDirective",
+        "src": "55:33:15"
+      },
+      {
+        "absolutePath": "@opengsn/gsn/contracts/utils/EIP712Sig.sol",
+        "file": "../utils/EIP712Sig.sol",
+        "id": 4989,
+        "nodeType": "ImportDirective",
+        "scope": 5050,
+        "sourceUnit": 5523,
+        "src": "90:32:15",
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "abstract": false,
+        "baseContracts": [],
+        "contractDependencies": [],
+        "contractKind": "interface",
+        "documentation": null,
+        "fullyImplemented": false,
+        "id": 5049,
+        "linearizedBaseContracts": [
+          5049
+        ],
+        "name": "IPaymaster",
+        "nodeType": "ContractDefinition",
+        "nodes": [
+          {
+            "body": null,
+            "documentation": {
+              "id": 4990,
+              "nodeType": "StructuredDocumentation",
+              "src": "152:56:15",
+              "text": " return the relayHub of this contract."
+            },
+            "functionSelector": "74e861d6",
+            "id": 4995,
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "getHubAddr",
+            "nodeType": "FunctionDefinition",
+            "overrides": null,
+            "parameters": {
+              "id": 4991,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "232:2:15"
+            },
+            "returnParameters": {
+              "id": 4994,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 4993,
+                  "mutability": "mutable",
+                  "name": "",
+                  "nodeType": "VariableDeclaration",
+                  "overrides": null,
+                  "scope": 4995,
+                  "src": "258:7:15",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 4992,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "258:7:15",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "257:9:15"
+            },
+            "scope": 5049,
+            "src": "213:54:15",
+            "stateMutability": "view",
+            "virtual": false,
+            "visibility": "external"
+          },
+          {
+            "body": null,
+            "documentation": {
+              "id": 4996,
+              "nodeType": "StructuredDocumentation",
+              "src": "273:161:15",
+              "text": " Can be used to determine if the contract can pay for incoming calls before making any.\n @return the paymaster's deposit in the RelayHub."
+            },
+            "functionSelector": "2afe31c1",
+            "id": 5001,
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "getRelayHubDeposit",
+            "nodeType": "FunctionDefinition",
+            "overrides": null,
+            "parameters": {
+              "id": 4997,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "466:2:15"
+            },
+            "returnParameters": {
+              "id": 5000,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 4999,
+                  "mutability": "mutable",
+                  "name": "",
+                  "nodeType": "VariableDeclaration",
+                  "overrides": null,
+                  "scope": 5001,
+                  "src": "492:7:15",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 4998,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "492:7:15",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "491:9:15"
+            },
+            "scope": 5049,
+            "src": "439:62:15",
+            "stateMutability": "view",
+            "virtual": false,
+            "visibility": "external"
+          },
+          {
+            "body": null,
+            "documentation": {
+              "id": 5002,
+              "nodeType": "StructuredDocumentation",
+              "src": "507:125:15",
+              "text": " The RelayHub will call accept-, pre-, and post-, RelayCall methods with these values for their gas limits."
+            },
+            "functionSelector": "5ea54eee",
+            "id": 5007,
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "getGasLimits",
+            "nodeType": "FunctionDefinition",
+            "overrides": null,
+            "parameters": {
+              "id": 5003,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "658:2:15"
+            },
+            "returnParameters": {
+              "id": 5006,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 5005,
+                  "mutability": "mutable",
+                  "name": "limits",
+                  "nodeType": "VariableDeclaration",
+                  "overrides": null,
+                  "scope": 5007,
+                  "src": "705:32:15",
+                  "stateVariable": false,
+                  "storageLocation": "memory",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_struct$_GasLimits_$5560_memory_ptr",
+                    "typeString": "struct GSNTypes.GasLimits"
+                  },
+                  "typeName": {
+                    "contractScope": null,
+                    "id": 5004,
+                    "name": "GSNTypes.GasLimits",
+                    "nodeType": "UserDefinedTypeName",
+                    "referencedDeclaration": 5560,
+                    "src": "705:18:15",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_struct$_GasLimits_$5560_storage_ptr",
+                      "typeString": "struct GSNTypes.GasLimits"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "695:48:15"
+            },
+            "scope": 5049,
+            "src": "637:107:15",
+            "stateMutability": "view",
+            "virtual": false,
+            "visibility": "external"
+          },
+          {
+            "body": null,
+            "documentation": {
+              "id": 5008,
+              "nodeType": "StructuredDocumentation",
+              "src": "750:886:15",
+              "text": " Called by Relay (and RelayHub), to validate if this recipient accepts this call.\n revert to signal the paymaster will NOT pay for this call.\n Note: Accepting this call means paying for the tx whether the relayed call reverted or not.\n  @param relayRequest - the full relay request structure\n  @param signature - user's EIP712-compatible signature of the {@link relayRequest}\n  @param approvalData - extra dapp-specific data (e.g. signature from trusted party)\n  @param maxPossibleGas - based on values returned from {@link getGasLimits},\n         the RelayHub will calculate the maximum possible amount of gas the user may be charged for.\n         In order to convert this value to wei, the Paymaster has to call \"relayHub.calculateCharge()\"\n  @return a context to be passed to preRelayedCall and postRelayedCall."
+            },
+            "functionSelector": "50c74d3a",
+            "id": 5021,
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "acceptRelayedCall",
+            "nodeType": "FunctionDefinition",
+            "overrides": null,
+            "parameters": {
+              "id": 5017,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 5010,
+                  "mutability": "mutable",
+                  "name": "relayRequest",
+                  "nodeType": "VariableDeclaration",
+                  "overrides": null,
+                  "scope": 5021,
+                  "src": "1677:43:15",
+                  "stateVariable": false,
+                  "storageLocation": "calldata",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_struct$_RelayRequest_$5553_calldata_ptr",
+                    "typeString": "struct GSNTypes.RelayRequest"
+                  },
+                  "typeName": {
+                    "contractScope": null,
+                    "id": 5009,
+                    "name": "GSNTypes.RelayRequest",
+                    "nodeType": "UserDefinedTypeName",
+                    "referencedDeclaration": 5553,
+                    "src": "1677:21:15",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_struct$_RelayRequest_$5553_storage_ptr",
+                      "typeString": "struct GSNTypes.RelayRequest"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 5012,
+                  "mutability": "mutable",
+                  "name": "signature",
+                  "nodeType": "VariableDeclaration",
+                  "overrides": null,
+                  "scope": 5021,
+                  "src": "1730:24:15",
+                  "stateVariable": false,
+                  "storageLocation": "calldata",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bytes_calldata_ptr",
+                    "typeString": "bytes"
+                  },
+                  "typeName": {
+                    "id": 5011,
+                    "name": "bytes",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1730:5:15",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bytes_storage_ptr",
+                      "typeString": "bytes"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 5014,
+                  "mutability": "mutable",
+                  "name": "approvalData",
+                  "nodeType": "VariableDeclaration",
+                  "overrides": null,
+                  "scope": 5021,
+                  "src": "1764:27:15",
+                  "stateVariable": false,
+                  "storageLocation": "calldata",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bytes_calldata_ptr",
+                    "typeString": "bytes"
+                  },
+                  "typeName": {
+                    "id": 5013,
+                    "name": "bytes",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1764:5:15",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bytes_storage_ptr",
+                      "typeString": "bytes"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 5016,
+                  "mutability": "mutable",
+                  "name": "maxPossibleGas",
+                  "nodeType": "VariableDeclaration",
+                  "overrides": null,
+                  "scope": 5021,
+                  "src": "1801:22:15",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 5015,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1801:7:15",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "1667:162:15"
+            },
+            "returnParameters": {
+              "id": 5020,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 5019,
+                  "mutability": "mutable",
+                  "name": "",
+                  "nodeType": "VariableDeclaration",
+                  "overrides": null,
+                  "scope": 5021,
+                  "src": "1865:12:15",
+                  "stateVariable": false,
+                  "storageLocation": "memory",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bytes_memory_ptr",
+                    "typeString": "bytes"
+                  },
+                  "typeName": {
+                    "id": 5018,
+                    "name": "bytes",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1865:5:15",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bytes_storage_ptr",
+                      "typeString": "bytes"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "1864:14:15"
+            },
+            "scope": 5049,
+            "src": "1641:238:15",
+            "stateMutability": "view",
+            "virtual": false,
+            "visibility": "external"
+          },
+          {
+            "body": null,
+            "documentation": {
+              "id": 5022,
+              "nodeType": "StructuredDocumentation",
+              "src": "1885:632:15",
+              "text": "this method is called before the actual relayed function call.\n It may be used to charge the caller before\n (in conjunction with refunding him later in postRelayedCall for example).\n the method is given all parameters of acceptRelayedCall and actual used gas.\n NOTICE: if this method modifies the contract's state, it must be\n protected with access control i.e. require msg.sender == getHubAddr()\n Revert in this functions causes a revert of the client's relayed call but not in the entire transaction\n (that is, the relay will still get compensated)"
+            },
+            "functionSelector": "80274db7",
+            "id": 5029,
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "preRelayedCall",
+            "nodeType": "FunctionDefinition",
+            "overrides": null,
+            "parameters": {
+              "id": 5025,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 5024,
+                  "mutability": "mutable",
+                  "name": "context",
+                  "nodeType": "VariableDeclaration",
+                  "overrides": null,
+                  "scope": 5029,
+                  "src": "2546:22:15",
+                  "stateVariable": false,
+                  "storageLocation": "calldata",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bytes_calldata_ptr",
+                    "typeString": "bytes"
+                  },
+                  "typeName": {
+                    "id": 5023,
+                    "name": "bytes",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "2546:5:15",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bytes_storage_ptr",
+                      "typeString": "bytes"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "2545:24:15"
+            },
+            "returnParameters": {
+              "id": 5028,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 5027,
+                  "mutability": "mutable",
+                  "name": "",
+                  "nodeType": "VariableDeclaration",
+                  "overrides": null,
+                  "scope": 5029,
+                  "src": "2588:7:15",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bytes32",
+                    "typeString": "bytes32"
+                  },
+                  "typeName": {
+                    "id": 5026,
+                    "name": "bytes32",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "2588:7:15",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bytes32",
+                      "typeString": "bytes32"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "2587:9:15"
+            },
+            "scope": 5049,
+            "src": "2522:75:15",
+            "stateMutability": "nonpayable",
+            "virtual": false,
+            "visibility": "external"
+          },
+          {
+            "body": null,
+            "documentation": {
+              "id": 5030,
+              "nodeType": "StructuredDocumentation",
+              "src": "2603:1091:15",
+              "text": " This method is called after the actual relayed function call.\n It may be used to record the transaction (e.g. charge the caller by some contract logic) for this call.\n the method is given all parameters of acceptRelayedCall, and also the success/failure status and actual used gas.\n NOTICE: if this method modifies the contract's state,\n it must be protected with access control i.e. require msg.sender == getHubAddr()\n @param success - true if the relayed call succeeded, false if it reverted\n @param gasUseWithoutPost - the actual amount of gas used by the entire transaction.\nDoes not included any estimate of how much gas PostRelayCall itself will consume.\nNOTE: The gas overhead estimation is included in this number.\n @param preRetVal - preRelayedCall() return value passed back to the recipient\n Revert in this functions causes a revert of the client's relayed call but not in the entire transaction\n (that is, the relay will still get compensated)"
+            },
+            "functionSelector": "fbfbd0f2",
+            "id": 5043,
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "postRelayedCall",
+            "nodeType": "FunctionDefinition",
+            "overrides": null,
+            "parameters": {
+              "id": 5041,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 5032,
+                  "mutability": "mutable",
+                  "name": "context",
+                  "nodeType": "VariableDeclaration",
+                  "overrides": null,
+                  "scope": 5043,
+                  "src": "3733:22:15",
+                  "stateVariable": false,
+                  "storageLocation": "calldata",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bytes_calldata_ptr",
+                    "typeString": "bytes"
+                  },
+                  "typeName": {
+                    "id": 5031,
+                    "name": "bytes",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "3733:5:15",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bytes_storage_ptr",
+                      "typeString": "bytes"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 5034,
+                  "mutability": "mutable",
+                  "name": "success",
+                  "nodeType": "VariableDeclaration",
+                  "overrides": null,
+                  "scope": 5043,
+                  "src": "3765:12:15",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bool",
+                    "typeString": "bool"
+                  },
+                  "typeName": {
+                    "id": 5033,
+                    "name": "bool",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "3765:4:15",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bool",
+                      "typeString": "bool"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 5036,
+                  "mutability": "mutable",
+                  "name": "preRetVal",
+                  "nodeType": "VariableDeclaration",
+                  "overrides": null,
+                  "scope": 5043,
+                  "src": "3787:17:15",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bytes32",
+                    "typeString": "bytes32"
+                  },
+                  "typeName": {
+                    "id": 5035,
+                    "name": "bytes32",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "3787:7:15",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bytes32",
+                      "typeString": "bytes32"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 5038,
+                  "mutability": "mutable",
+                  "name": "gasUseWithoutPost",
+                  "nodeType": "VariableDeclaration",
+                  "overrides": null,
+                  "scope": 5043,
+                  "src": "3814:25:15",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 5037,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "3814:7:15",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 5040,
+                  "mutability": "mutable",
+                  "name": "gasData",
+                  "nodeType": "VariableDeclaration",
+                  "overrides": null,
+                  "scope": 5043,
+                  "src": "3849:33:15",
+                  "stateVariable": false,
+                  "storageLocation": "calldata",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_struct$_GasData_$5533_calldata_ptr",
+                    "typeString": "struct GSNTypes.GasData"
+                  },
+                  "typeName": {
+                    "contractScope": null,
+                    "id": 5039,
+                    "name": "GSNTypes.GasData",
+                    "nodeType": "UserDefinedTypeName",
+                    "referencedDeclaration": 5533,
+                    "src": "3849:16:15",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_struct$_GasData_$5533_storage_ptr",
+                      "typeString": "struct GSNTypes.GasData"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "3723:165:15"
+            },
+            "returnParameters": {
+              "id": 5042,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "3897:0:15"
+            },
+            "scope": 5049,
+            "src": "3699:199:15",
+            "stateMutability": "nonpayable",
+            "virtual": false,
+            "visibility": "external"
+          },
+          {
+            "body": null,
+            "documentation": null,
+            "functionSelector": "921276ea",
+            "id": 5048,
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "versionPaymaster",
+            "nodeType": "FunctionDefinition",
+            "overrides": null,
+            "parameters": {
+              "id": 5044,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "3929:2:15"
+            },
+            "returnParameters": {
+              "id": 5047,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 5046,
+                  "mutability": "mutable",
+                  "name": "",
+                  "nodeType": "VariableDeclaration",
+                  "overrides": null,
+                  "scope": 5048,
+                  "src": "3955:13:15",
+                  "stateVariable": false,
+                  "storageLocation": "memory",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_string_memory_ptr",
+                    "typeString": "string"
+                  },
+                  "typeName": {
+                    "id": 5045,
+                    "name": "string",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "3955:6:15",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_string_storage_ptr",
+                      "typeString": "string"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "3954:15:15"
+            },
+            "scope": 5049,
+            "src": "3904:66:15",
+            "stateMutability": "view",
+            "virtual": false,
+            "visibility": "external"
+          }
+        ],
+        "scope": 5050,
+        "src": "124:3848:15"
+      }
+    ],
+    "src": "31:3942:15"
+  },
+  "compiler": {
+    "name": "solc",
+    "version": "0.6.12+commit.27d51765.Emscripten.clang"
+  },
+  "networks": {},
+  "schemaVersion": "3.2.3",
+  "updatedAt": "2020-08-03T14:23:11.855Z",
+  "devdoc": {
+    "kind": "dev",
+    "methods": {
+      "acceptRelayedCall((address,bytes,(uint256,uint256,uint256,uint256),(address,uint256,address,address,address)),bytes,bytes,uint256)": {
+        "params": {
+          "approvalData": "- extra dapp-specific data (e.g. signature from trusted party)",
+          "maxPossibleGas": "- based on values returned from {@link getGasLimits},         the RelayHub will calculate the maximum possible amount of gas the user may be charged for.         In order to convert this value to wei, the Paymaster has to call \"relayHub.calculateCharge()\"",
+          "relayRequest": "- the full relay request structure",
+          "signature": "- user's EIP712-compatible signature of the {@link relayRequest}"
+        },
+        "returns": {
+          "_0": "a context to be passed to preRelayedCall and postRelayedCall."
+        }
+      },
+      "getRelayHubDeposit()": {
+        "returns": {
+          "_0": "the paymaster's deposit in the RelayHub."
+        }
+      },
+      "postRelayedCall(bytes,bool,bytes32,uint256,(uint256,uint256,uint256,uint256))": {
+        "params": {
+          "gasUseWithoutPost": "- the actual amount of gas used by the entire transaction. Does not included any estimate of how much gas PostRelayCall itself will consume. NOTE: The gas overhead estimation is included in this number.",
+          "preRetVal": "- preRelayedCall() return value passed back to the recipient Revert in this functions causes a revert of the client's relayed call but not in the entire transaction (that is, the relay will still get compensated)",
+          "success": "- true if the relayed call succeeded, false if it reverted"
+        }
+      }
+    },
+    "version": 1
+  },
+  "userdoc": {
+    "kind": "user",
+    "methods": {
+      "acceptRelayedCall((address,bytes,(uint256,uint256,uint256,uint256),(address,uint256,address,address,address)),bytes,bytes,uint256)": {
+        "notice": "Called by Relay (and RelayHub), to validate if this recipient accepts this call. revert to signal the paymaster will NOT pay for this call. Note: Accepting this call means paying for the tx whether the relayed call reverted or not."
+      },
+      "getGasLimits()": {
+        "notice": "The RelayHub will call accept-, pre-, and post-, RelayCall methods with these values for their gas limits."
+      },
+      "getHubAddr()": {
+        "notice": "return the relayHub of this contract."
+      },
+      "getRelayHubDeposit()": {
+        "notice": "Can be used to determine if the contract can pay for incoming calls before making any."
+      },
+      "postRelayedCall(bytes,bool,bytes32,uint256,(uint256,uint256,uint256,uint256))": {
+        "notice": "This method is called after the actual relayed function call. It may be used to record the transaction (e.g. charge the caller by some contract logic) for this call. the method is given all parameters of acceptRelayedCall, and also the success/failure status and actual used gas. NOTICE: if this method modifies the contract's state, it must be protected with access control i.e. require msg.sender == getHubAddr()"
+      },
+      "preRelayedCall(bytes)": {
+        "notice": "this method is called before the actual relayed function call. It may be used to charge the caller before (in conjunction with refunding him later in postRelayedCall for example). the method is given all parameters of acceptRelayedCall and actual used gas. NOTICE: if this method modifies the contract's state, it must be protected with access control i.e. require msg.sender == getHubAddr() Revert in this functions causes a revert of the client's relayed call but not in the entire transaction (that is, the relay will still get compensated)"
+      }
+    },
+    "version": 1
+  }
+}

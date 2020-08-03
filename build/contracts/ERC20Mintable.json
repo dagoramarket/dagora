@@ -348,27 +348,27 @@
       "type": "function"
     }
   ],
-  "metadata": "{\"compiler\":{\"version\":\"0.6.8+commit.0bbfe453\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"Approval\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"Transfer\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\"}],\"name\":\"allowance\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"approve\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"}],\"name\":\"balanceOf\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"decimals\",\"outputs\":[{\"internalType\":\"uint8\",\"name\":\"\",\"type\":\"uint8\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"subtractedValue\",\"type\":\"uint256\"}],\"name\":\"decreaseAllowance\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"addedValue\",\"type\":\"uint256\"}],\"name\":\"increaseAllowance\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"mint\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"name\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"renounceOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"symbol\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"totalSupply\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"transfer\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"transferFrom\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"details\":\"ERC20 minting logic\",\"methods\":{\"allowance(address,address)\":{\"details\":\"See {IERC20-allowance}.\"},\"approve(address,uint256)\":{\"details\":\"See {IERC20-approve}.     * Requirements:     * - `spender` cannot be the zero address.\"},\"balanceOf(address)\":{\"details\":\"See {IERC20-balanceOf}.\"},\"decimals()\":{\"details\":\"Returns the number of decimals used to get its user representation. For example, if `decimals` equals `2`, a balance of `505` tokens should be displayed to a user as `5,05` (`505 / 10 ** 2`).     * Tokens usually opt for a value of 18, imitating the relationship between Ether and Wei. This is the value {ERC20} uses, unless {_setupDecimals} is called.     * NOTE: This information is only used for _display_ purposes: it in no way affects any of the arithmetic of the contract, including {IERC20-balanceOf} and {IERC20-transfer}.\"},\"decreaseAllowance(address,uint256)\":{\"details\":\"Atomically decreases the allowance granted to `spender` by the caller.     * This is an alternative to {approve} that can be used as a mitigation for problems described in {IERC20-approve}.     * Emits an {Approval} event indicating the updated allowance.     * Requirements:     * - `spender` cannot be the zero address. - `spender` must have allowance for the caller of at least `subtractedValue`.\"},\"increaseAllowance(address,uint256)\":{\"details\":\"Atomically increases the allowance granted to `spender` by the caller.     * This is an alternative to {approve} that can be used as a mitigation for problems described in {IERC20-approve}.     * Emits an {Approval} event indicating the updated allowance.     * Requirements:     * - `spender` cannot be the zero address.\"},\"mint(address,uint256)\":{\"details\":\"Function to mint tokens\",\"params\":{\"to\":\"The address that will receive the minted tokens.\",\"value\":\"The amount of tokens to mint.\"},\"returns\":{\"_0\":\"A boolean that indicates if the operation was successful.\"}},\"name()\":{\"details\":\"Returns the name of the token.\"},\"owner()\":{\"details\":\"Returns the address of the current owner.\"},\"renounceOwnership()\":{\"details\":\"Leaves the contract without owner. It will not be possible to call `onlyOwner` functions anymore. Can only be called by the current owner.     * NOTE: Renouncing ownership will leave the contract without an owner, thereby removing any functionality that is only available to the owner.\"},\"symbol()\":{\"details\":\"Returns the symbol of the token, usually a shorter version of the name.\"},\"totalSupply()\":{\"details\":\"See {IERC20-totalSupply}.\"},\"transfer(address,uint256)\":{\"details\":\"See {IERC20-transfer}.     * Requirements:     * - `recipient` cannot be the zero address. - the caller must have a balance of at least `amount`.\"},\"transferFrom(address,address,uint256)\":{\"details\":\"See {IERC20-transferFrom}.     * Emits an {Approval} event indicating the updated allowance. This is not required by the EIP. See the note at the beginning of {ERC20};     * Requirements: - `sender` and `recipient` cannot be the zero address. - `sender` must have a balance of at least `amount`. - the caller must have allowance for ``sender``'s tokens of at least `amount`.\"},\"transferOwnership(address)\":{\"details\":\"Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner.\"}},\"title\":\"ERC20Mintable\"},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"/home/gustavo/dagora/contracts/token/ERC20Mintable.sol\":\"ERC20Mintable\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"/home/gustavo/dagora/contracts/token/ERC20Mintable.sol\":{\"keccak256\":\"0x25a03965d33a23b9b93efc9a37f0c1ae7987f87f479f0213c073963230086e65\",\"urls\":[\"bzz-raw://385f6919981787ff659fc41c3e5055a175db967249276ef252769f6022093e16\",\"dweb:/ipfs/QmeUYgc4XL3oiBUfwB7f8JdNK9QfbrXNyZgXBv2meeeHKW\"]},\"@openzeppelin/contracts/GSN/Context.sol\":{\"keccak256\":\"0x0de74dfa6b37943c1b834cbd8fb7a8d052e5ff80c7adb33692102dd6cd2985e9\",\"urls\":[\"bzz-raw://9d2d827fcf4a838f5821732c0acd6a40d21c2a5a2cfe2563feec91465f47bb60\",\"dweb:/ipfs/Qmex3wMKf5Sghbfvr288RUg1kP2uAyTMf11w83WbMbpQQc\"]},\"@openzeppelin/contracts/access/Ownable.sol\":{\"keccak256\":\"0x9a8c691b81a4a48adbbd5b010faa56a168c189e711495c16347d93b60b805f82\",\"urls\":[\"bzz-raw://d951d626ed7bfe1a2d7a6bd4af315ff8691929bd567594d6ab53599fe9e17e4e\",\"dweb:/ipfs/QmYkGeowpa6Bjr9aaDirWdDo7hSfShzzZhanKC4nTfRhLj\"]},\"@openzeppelin/contracts/math/SafeMath.sol\":{\"keccak256\":\"0x04d34b3cd5677bea25f8dfceb6dec0eaa071d4d4b789a43f13fe0c415ba4c296\",\"urls\":[\"bzz-raw://e7e8b526a6839e5ba14f0d23a830387fec47f7043ce01d42c9f285b709a9d080\",\"dweb:/ipfs/QmXmhhFmX5gcAvVzNiDPAGA35iHMPNaYtQkACswRHBVTNw\"]},\"@openzeppelin/contracts/token/ERC20/ERC20.sol\":{\"keccak256\":\"0x3211de52f707a62a356a34fdea9d6a7bed46402d5ce45f1891a16fe2132fbb47\",\"urls\":[\"bzz-raw://45dfe794ad43a3674fab38a378c57eb6ed3353949f6529ccad4a4cbc91d45fc5\",\"dweb:/ipfs/QmReFGciE9fgsb6Nas1Fx593pzKWMjaDa1VQg4CEJQaD6U\"]},\"@openzeppelin/contracts/token/ERC20/IERC20.sol\":{\"keccak256\":\"0x6cc1cb934a3ac2137a7dcaed018af9e235392236ceecfd3687259702b9c767ad\",\"urls\":[\"bzz-raw://0055fa88138cd1c3c6440370f8580f85857f8fe9dec41c99af9eafbeb8d9c3ce\",\"dweb:/ipfs/QmX1xDh8vwGLLCH8ti45eXjQ7Wcxv1FEGTR3jkFnd5Nv6F\"]},\"@openzeppelin/contracts/utils/Address.sol\":{\"keccak256\":\"0x5f7da58ee3d9faa9b8999a93d49c8ff978f1afc88ae9bcfc6f9cbb44da011c2b\",\"urls\":[\"bzz-raw://4f089d954b3ecaa26949412fe63e9a184b056562c6c13dd4a0529a5d9a2e685a\",\"dweb:/ipfs/QmVK5iCNAMcEJQxT59bsC5E53JQASDQPU6khHox3d5ZXCn\"]}},\"version\":1}",
+  "metadata": "{\"compiler\":{\"version\":\"0.6.12+commit.27d51765\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"Approval\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"Transfer\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\"}],\"name\":\"allowance\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"approve\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"}],\"name\":\"balanceOf\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"decimals\",\"outputs\":[{\"internalType\":\"uint8\",\"name\":\"\",\"type\":\"uint8\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"subtractedValue\",\"type\":\"uint256\"}],\"name\":\"decreaseAllowance\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"addedValue\",\"type\":\"uint256\"}],\"name\":\"increaseAllowance\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"mint\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"name\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"renounceOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"symbol\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"totalSupply\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"transfer\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"transferFrom\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"details\":\"ERC20 minting logic\",\"kind\":\"dev\",\"methods\":{\"allowance(address,address)\":{\"details\":\"See {IERC20-allowance}.\"},\"approve(address,uint256)\":{\"details\":\"See {IERC20-approve}. Requirements: - `spender` cannot be the zero address.\"},\"balanceOf(address)\":{\"details\":\"See {IERC20-balanceOf}.\"},\"decimals()\":{\"details\":\"Returns the number of decimals used to get its user representation. For example, if `decimals` equals `2`, a balance of `505` tokens should be displayed to a user as `5,05` (`505 / 10 ** 2`). Tokens usually opt for a value of 18, imitating the relationship between Ether and Wei. This is the value {ERC20} uses, unless {_setupDecimals} is called. NOTE: This information is only used for _display_ purposes: it in no way affects any of the arithmetic of the contract, including {IERC20-balanceOf} and {IERC20-transfer}.\"},\"decreaseAllowance(address,uint256)\":{\"details\":\"Atomically decreases the allowance granted to `spender` by the caller. This is an alternative to {approve} that can be used as a mitigation for problems described in {IERC20-approve}. Emits an {Approval} event indicating the updated allowance. Requirements: - `spender` cannot be the zero address. - `spender` must have allowance for the caller of at least `subtractedValue`.\"},\"increaseAllowance(address,uint256)\":{\"details\":\"Atomically increases the allowance granted to `spender` by the caller. This is an alternative to {approve} that can be used as a mitigation for problems described in {IERC20-approve}. Emits an {Approval} event indicating the updated allowance. Requirements: - `spender` cannot be the zero address.\"},\"mint(address,uint256)\":{\"details\":\"Function to mint tokens\",\"params\":{\"to\":\"The address that will receive the minted tokens.\",\"value\":\"The amount of tokens to mint.\"},\"returns\":{\"_0\":\"A boolean that indicates if the operation was successful.\"}},\"name()\":{\"details\":\"Returns the name of the token.\"},\"owner()\":{\"details\":\"Returns the address of the current owner.\"},\"renounceOwnership()\":{\"details\":\"Leaves the contract without owner. It will not be possible to call `onlyOwner` functions anymore. Can only be called by the current owner. NOTE: Renouncing ownership will leave the contract without an owner, thereby removing any functionality that is only available to the owner.\"},\"symbol()\":{\"details\":\"Returns the symbol of the token, usually a shorter version of the name.\"},\"totalSupply()\":{\"details\":\"See {IERC20-totalSupply}.\"},\"transfer(address,uint256)\":{\"details\":\"See {IERC20-transfer}. Requirements: - `recipient` cannot be the zero address. - the caller must have a balance of at least `amount`.\"},\"transferFrom(address,address,uint256)\":{\"details\":\"See {IERC20-transferFrom}. Emits an {Approval} event indicating the updated allowance. This is not required by the EIP. See the note at the beginning of {ERC20}; Requirements: - `sender` and `recipient` cannot be the zero address. - `sender` must have a balance of at least `amount`. - the caller must have allowance for ``sender``'s tokens of at least `amount`.\"},\"transferOwnership(address)\":{\"details\":\"Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner.\"}},\"title\":\"ERC20Mintable\",\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"/home/gustavo/projects/dagora/contracts/token/ERC20Mintable.sol\":\"ERC20Mintable\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"/home/gustavo/projects/dagora/contracts/token/ERC20Mintable.sol\":{\"keccak256\":\"0x17085b77c2d8e991b068ccad19792bbd1a787f891519e79d0a5ee452d0bb63b9\",\"urls\":[\"bzz-raw://16692f2eef4bf3059fe2d4c8270338912367098ef773585c9fbda41cfc11e283\",\"dweb:/ipfs/Qmc3zXayH1kXhqG8EVf9pMBAL3GXEQPScwJqJS5HGVUVQ6\"]},\"@openzeppelin/contracts/GSN/Context.sol\":{\"keccak256\":\"0xdb26cbf4d028490f49831a7865c2fe1b28db44b535ca8d343785a3b768aae183\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://840b14ce0315c47d49ba328f1f9fa7654ded1c9e1559e6c5e777a7b2dc28bf0a\",\"dweb:/ipfs/QmTLLabn4wcfGro9LEmUXUN2nwKqZSotXMvjDCLXEnLtZP\"]},\"@openzeppelin/contracts/access/Ownable.sol\":{\"keccak256\":\"0x4bd6402ca6b3419008c2b482aff54e66836e8cb4eba2680e42ac5884ae6424fc\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://8f9f711fb8d0d92aeea1c327e3845d13ca1fa8f142e47f8723cd5b3106fb29a3\",\"dweb:/ipfs/QmVQUReDW9f4zGqhizwHnyU8EntMs95tbASdqkGncnikba\"]},\"@openzeppelin/contracts/math/SafeMath.sol\":{\"keccak256\":\"0x9a9cf02622cd7a64261b10534fc3260449da25c98c9e96d1b4ae8110a20e5806\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://2df142592d1dc267d9549049ee3317fa190d2f87eaa565f86ab05ec83f7ab8f5\",\"dweb:/ipfs/QmSkJtcfWo7c42KnL5hho6GFxK6HRNV91XABx1P7xDtfLV\"]},\"@openzeppelin/contracts/token/ERC20/ERC20.sol\":{\"keccak256\":\"0xf204d98eef08edacf5a02a2af1516ea4febdb6aba7a1ae5ac8deb6e568fd3dbb\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://c4dea62bffbd180772a6cfe7cb90e3a045c52d6b502bdb2fdff83193da42d8d0\",\"dweb:/ipfs/QmW8qGZ5nngajmv5Aamdrpkeuq7S5YCVaR7rtcqNekKHtK\"]},\"@openzeppelin/contracts/token/ERC20/IERC20.sol\":{\"keccak256\":\"0x5c26b39d26f7ed489e555d955dcd3e01872972e71fdd1528e93ec164e4f23385\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://efdc632af6960cf865dbc113665ea1f5b90eab75cc40ec062b2f6ae6da582017\",\"dweb:/ipfs/QmfAZFDuG62vxmAN9DnXApv7e7PMzPqi4RkqqZHLMSQiY5\"]},\"@openzeppelin/contracts/utils/Address.sol\":{\"keccak256\":\"0xdfb4f812600ba4ce6738c35584ceb8c9433472583051b48ba5b1f66cb758a498\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://df02dffe1c1de089d9b4f6192f0dcf464526f2230f420b3deec4645e0cdd2bff\",\"dweb:/ipfs/QmcqXGAU3KJqwrgUVoGJ2W8osomhSJ4R5kdsRpbuW3fELS\"]}},\"version\":1}",
   "bytecode": "0x",
   "deployedBytecode": "0x",
   "immutableReferences": {},
   "sourceMap": "",
   "deployedSourceMap": "",
-  "source": "pragma solidity >=0.5.0;\n\nimport \"@openzeppelin/contracts/token/ERC20/ERC20.sol\";\nimport \"@openzeppelin/contracts/access/Ownable.sol\";\n\n/**\n * @title ERC20Mintable\n * @dev ERC20 minting logic\n */\nabstract contract ERC20Mintable is ERC20, Ownable {\n    /**\n     * @dev Function to mint tokens\n     * @param to The address that will receive the minted tokens.\n     * @param value The amount of tokens to mint.\n     * @return A boolean that indicates if the operation was successful.\n     */\n    function mint(address to, uint256 value) public onlyOwner returns (bool) {\n        _mint(to, value);\n        return true;\n    }\n}",
-  "sourcePath": "/home/gustavo/dagora/contracts/token/ERC20Mintable.sol",
+  "source": "pragma solidity >=0.5.0;\n\nimport \"@openzeppelin/contracts/token/ERC20/ERC20.sol\";\nimport \"@openzeppelin/contracts/access/Ownable.sol\";\n\n/**\n * @title ERC20Mintable\n * @dev ERC20 minting logic\n */\nabstract contract ERC20Mintable is ERC20, Ownable {\n    /**\n     * @dev Function to mint tokens\n     * @param to The address that will receive the minted tokens.\n     * @param value The amount of tokens to mint.\n     * @return A boolean that indicates if the operation was successful.\n     */\n    function mint(address to, uint256 value) public onlyOwner returns (bool) {\n        _mint(to, value);\n        return true;\n    }\n}\n",
+  "sourcePath": "/home/gustavo/projects/dagora/contracts/token/ERC20Mintable.sol",
   "ast": {
-    "absolutePath": "/home/gustavo/dagora/contracts/token/ERC20Mintable.sol",
+    "absolutePath": "/home/gustavo/projects/dagora/contracts/token/ERC20Mintable.sol",
     "exportedSymbols": {
       "ERC20Mintable": [
-        3878
+        4184
       ]
     },
-    "id": 3879,
+    "id": 4185,
     "license": null,
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 3850,
+        "id": 4156,
         "literals": [
           "solidity",
           ">=",
@@ -376,27 +376,27 @@
           ".0"
         ],
         "nodeType": "PragmaDirective",
-        "src": "0:24:8"
+        "src": "0:24:9"
       },
       {
         "absolutePath": "@openzeppelin/contracts/token/ERC20/ERC20.sol",
         "file": "@openzeppelin/contracts/token/ERC20/ERC20.sol",
-        "id": 3851,
+        "id": 4157,
         "nodeType": "ImportDirective",
-        "scope": 3879,
-        "sourceUnit": 4718,
-        "src": "26:55:8",
+        "scope": 4185,
+        "sourceUnit": 6684,
+        "src": "26:55:9",
         "symbolAliases": [],
         "unitAlias": ""
       },
       {
         "absolutePath": "@openzeppelin/contracts/access/Ownable.sol",
         "file": "@openzeppelin/contracts/access/Ownable.sol",
-        "id": 3852,
+        "id": 4158,
         "nodeType": "ImportDirective",
-        "scope": 3879,
-        "sourceUnit": 4015,
-        "src": "82:52:8",
+        "scope": 4185,
+        "sourceUnit": 5883,
+        "src": "82:52:9",
         "symbolAliases": [],
         "unitAlias": ""
       },
@@ -407,69 +407,69 @@
             "arguments": null,
             "baseName": {
               "contractScope": null,
-              "id": 3854,
+              "id": 4160,
               "name": "ERC20",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 4717,
-              "src": "231:5:8",
+              "referencedDeclaration": 6683,
+              "src": "231:5:9",
               "typeDescriptions": {
-                "typeIdentifier": "t_contract$_ERC20_$4717",
+                "typeIdentifier": "t_contract$_ERC20_$6683",
                 "typeString": "contract ERC20"
               }
             },
-            "id": 3855,
+            "id": 4161,
             "nodeType": "InheritanceSpecifier",
-            "src": "231:5:8"
+            "src": "231:5:9"
           },
           {
             "arguments": null,
             "baseName": {
               "contractScope": null,
-              "id": 3856,
+              "id": 4162,
               "name": "Ownable",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 4014,
-              "src": "238:7:8",
+              "referencedDeclaration": 5882,
+              "src": "238:7:9",
               "typeDescriptions": {
-                "typeIdentifier": "t_contract$_Ownable_$4014",
+                "typeIdentifier": "t_contract$_Ownable_$5882",
                 "typeString": "contract Ownable"
               }
             },
-            "id": 3857,
+            "id": 4163,
             "nodeType": "InheritanceSpecifier",
-            "src": "238:7:8"
+            "src": "238:7:9"
           }
         ],
         "contractDependencies": [
-          3905,
-          4014,
-          4717,
-          4926
+          5773,
+          5882,
+          6683,
+          6892
         ],
         "contractKind": "contract",
         "documentation": {
-          "id": 3853,
+          "id": 4159,
           "nodeType": "StructuredDocumentation",
-          "src": "136:59:8",
-          "text": "@title ERC20Mintable\n@dev ERC20 minting logic"
+          "src": "136:59:9",
+          "text": " @title ERC20Mintable\n @dev ERC20 minting logic"
         },
         "fullyImplemented": false,
-        "id": 3878,
+        "id": 4184,
         "linearizedBaseContracts": [
-          3878,
-          4014,
-          4717,
-          4926,
-          3905
+          4184,
+          5882,
+          6683,
+          6892,
+          5773
         ],
         "name": "ERC20Mintable",
         "nodeType": "ContractDefinition",
         "nodes": [
           {
             "body": {
-              "id": 3876,
+              "id": 4182,
               "nodeType": "Block",
-              "src": "566:54:8",
+              "src": "566:54:9",
               "statements": [
                 {
                   "expression": {
@@ -477,12 +477,12 @@
                     "arguments": [
                       {
                         "argumentTypes": null,
-                        "id": 3870,
+                        "id": 4176,
                         "name": "to",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 3860,
-                        "src": "582:2:8",
+                        "referencedDeclaration": 4166,
+                        "src": "582:2:9",
                         "typeDescriptions": {
                           "typeIdentifier": "t_address",
                           "typeString": "address"
@@ -490,12 +490,12 @@
                       },
                       {
                         "argumentTypes": null,
-                        "id": 3871,
+                        "id": 4177,
                         "name": "value",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 3862,
-                        "src": "586:5:8",
+                        "referencedDeclaration": 4168,
+                        "src": "586:5:9",
                         "typeDescriptions": {
                           "typeIdentifier": "t_uint256",
                           "typeString": "uint256"
@@ -513,18 +513,18 @@
                           "typeString": "uint256"
                         }
                       ],
-                      "id": 3869,
+                      "id": 4175,
                       "name": "_mint",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 4593,
-                      "src": "576:5:8",
+                      "referencedDeclaration": 6559,
+                      "src": "576:5:9",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_internal_nonpayable$_t_address_$_t_uint256_$returns$__$",
                         "typeString": "function (address,uint256)"
                       }
                     },
-                    "id": 3872,
+                    "id": 4178,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -532,29 +532,29 @@
                     "lValueRequested": false,
                     "names": [],
                     "nodeType": "FunctionCall",
-                    "src": "576:16:8",
+                    "src": "576:16:9",
                     "tryCall": false,
                     "typeDescriptions": {
                       "typeIdentifier": "t_tuple$__$",
                       "typeString": "tuple()"
                     }
                   },
-                  "id": 3873,
+                  "id": 4179,
                   "nodeType": "ExpressionStatement",
-                  "src": "576:16:8"
+                  "src": "576:16:9"
                 },
                 {
                   "expression": {
                     "argumentTypes": null,
                     "hexValue": "74727565",
-                    "id": 3874,
+                    "id": 4180,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": true,
                     "kind": "bool",
                     "lValueRequested": false,
                     "nodeType": "Literal",
-                    "src": "609:4:8",
+                    "src": "609:4:9",
                     "subdenomination": null,
                     "typeDescriptions": {
                       "typeIdentifier": "t_bool",
@@ -562,60 +562,60 @@
                     },
                     "value": "true"
                   },
-                  "functionReturnParameters": 3868,
-                  "id": 3875,
+                  "functionReturnParameters": 4174,
+                  "id": 4181,
                   "nodeType": "Return",
-                  "src": "602:11:8"
+                  "src": "602:11:9"
                 }
               ]
             },
             "documentation": {
-              "id": 3858,
+              "id": 4164,
               "nodeType": "StructuredDocumentation",
-              "src": "252:236:8",
-              "text": "@dev Function to mint tokens\n@param to The address that will receive the minted tokens.\n@param value The amount of tokens to mint.\n@return A boolean that indicates if the operation was successful."
+              "src": "252:236:9",
+              "text": " @dev Function to mint tokens\n @param to The address that will receive the minted tokens.\n @param value The amount of tokens to mint.\n @return A boolean that indicates if the operation was successful."
             },
             "functionSelector": "40c10f19",
-            "id": 3877,
+            "id": 4183,
             "implemented": true,
             "kind": "function",
             "modifiers": [
               {
                 "arguments": null,
-                "id": 3865,
+                "id": 4171,
                 "modifierName": {
                   "argumentTypes": null,
-                  "id": 3864,
+                  "id": 4170,
                   "name": "onlyOwner",
                   "nodeType": "Identifier",
                   "overloadedDeclarations": [],
-                  "referencedDeclaration": 3963,
-                  "src": "541:9:8",
+                  "referencedDeclaration": 5831,
+                  "src": "541:9:9",
                   "typeDescriptions": {
                     "typeIdentifier": "t_modifier$__$",
                     "typeString": "modifier ()"
                   }
                 },
                 "nodeType": "ModifierInvocation",
-                "src": "541:9:8"
+                "src": "541:9:9"
               }
             ],
             "name": "mint",
             "nodeType": "FunctionDefinition",
             "overrides": null,
             "parameters": {
-              "id": 3863,
+              "id": 4169,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 3860,
+                  "id": 4166,
                   "mutability": "mutable",
                   "name": "to",
                   "nodeType": "VariableDeclaration",
                   "overrides": null,
-                  "scope": 3877,
-                  "src": "507:10:8",
+                  "scope": 4183,
+                  "src": "507:10:9",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -623,10 +623,10 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 3859,
+                    "id": 4165,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
-                    "src": "507:7:8",
+                    "src": "507:7:9",
                     "stateMutability": "nonpayable",
                     "typeDescriptions": {
                       "typeIdentifier": "t_address",
@@ -638,13 +638,13 @@
                 },
                 {
                   "constant": false,
-                  "id": 3862,
+                  "id": 4168,
                   "mutability": "mutable",
                   "name": "value",
                   "nodeType": "VariableDeclaration",
                   "overrides": null,
-                  "scope": 3877,
-                  "src": "519:13:8",
+                  "scope": 4183,
+                  "src": "519:13:9",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -652,10 +652,10 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 3861,
+                    "id": 4167,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
-                    "src": "519:7:8",
+                    "src": "519:7:9",
                     "typeDescriptions": {
                       "typeIdentifier": "t_uint256",
                       "typeString": "uint256"
@@ -665,21 +665,21 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "506:27:8"
+              "src": "506:27:9"
             },
             "returnParameters": {
-              "id": 3868,
+              "id": 4174,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 3867,
+                  "id": 4173,
                   "mutability": "mutable",
                   "name": "",
                   "nodeType": "VariableDeclaration",
                   "overrides": null,
-                  "scope": 3877,
-                  "src": "560:4:8",
+                  "scope": 4183,
+                  "src": "560:4:9",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -687,10 +687,10 @@
                     "typeString": "bool"
                   },
                   "typeName": {
-                    "id": 3866,
+                    "id": 4172,
                     "name": "bool",
                     "nodeType": "ElementaryTypeName",
-                    "src": "560:4:8",
+                    "src": "560:4:9",
                     "typeDescriptions": {
                       "typeIdentifier": "t_bool",
                       "typeString": "bool"
@@ -700,34 +700,34 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "559:6:8"
+              "src": "559:6:9"
             },
-            "scope": 3878,
-            "src": "493:127:8",
+            "scope": 4184,
+            "src": "493:127:9",
             "stateMutability": "nonpayable",
             "virtual": false,
             "visibility": "public"
           }
         ],
-        "scope": 3879,
-        "src": "196:426:8"
+        "scope": 4185,
+        "src": "196:426:9"
       }
     ],
-    "src": "0:622:8"
+    "src": "0:623:9"
   },
   "legacyAST": {
-    "absolutePath": "/home/gustavo/dagora/contracts/token/ERC20Mintable.sol",
+    "absolutePath": "/home/gustavo/projects/dagora/contracts/token/ERC20Mintable.sol",
     "exportedSymbols": {
       "ERC20Mintable": [
-        3878
+        4184
       ]
     },
-    "id": 3879,
+    "id": 4185,
     "license": null,
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 3850,
+        "id": 4156,
         "literals": [
           "solidity",
           ">=",
@@ -735,27 +735,27 @@
           ".0"
         ],
         "nodeType": "PragmaDirective",
-        "src": "0:24:8"
+        "src": "0:24:9"
       },
       {
         "absolutePath": "@openzeppelin/contracts/token/ERC20/ERC20.sol",
         "file": "@openzeppelin/contracts/token/ERC20/ERC20.sol",
-        "id": 3851,
+        "id": 4157,
         "nodeType": "ImportDirective",
-        "scope": 3879,
-        "sourceUnit": 4718,
-        "src": "26:55:8",
+        "scope": 4185,
+        "sourceUnit": 6684,
+        "src": "26:55:9",
         "symbolAliases": [],
         "unitAlias": ""
       },
       {
         "absolutePath": "@openzeppelin/contracts/access/Ownable.sol",
         "file": "@openzeppelin/contracts/access/Ownable.sol",
-        "id": 3852,
+        "id": 4158,
         "nodeType": "ImportDirective",
-        "scope": 3879,
-        "sourceUnit": 4015,
-        "src": "82:52:8",
+        "scope": 4185,
+        "sourceUnit": 5883,
+        "src": "82:52:9",
         "symbolAliases": [],
         "unitAlias": ""
       },
@@ -766,69 +766,69 @@
             "arguments": null,
             "baseName": {
               "contractScope": null,
-              "id": 3854,
+              "id": 4160,
               "name": "ERC20",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 4717,
-              "src": "231:5:8",
+              "referencedDeclaration": 6683,
+              "src": "231:5:9",
               "typeDescriptions": {
-                "typeIdentifier": "t_contract$_ERC20_$4717",
+                "typeIdentifier": "t_contract$_ERC20_$6683",
                 "typeString": "contract ERC20"
               }
             },
-            "id": 3855,
+            "id": 4161,
             "nodeType": "InheritanceSpecifier",
-            "src": "231:5:8"
+            "src": "231:5:9"
           },
           {
             "arguments": null,
             "baseName": {
               "contractScope": null,
-              "id": 3856,
+              "id": 4162,
               "name": "Ownable",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 4014,
-              "src": "238:7:8",
+              "referencedDeclaration": 5882,
+              "src": "238:7:9",
               "typeDescriptions": {
-                "typeIdentifier": "t_contract$_Ownable_$4014",
+                "typeIdentifier": "t_contract$_Ownable_$5882",
                 "typeString": "contract Ownable"
               }
             },
-            "id": 3857,
+            "id": 4163,
             "nodeType": "InheritanceSpecifier",
-            "src": "238:7:8"
+            "src": "238:7:9"
           }
         ],
         "contractDependencies": [
-          3905,
-          4014,
-          4717,
-          4926
+          5773,
+          5882,
+          6683,
+          6892
         ],
         "contractKind": "contract",
         "documentation": {
-          "id": 3853,
+          "id": 4159,
           "nodeType": "StructuredDocumentation",
-          "src": "136:59:8",
-          "text": "@title ERC20Mintable\n@dev ERC20 minting logic"
+          "src": "136:59:9",
+          "text": " @title ERC20Mintable\n @dev ERC20 minting logic"
         },
         "fullyImplemented": false,
-        "id": 3878,
+        "id": 4184,
         "linearizedBaseContracts": [
-          3878,
-          4014,
-          4717,
-          4926,
-          3905
+          4184,
+          5882,
+          6683,
+          6892,
+          5773
         ],
         "name": "ERC20Mintable",
         "nodeType": "ContractDefinition",
         "nodes": [
           {
             "body": {
-              "id": 3876,
+              "id": 4182,
               "nodeType": "Block",
-              "src": "566:54:8",
+              "src": "566:54:9",
               "statements": [
                 {
                   "expression": {
@@ -836,12 +836,12 @@
                     "arguments": [
                       {
                         "argumentTypes": null,
-                        "id": 3870,
+                        "id": 4176,
                         "name": "to",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 3860,
-                        "src": "582:2:8",
+                        "referencedDeclaration": 4166,
+                        "src": "582:2:9",
                         "typeDescriptions": {
                           "typeIdentifier": "t_address",
                           "typeString": "address"
@@ -849,12 +849,12 @@
                       },
                       {
                         "argumentTypes": null,
-                        "id": 3871,
+                        "id": 4177,
                         "name": "value",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 3862,
-                        "src": "586:5:8",
+                        "referencedDeclaration": 4168,
+                        "src": "586:5:9",
                         "typeDescriptions": {
                           "typeIdentifier": "t_uint256",
                           "typeString": "uint256"
@@ -872,18 +872,18 @@
                           "typeString": "uint256"
                         }
                       ],
-                      "id": 3869,
+                      "id": 4175,
                       "name": "_mint",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 4593,
-                      "src": "576:5:8",
+                      "referencedDeclaration": 6559,
+                      "src": "576:5:9",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_internal_nonpayable$_t_address_$_t_uint256_$returns$__$",
                         "typeString": "function (address,uint256)"
                       }
                     },
-                    "id": 3872,
+                    "id": 4178,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -891,29 +891,29 @@
                     "lValueRequested": false,
                     "names": [],
                     "nodeType": "FunctionCall",
-                    "src": "576:16:8",
+                    "src": "576:16:9",
                     "tryCall": false,
                     "typeDescriptions": {
                       "typeIdentifier": "t_tuple$__$",
                       "typeString": "tuple()"
                     }
                   },
-                  "id": 3873,
+                  "id": 4179,
                   "nodeType": "ExpressionStatement",
-                  "src": "576:16:8"
+                  "src": "576:16:9"
                 },
                 {
                   "expression": {
                     "argumentTypes": null,
                     "hexValue": "74727565",
-                    "id": 3874,
+                    "id": 4180,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": true,
                     "kind": "bool",
                     "lValueRequested": false,
                     "nodeType": "Literal",
-                    "src": "609:4:8",
+                    "src": "609:4:9",
                     "subdenomination": null,
                     "typeDescriptions": {
                       "typeIdentifier": "t_bool",
@@ -921,60 +921,60 @@
                     },
                     "value": "true"
                   },
-                  "functionReturnParameters": 3868,
-                  "id": 3875,
+                  "functionReturnParameters": 4174,
+                  "id": 4181,
                   "nodeType": "Return",
-                  "src": "602:11:8"
+                  "src": "602:11:9"
                 }
               ]
             },
             "documentation": {
-              "id": 3858,
+              "id": 4164,
               "nodeType": "StructuredDocumentation",
-              "src": "252:236:8",
-              "text": "@dev Function to mint tokens\n@param to The address that will receive the minted tokens.\n@param value The amount of tokens to mint.\n@return A boolean that indicates if the operation was successful."
+              "src": "252:236:9",
+              "text": " @dev Function to mint tokens\n @param to The address that will receive the minted tokens.\n @param value The amount of tokens to mint.\n @return A boolean that indicates if the operation was successful."
             },
             "functionSelector": "40c10f19",
-            "id": 3877,
+            "id": 4183,
             "implemented": true,
             "kind": "function",
             "modifiers": [
               {
                 "arguments": null,
-                "id": 3865,
+                "id": 4171,
                 "modifierName": {
                   "argumentTypes": null,
-                  "id": 3864,
+                  "id": 4170,
                   "name": "onlyOwner",
                   "nodeType": "Identifier",
                   "overloadedDeclarations": [],
-                  "referencedDeclaration": 3963,
-                  "src": "541:9:8",
+                  "referencedDeclaration": 5831,
+                  "src": "541:9:9",
                   "typeDescriptions": {
                     "typeIdentifier": "t_modifier$__$",
                     "typeString": "modifier ()"
                   }
                 },
                 "nodeType": "ModifierInvocation",
-                "src": "541:9:8"
+                "src": "541:9:9"
               }
             ],
             "name": "mint",
             "nodeType": "FunctionDefinition",
             "overrides": null,
             "parameters": {
-              "id": 3863,
+              "id": 4169,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 3860,
+                  "id": 4166,
                   "mutability": "mutable",
                   "name": "to",
                   "nodeType": "VariableDeclaration",
                   "overrides": null,
-                  "scope": 3877,
-                  "src": "507:10:8",
+                  "scope": 4183,
+                  "src": "507:10:9",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -982,10 +982,10 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 3859,
+                    "id": 4165,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
-                    "src": "507:7:8",
+                    "src": "507:7:9",
                     "stateMutability": "nonpayable",
                     "typeDescriptions": {
                       "typeIdentifier": "t_address",
@@ -997,13 +997,13 @@
                 },
                 {
                   "constant": false,
-                  "id": 3862,
+                  "id": 4168,
                   "mutability": "mutable",
                   "name": "value",
                   "nodeType": "VariableDeclaration",
                   "overrides": null,
-                  "scope": 3877,
-                  "src": "519:13:8",
+                  "scope": 4183,
+                  "src": "519:13:9",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -1011,10 +1011,10 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 3861,
+                    "id": 4167,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
-                    "src": "519:7:8",
+                    "src": "519:7:9",
                     "typeDescriptions": {
                       "typeIdentifier": "t_uint256",
                       "typeString": "uint256"
@@ -1024,21 +1024,21 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "506:27:8"
+              "src": "506:27:9"
             },
             "returnParameters": {
-              "id": 3868,
+              "id": 4174,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 3867,
+                  "id": 4173,
                   "mutability": "mutable",
                   "name": "",
                   "nodeType": "VariableDeclaration",
                   "overrides": null,
-                  "scope": 3877,
-                  "src": "560:4:8",
+                  "scope": 4183,
+                  "src": "560:4:9",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -1046,10 +1046,10 @@
                     "typeString": "bool"
                   },
                   "typeName": {
-                    "id": 3866,
+                    "id": 4172,
                     "name": "bool",
                     "nodeType": "ElementaryTypeName",
-                    "src": "560:4:8",
+                    "src": "560:4:9",
                     "typeDescriptions": {
                       "typeIdentifier": "t_bool",
                       "typeString": "bool"
@@ -1059,48 +1059,49 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "559:6:8"
+              "src": "559:6:9"
             },
-            "scope": 3878,
-            "src": "493:127:8",
+            "scope": 4184,
+            "src": "493:127:9",
             "stateMutability": "nonpayable",
             "virtual": false,
             "visibility": "public"
           }
         ],
-        "scope": 3879,
-        "src": "196:426:8"
+        "scope": 4185,
+        "src": "196:426:9"
       }
     ],
-    "src": "0:622:8"
+    "src": "0:623:9"
   },
   "compiler": {
     "name": "solc",
-    "version": "0.6.8+commit.0bbfe453.Emscripten.clang"
+    "version": "0.6.12+commit.27d51765.Emscripten.clang"
   },
   "networks": {},
-  "schemaVersion": "3.2.0",
-  "updatedAt": "2020-06-04T04:41:03.856Z",
+  "schemaVersion": "3.2.3",
+  "updatedAt": "2020-08-03T14:23:11.842Z",
   "devdoc": {
     "details": "ERC20 minting logic",
+    "kind": "dev",
     "methods": {
       "allowance(address,address)": {
         "details": "See {IERC20-allowance}."
       },
       "approve(address,uint256)": {
-        "details": "See {IERC20-approve}.     * Requirements:     * - `spender` cannot be the zero address."
+        "details": "See {IERC20-approve}. Requirements: - `spender` cannot be the zero address."
       },
       "balanceOf(address)": {
         "details": "See {IERC20-balanceOf}."
       },
       "decimals()": {
-        "details": "Returns the number of decimals used to get its user representation. For example, if `decimals` equals `2`, a balance of `505` tokens should be displayed to a user as `5,05` (`505 / 10 ** 2`).     * Tokens usually opt for a value of 18, imitating the relationship between Ether and Wei. This is the value {ERC20} uses, unless {_setupDecimals} is called.     * NOTE: This information is only used for _display_ purposes: it in no way affects any of the arithmetic of the contract, including {IERC20-balanceOf} and {IERC20-transfer}."
+        "details": "Returns the number of decimals used to get its user representation. For example, if `decimals` equals `2`, a balance of `505` tokens should be displayed to a user as `5,05` (`505 / 10 ** 2`). Tokens usually opt for a value of 18, imitating the relationship between Ether and Wei. This is the value {ERC20} uses, unless {_setupDecimals} is called. NOTE: This information is only used for _display_ purposes: it in no way affects any of the arithmetic of the contract, including {IERC20-balanceOf} and {IERC20-transfer}."
       },
       "decreaseAllowance(address,uint256)": {
-        "details": "Atomically decreases the allowance granted to `spender` by the caller.     * This is an alternative to {approve} that can be used as a mitigation for problems described in {IERC20-approve}.     * Emits an {Approval} event indicating the updated allowance.     * Requirements:     * - `spender` cannot be the zero address. - `spender` must have allowance for the caller of at least `subtractedValue`."
+        "details": "Atomically decreases the allowance granted to `spender` by the caller. This is an alternative to {approve} that can be used as a mitigation for problems described in {IERC20-approve}. Emits an {Approval} event indicating the updated allowance. Requirements: - `spender` cannot be the zero address. - `spender` must have allowance for the caller of at least `subtractedValue`."
       },
       "increaseAllowance(address,uint256)": {
-        "details": "Atomically increases the allowance granted to `spender` by the caller.     * This is an alternative to {approve} that can be used as a mitigation for problems described in {IERC20-approve}.     * Emits an {Approval} event indicating the updated allowance.     * Requirements:     * - `spender` cannot be the zero address."
+        "details": "Atomically increases the allowance granted to `spender` by the caller. This is an alternative to {approve} that can be used as a mitigation for problems described in {IERC20-approve}. Emits an {Approval} event indicating the updated allowance. Requirements: - `spender` cannot be the zero address."
       },
       "mint(address,uint256)": {
         "details": "Function to mint tokens",
@@ -1119,7 +1120,7 @@
         "details": "Returns the address of the current owner."
       },
       "renounceOwnership()": {
-        "details": "Leaves the contract without owner. It will not be possible to call `onlyOwner` functions anymore. Can only be called by the current owner.     * NOTE: Renouncing ownership will leave the contract without an owner, thereby removing any functionality that is only available to the owner."
+        "details": "Leaves the contract without owner. It will not be possible to call `onlyOwner` functions anymore. Can only be called by the current owner. NOTE: Renouncing ownership will leave the contract without an owner, thereby removing any functionality that is only available to the owner."
       },
       "symbol()": {
         "details": "Returns the symbol of the token, usually a shorter version of the name."
@@ -1128,18 +1129,21 @@
         "details": "See {IERC20-totalSupply}."
       },
       "transfer(address,uint256)": {
-        "details": "See {IERC20-transfer}.     * Requirements:     * - `recipient` cannot be the zero address. - the caller must have a balance of at least `amount`."
+        "details": "See {IERC20-transfer}. Requirements: - `recipient` cannot be the zero address. - the caller must have a balance of at least `amount`."
       },
       "transferFrom(address,address,uint256)": {
-        "details": "See {IERC20-transferFrom}.     * Emits an {Approval} event indicating the updated allowance. This is not required by the EIP. See the note at the beginning of {ERC20};     * Requirements: - `sender` and `recipient` cannot be the zero address. - `sender` must have a balance of at least `amount`. - the caller must have allowance for ``sender``'s tokens of at least `amount`."
+        "details": "See {IERC20-transferFrom}. Emits an {Approval} event indicating the updated allowance. This is not required by the EIP. See the note at the beginning of {ERC20}; Requirements: - `sender` and `recipient` cannot be the zero address. - `sender` must have a balance of at least `amount`. - the caller must have allowance for ``sender``'s tokens of at least `amount`."
       },
       "transferOwnership(address)": {
         "details": "Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner."
       }
     },
-    "title": "ERC20Mintable"
+    "title": "ERC20Mintable",
+    "version": 1
   },
   "userdoc": {
-    "methods": {}
+    "kind": "user",
+    "methods": {},
+    "version": 1
   }
 }

@@ -1,0 +1,6 @@
+{
+  "solidity.packageDefaultDependenciesContractsDirectory": "",
+  "solidity.packageDefaultDependenciesDirectory": "node_modules",
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "SimonSiefke.prettier-vscode"
+}

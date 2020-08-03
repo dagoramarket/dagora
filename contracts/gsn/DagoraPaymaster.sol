@@ -19,7 +19,9 @@ contract DagoraPaymaster is BasePaymaster {
         uint256 maxPossibleGas
     ) external override view returns (bytes memory) {
         (approvalData);
-        ITrustedForwarder forwarder = ITrustedForwarder(relayRequest.relayData.forwarder);
+        ITrustedForwarder forwarder = ITrustedForwarder(
+            relayRequest.relayData.forwarder
+        );
         forwarder.verify(relayRequest, signature);
         bytes4 func = GsnUtils.getMethodSig(relayRequest.encodedFunction);
         if (func == Dagora.createTransaction.selector) {
@@ -39,9 +41,16 @@ contract DagoraPaymaster is BasePaymaster {
                 dagora.availableToken(order) > tokenPreCharge,
                 "Order must be more expensive to include the gas fee"
             );
-            require(order.total < order.token.balanceOf(order.buyer), "balance too low");
-            require(order.total <= order.token.allowance(order.buyer, address(dagora)), "allowance too low");
-            return abi.encode(payer, tokenPreCharge);
+            require(
+                order.total < order.token.balanceOf(order.buyer),
+                "balance too low"
+            );
+            require(
+                order.total <=
+                    order.token.allowance(order.buyer, address(dagora)),
+                "allowance too low"
+            );
+            return abi.encode(tokenPreCharge);
         }
     }
 

@@ -30,7 +30,8 @@ module.exports = function (_deployer) {
         30,
         web3.utils.toHex("a"),
         web3.utils.toHex("a"),
-        "http://ipfs.infura.io/ipfs/"
+        "http://ipfs.infura.io/ipfs/",
+        arbitrator
       );
     });
 };

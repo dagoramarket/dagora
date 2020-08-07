@@ -331,25 +331,6 @@ abstract contract Dagora is Ownable {
         );
     }
 
-    function batchCreateTransaction(
-        Order[] memory orders,
-        Sig[] memory orderSignatures,
-        Sig[] memory listingSignatures
-    ) public returns (bytes32[] memory hashes) {
-        require(
-            orders.length == orderSignatures.length &&
-                orderSignatures.length == listingSignatures.length
-        );
-        hashes = new bytes32[](orders.length);
-        for (uint256 i = 0; i < orders.length; i++) {
-            hashes[i] = createTransaction(
-                orders[i],
-                orderSignatures[i],
-                listingSignatures[i]
-            );
-        }
-    }
-
     function confirmReceipt(Order memory _order) public {
         bytes32 hash = hashOrderToSign(_order);
         Transaction storage transaction = transactions[hash];
@@ -399,12 +380,6 @@ abstract contract Dagora is Ownable {
             cashbackPercentage = _order.listing.cashbackPercentage;
         }
         finalizeTransaction(_order);
-    }
-
-    function batchExecuteTransaction(Order[] memory orders) public {
-        for (uint256 i = 0; i < orders.length; i++) {
-            executeTransaction(orders[i]);
-        }
     }
 
     function finalizeTransaction(Order memory order) internal {

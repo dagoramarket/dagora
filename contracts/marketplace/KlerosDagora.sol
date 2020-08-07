@@ -2,11 +2,11 @@
 pragma solidity ^0.6.0;
 pragma experimental ABIEncoderV2;
 
-import "./Dagora.sol";
+import "./BatchDagora.sol";
 import "../arbitration/Arbitrator.sol";
 import "../arbitration/IArbitrable.sol";
 
-contract KlerosDagora is Dagora, IArbitrable {
+contract KlerosDagora is BatchDagora, IArbitrable {
     Arbitrator public arbitrator; // Address of the arbitrator contract.
     bytes public reportExtraData; // Extra data to set up the arbitration.
     bytes public orderExtraData; // Extra data to set up the arbitration.

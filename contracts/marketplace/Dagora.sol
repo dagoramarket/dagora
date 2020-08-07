@@ -2,16 +2,11 @@
 pragma solidity ^0.6.0;
 pragma experimental ABIEncoderV2;
 
-import "../arbitration/Arbitrator.sol";
-import "../arbitration/IArbitrable.sol";
-
 import "@openzeppelin/contracts/token/ERC20/ERC20Burnable.sol";
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-import "@opengsn/gsn/contracts/BaseRelayRecipient.sol";
-
-contract Dagora is IArbitrable, Ownable, BaseRelayRecipient {
+abstract contract Dagora is Ownable {
     /* 2 decimal plates for percentage */
     uint256 public constant INVERSE_BASIS_POINT = 10000;
 
@@ -155,9 +150,6 @@ contract Dagora is IArbitrable, Ownable, BaseRelayRecipient {
     mapping(bytes32 => RunningDispute) public disputes; // Listing Hash to Dispute
     mapping(uint256 => bytes32) public disputeIDtoHash;
 
-    Arbitrator public arbitrator; // Address of the arbitrator contract.
-    bytes public reportExtraData; // Extra data to set up the arbitration.
-    bytes public orderExtraData; // Extra data to set up the arbitration.
     uint256 public blackListTimeout;
     uint256 public feeTimeout;
     /* Time in seconds a party can take to pay arbitration
@@ -176,28 +168,20 @@ contract Dagora is IArbitrable, Ownable, BaseRelayRecipient {
     address public protocolFeeRecipient;
 
     constructor(
-        address _arbitrator,
         address _token,
         address _protocolFeeRecipient,
         uint256 _feeTimeoutDays,
         uint256 _blacklistTimeoutDays,
         uint256 _protocolFeePercentage,
         uint256 _tokenOwnerFeePercentage,
-        bytes memory _reportExtraData,
-        bytes memory _orderExtraData,
-        string memory _ipfsDomain,
-        address _forwarder
+        string memory _ipfsDomain
     ) public Ownable() {
-        trustedForwarder = _forwarder;
-        arbitrator = Arbitrator(_arbitrator);
         marketToken = ERC20Burnable(_token);
         protocolFeeRecipient = _protocolFeeRecipient;
         feeTimeout = _feeTimeoutDays * (1 days);
         blackListTimeout = _blacklistTimeoutDays * (1 days);
         protocolFeePercentage = _protocolFeePercentage;
         tokenOwnerFeePercentage = _tokenOwnerFeePercentage;
-        reportExtraData = _reportExtraData;
-        orderExtraData = _orderExtraData;
         ipfsDomain = _ipfsDomain;
     }
 
@@ -486,60 +470,6 @@ contract Dagora is IArbitrable, Ownable, BaseRelayRecipient {
         emit WarrantyClaimed(hash);
     }
 
-    function disputeTransaction(Order memory _order)
-        public
-        payable
-        returns (bytes32 hash)
-    {
-        hash = hashOrderToSign(_order);
-        Transaction storage transaction = transactions[hash];
-        require(
-            transaction.status == Status.WaitingConfirmation ||
-                transaction.status == Status.WarrantyConfirmation,
-            "Invalid phase"
-        );
-        require(
-            now <=
-                transaction.lastStatusUpdate +
-                    (_order.confirmationTimeout * (1 days)),
-            "Confirmation time has timed out."
-        );
-        uint256 arbitrationCost = arbitrator.arbitrationCost(reportExtraData);
-        require(
-            msg.value >= arbitrationCost,
-            "Value must be greater than arbitrationCost"
-        );
-        address payable prosecution;
-        address payable defendant;
-        if (transaction.status == Status.WaitingConfirmation) {
-            require(_msgSender() == _order.buyer, "Only buyer can dispute.");
-            prosecution = _order.buyer;
-            defendant = _order.listing.seller;
-        } else {
-            require(
-                _msgSender() == _order.listing.seller,
-                "Only seller can dispute."
-            );
-            prosecution = _order.buyer;
-            defendant = _order.listing.seller;
-        }
-        transaction.status = Status.InDispute;
-        transaction.lastStatusUpdate = now;
-        RunningDispute storage dispute = _createDispute(
-            hash,
-            prosecution,
-            defendant,
-            _order.total,
-            _order.token,
-            msg.value,
-            DisputeType.Order
-        );
-        emit MetaEvidence(
-            dispute.metaEvidenceId,
-            string(abi.encodePacked(ipfsDomain, _order.listing.ipfsHash))
-        );
-    }
-
     function updateRefund(Order memory _order, uint256 refund) public {
         require(
             _msgSender() == _order.listing.seller,
@@ -585,7 +515,7 @@ contract Dagora is IArbitrable, Ownable, BaseRelayRecipient {
             _msgSender() != _listing.stakeOwner,
             "You can't report yourself. Use cancelListing()"
         );
-        uint256 arbitrationCost = arbitrator.arbitrationCost(reportExtraData);
+        uint256 arbitrationCost = arbitrationCost(DisputeType.Report);
         require(
             msg.value >= arbitrationCost,
             "Value must be greater than arbitrationCost"
@@ -613,7 +543,7 @@ contract Dagora is IArbitrable, Ownable, BaseRelayRecipient {
         Seller storage defendant = sellers[_listing.stakeOwner];
         prosecution.lockedTokens += _listing.stakedAmount;
         defendant.lockedTokens += _listing.stakedAmount;
-        RunningDispute storage dispute = _createDispute(
+        _createDispute(
             hash,
             _msgSender(),
             _listing.stakeOwner,
@@ -622,9 +552,55 @@ contract Dagora is IArbitrable, Ownable, BaseRelayRecipient {
             msg.value,
             DisputeType.Report
         );
-        emit MetaEvidence(
-            dispute.metaEvidenceId,
-            string(abi.encodePacked(ipfsDomain, _listing.ipfsHash))
+    }
+
+    function disputeTransaction(Order memory _order)
+        public
+        payable
+        returns (bytes32 hash)
+    {
+        hash = hashOrderToSign(_order);
+        Transaction storage transaction = transactions[hash];
+        require(
+            transaction.status == Status.WaitingConfirmation ||
+                transaction.status == Status.WarrantyConfirmation,
+            "Invalid phase"
+        );
+        require(
+            now <=
+                transaction.lastStatusUpdate +
+                    (_order.confirmationTimeout * (1 days)),
+            "Confirmation time has timed out."
+        );
+        uint256 arbitrationCost = arbitrationCost(DisputeType.Order);
+        require(
+            msg.value >= arbitrationCost,
+            "Value must be greater than arbitrationCost"
+        );
+        address payable prosecution;
+        address payable defendant;
+        if (transaction.status == Status.WaitingConfirmation) {
+            require(_msgSender() == _order.buyer, "Only buyer can dispute.");
+            prosecution = _order.buyer;
+            defendant = _order.listing.seller;
+        } else {
+            require(
+                _msgSender() == _order.listing.seller,
+                "Only seller can dispute."
+            );
+            prosecution = _order.buyer;
+            defendant = _order.listing.seller;
+        }
+        transaction.status = Status.InDispute;
+        transaction.lastStatusUpdate = now;
+        _createDispute(
+            hash,
+            prosecution,
+            defendant,
+            _order.total,
+            _order.token,
+            msg.value,
+            DisputeType.Order
         );
     }
 
@@ -685,7 +661,7 @@ contract Dagora is IArbitrable, Ownable, BaseRelayRecipient {
 
     function payArbitrationFee(bytes32 hash) public payable {
         RunningDispute storage dispute = disputes[hash];
-        uint256 arbitrationCost = arbitrator.arbitrationCost(reportExtraData);
+        uint256 arbitrationCost = arbitrationCost(dispute.disputeType);
         require(
             DisputeStatus.NoDispute < dispute.status &&
                 dispute.status < DisputeStatus.DisputeCreated,
@@ -728,108 +704,24 @@ contract Dagora is IArbitrable, Ownable, BaseRelayRecipient {
         }
     }
 
-    function raiseDispute(bytes32 hash, uint256 _arbitrationCost) internal {
-        RunningDispute storage dispute = disputes[hash];
-        dispute.status = DisputeStatus.DisputeCreated;
-        uint256 disputeId = arbitrator.createDispute{ value: _arbitrationCost }(
-            AMOUNT_OF_CHOICES,
-            dispute.disputeType == DisputeType.Order
-                ? orderExtraData
-                : reportExtraData
-        );
-        disputeIDtoHash[disputeId] = hash;
-        emit Dispute(
-            arbitrator,
-            disputeId,
-            dispute.metaEvidenceId,
-            dispute.metaEvidenceId
-        );
-        // Refund sender if it overpaid.
-        bool success;
-        if (dispute.prosecutionFee > _arbitrationCost) {
-            uint256 extraFeeProsecution = dispute.prosecutionFee -
-                _arbitrationCost;
-            dispute.prosecutionFee = _arbitrationCost;
-            (success, ) = dispute.prosecution.call{
-                value: extraFeeProsecution
-            }("");
-        }
-
-        // Refund receiver if it overpaid.
-        if (dispute.defendantFee > _arbitrationCost) {
-            uint256 extraFeeDefendant = dispute.defendantFee - _arbitrationCost;
-            dispute.defendantFee = _arbitrationCost;
-            (success, ) = dispute.defendant.call{ value: extraFeeDefendant }(
-                ""
-            );
-        }
-    }
+    function raiseDispute(bytes32 hash, uint256 _arbitrationCost)
+        internal
+        virtual;
 
     /** @dev Submit a reference to evidence. EVENT.
      *  @param _hash The hash of the order.
      *  @param _evidence A link to an evidence using its URI.
      */
-    function submitEvidence(bytes32 _hash, string memory _evidence) public {
-        RunningDispute storage dispute = disputes[_hash];
-        require(
-            _msgSender() == dispute.prosecution ||
-                _msgSender() == dispute.defendant,
-            "The caller must be the prosecution or the defendant."
-        );
-        require(
-            dispute.disputeType == DisputeType.Order,
-            "Evidences are only allowed for orders disputes."
-        );
-        require(
-            dispute.status < DisputeStatus.Resolved,
-            "Must not send evidence if the dispute is resolved."
-        );
-
-        emit Evidence(
-            arbitrator,
-            dispute.metaEvidenceId,
-            _msgSender(),
-            _evidence
-        );
-    }
+    function submitEvidence(bytes32 _hash, string memory _evidence)
+        public
+        virtual;
 
     /** @dev Appeal an appealable ruling. UNTRUSTED.
      *  Transfer the funds to the arbitrator.
      *  Note that no checks are required as the checks are done by the arbitrator.
      *  @param _hash The hash of the order.
      */
-    function appeal(bytes32 _hash) public payable {
-        RunningDispute storage dispute = disputes[_hash];
-        require(
-            dispute.disputeType == DisputeType.Order,
-            "Appeals are only allowed for orders disputes."
-        );
-
-        arbitrator.appeal{ value: msg.value }(
-            dispute.disputeId,
-            orderExtraData
-        );
-    }
-
-    function rule(uint256 _disputeID, uint256 _ruling) public override {
-        bytes32 hash = disputeIDtoHash[_disputeID];
-        RunningDispute storage dispute = disputes[hash];
-        require(
-            _msgSender() == address(arbitrator),
-            "The caller must be the arbitrator."
-        );
-        require(
-            dispute.status == DisputeStatus.DisputeCreated,
-            "The dispute has already been resolved."
-        );
-        emit Ruling(Arbitrator(_msgSender()), _disputeID, _ruling);
-        if (dispute.disputeType == DisputeType.Report) {
-            executeReportRuling(dispute, _ruling);
-        } else {
-            _executeOrderRuling(dispute, _ruling);
-            transactions[hash].status = Status.Finalized;
-        }
-    }
+    function appeal(bytes32 _hash) public virtual payable;
 
     function _executeOrderRuling(
         RunningDispute storage dispute,
@@ -881,6 +773,12 @@ contract Dagora is IArbitrable, Ownable, BaseRelayRecipient {
             );
         }
     }
+
+    function arbitrationCost(DisputeType _type)
+        public
+        virtual
+        view
+        returns (uint256 fee);
 
     function executeReportRuling(
         RunningDispute storage dispute,
@@ -1177,25 +1075,5 @@ contract Dagora is IArbitrable, Ownable, BaseRelayRecipient {
                 _order.protocolFee +
                 _order.stakeHolderFee +
                 _order.commission);
-    }
-
-    function _msgSender()
-        internal
-        virtual
-        override(Context, BaseRelayRecipient)
-        view
-        returns (address payable)
-    {
-        return BaseRelayRecipient._msgSender();
-    }
-
-    function versionRecipient()
-        external
-        virtual
-        override
-        view
-        returns (string memory)
-    {
-        return "1.0";
     }
 }

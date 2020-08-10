@@ -4,6 +4,7 @@ pragma experimental ABIEncoderV2;
 
 import "@opengsn/gsn/contracts/BasePaymaster.sol";
 import "@opengsn/gsn/contracts/utils/GsnUtils.sol";
+import "@opengsn/gsn/contracts/0x/LibBytesV06.sol";
 import "@opengsn/gsn/contracts/paymaster/IUniswap.sol";
 import "@opengsn/gsn/contracts/interfaces/ITrustedForwarder.sol";
 import "../marketplace/Dagora.sol";
@@ -33,11 +34,16 @@ contract DagoraPaymaster is BasePaymaster {
         forwarder.verify(relayRequest, signature);
         bytes4 func = GsnUtils.getMethodSig(relayRequest.encodedFunction);
         if (func == Dagora.createTransaction.selector) {
-            // Dagora.Order memory order;
-            // (order, , ) = abi.decode(
-            //     relayRequest.encodedFunction, // TODO remove first 4 bytes
-            //     (Dagora.Order, Dagora.Sig, Dagora.Sig)
-            // );
+            Dagora.Order memory order;
+            (order, , ) = abi.decode(
+                LibBytesV06.slice(
+                    relayRequest.encodedFunction,
+                    4,
+                    relayRequest.encodedFunction.length
+                ),
+                (Dagora.Order, Dagora.Sig, Dagora.Sig)
+            );
+
             // uint256 ethMaxCharge = relayHub.calculateCharge(
             //     maxPossibleGas,
             //     relayRequest.gasData
@@ -49,15 +55,15 @@ contract DagoraPaymaster is BasePaymaster {
             //     dagora.availableToken(order) > tokenPreCharge,
             //     "Order must be more expensive to include the gas fee"
             // );
-            // require(
-            //     order.total < order.token.balanceOf(order.buyer),
-            //     "balance too low"
-            // );
-            // require(
-            //     order.total <=
-            //         order.token.allowance(order.buyer, address(dagora)),
-            //     "allowance too low"
-            // );
+            require(
+                order.total < order.token.balanceOf(order.buyer),
+                "balance too low"
+            );
+            require(
+                order.total <=
+                    order.token.allowance(order.buyer, address(dagora)),
+                "allowance too low"
+            );
             // return abi.encode(tokenPreCharge);
         } else {
             revert();

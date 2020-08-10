@@ -268,7 +268,11 @@ contract("Dagora", async (accounts) => {
         orderHash,
         accounts[1]
       );
-
+      const func = dagora.contract.methods.createTransaction(
+        order,
+        orderSignature,
+        listingSignature
+      );
       const transaction = await contract.createTransaction(
         order,
         orderSignature,
@@ -279,7 +283,6 @@ contract("Dagora", async (accounts) => {
         contract,
         transaction.hash
       );
-      console.log(receipt);
     });
 
     // it("#createTransaction and #executeTransaction", async () => {

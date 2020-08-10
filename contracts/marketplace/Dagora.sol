@@ -477,6 +477,7 @@ abstract contract Dagora is Ownable {
 
     function report(Listing memory _listing, Sig memory sig)
         public
+        virtual
         payable
         returns (bytes32 hash)
     {
@@ -531,6 +532,7 @@ abstract contract Dagora is Ownable {
 
     function disputeTransaction(Order memory _order)
         public
+        virtual
         payable
         returns (bytes32 hash)
     {

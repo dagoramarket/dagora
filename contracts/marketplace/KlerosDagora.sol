@@ -45,7 +45,7 @@ contract KlerosDagora is BatchDagora, IArbitrable {
         payable
         returns (bytes32 hash)
     {
-        hash = report(_listing, sig);
+        hash = Dagora.report(_listing, sig);
         emit MetaEvidence(
             disputes[hash].metaEvidenceId,
             string(abi.encodePacked(ipfsDomain, _listing.ipfsHash))
@@ -58,7 +58,7 @@ contract KlerosDagora is BatchDagora, IArbitrable {
         payable
         returns (bytes32 hash)
     {
-        hash = disputeTransaction(_order);
+        hash = Dagora.disputeTransaction(_order);
         emit MetaEvidence(
             disputes[hash].metaEvidenceId,
             string(abi.encodePacked(ipfsDomain, _order.listing.ipfsHash))

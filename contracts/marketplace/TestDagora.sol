@@ -2,9 +2,9 @@
 pragma solidity ^0.6.0;
 pragma experimental ABIEncoderV2;
 
-import "./Dagora.sol";
+import "./GSNDagora.sol";
 
-contract TestDagora is Dagora {
+contract TestDagora is GSNDagora {
     constructor(
         address _arbitrator,
         address _token,
@@ -19,7 +19,8 @@ contract TestDagora is Dagora {
         address _forwarder
     )
         public
-        Dagora(
+        GSNDagora(
+            _forwarder,
             _arbitrator,
             _token,
             _protocolFeeRecipient,
@@ -29,8 +30,7 @@ contract TestDagora is Dagora {
             _tokenOwnerFeePercentage,
             _reportExtraData,
             _orderExtraData,
-            _ipfsDomain,
-            _forwarder
+            _ipfsDomain
         )
     {}
 

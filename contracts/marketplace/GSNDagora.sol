@@ -5,8 +5,9 @@ pragma experimental ABIEncoderV2;
 import "./KlerosDagora.sol";
 
 import "@opengsn/gsn/contracts/BaseRelayRecipient.sol";
+import "@opengsn/gsn/contracts/interfaces/IKnowForwarderAddress.sol";
 
-contract GSNDagora is KlerosDagora, BaseRelayRecipient {
+contract GSNDagora is KlerosDagora, BaseRelayRecipient, IKnowForwarderAddress {
     constructor(
         address _forwarder,
         address _arbitrator,
@@ -37,9 +38,16 @@ contract GSNDagora is KlerosDagora, BaseRelayRecipient {
         trustedForwarder = _forwarder;
     }
 
+    function setTrustedForwarder(address _forwarder) external {
+        trustedForwarder = _forwarder;
+    }
+
+    function getTrustedForwarder() external override view returns (address) {
+        return trustedForwarder;
+    }
+
     function _msgSender()
         internal
-        virtual
         override(Context, BaseRelayRecipient)
         view
         returns (address payable)
@@ -47,13 +55,7 @@ contract GSNDagora is KlerosDagora, BaseRelayRecipient {
         return BaseRelayRecipient._msgSender();
     }
 
-    function versionRecipient()
-        external
-        virtual
-        override
-        view
-        returns (string memory)
-    {
+    function versionRecipient() external override view returns (string memory) {
         return "1.0";
     }
 }

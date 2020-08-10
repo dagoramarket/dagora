@@ -6903,8 +6903,8 @@
         }
       },
       "links": {},
-      "address": "0xe295Bad1E45C728B8789CFEdCE0093A9A9Afb974",
-      "transactionHash": "0x6416e18d37813bfb20132fa9b28585297569095cb19a6eb5b42ddfec0b3f6b65"
+      "address": "0x8fdC18b5150c4417478A7264c93Ed770b4A1fDEe",
+      "transactionHash": "0xe5003706b1d45107e68ebcab48cddf78b47cb5ffdfac3eddc827199b9a6d234c"
     },
     "1590521881021": {
       "events": {
@@ -7548,7 +7548,7 @@
     }
   },
   "schemaVersion": "3.2.3",
-  "updatedAt": "2020-08-03T14:25:41.236Z",
+  "updatedAt": "2020-08-08T03:36:00.060Z",
   "networkType": "ethereum",
   "devdoc": {
     "details": "This is a centralized arbitrator deciding alone on the result of disputes. No appeals are possible.",

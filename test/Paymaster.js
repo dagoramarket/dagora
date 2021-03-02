@@ -22,16 +22,12 @@ const configureGSN = require("@opengsn/gsn/dist/src/relayclient/GSNConfigurator"
 const Web3 = require("web3");
 const ethers = require("ethers");
 const {generateListing, generateOrder} = require("./helpers/populator");
-const {waitForTransaction} = require("./helpers/gsnHelper");
-const {hashListing, hashOrder} = require("./helpers/signatureHelper");
 
 contract("Paymaster", async (accounts) => {
-  context("GSN", function () {
+  context("methods", function () {
     let token;
     let dagora;
 
-    // let gsnInstance;
-    // let provider;
     let paymaster;
 
     before(async () => {
@@ -45,40 +41,10 @@ contract("Paymaster", async (accounts) => {
 
       paymaster = await DagoraPaymaster.new();
       await paymaster.setRelayHub(gsnInstance.deploymentResult.relayHubAddress);
-      await paymaster.send(1e17);
       await paymaster.setDagora(dagora.address);
-
-      // const gsnConfigParams = {
-      //   gasPriceFactorPercent: 70,
-      //   methodSuffix: "_v4",
-      //   jsonStringifyRequest: true,
-      //   chainId: "*",
-      //   relayLookupWindowBlocks: 1e5,
-      //   preferredRelays: [gsnInstance.relayUrl],
-      //   relayHubAddress: gsnInstance.deploymentResult.relayHubAddress,
-      //   stakeManagerAddress: gsnInstance.deploymentResult.stakeManagerAddress,
-      //   paymasterAddress: paymaster.address,
-      //   // verbose: true,
-      // };
-
-      // const gsnConfig = configureGSN(gsnConfigParams);
-
-      // provider = new ethers.providers.Web3Provider(
-      //   new RelayProvider(web3.currentProvider, gsnConfig)
-      // );
-
-      // const acct = provider.provider.newAccount();
-      // contract = await new ethers.Contract(
-      //   dagora.address,
-      //   dagora.abi,
-      //   provider.getSigner(acct.address, acct.privateKey)
-      // );
-      // await dagora.setTrustedForwarder(
-      //   gsnInstance.deploymentResult.forwarderAddress
-      // );
     });
 
-    it("#createTransaction", async () => {
+    it("#acceptRelayedCall", async () => {
       const approveSeller = await token.approve(dagora.address, -1, {
         from: accounts[0],
       });

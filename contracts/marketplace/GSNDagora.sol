@@ -8,9 +8,12 @@ import "@opengsn/gsn/contracts/BaseRelayRecipient.sol";
 import "@opengsn/gsn/contracts/interfaces/IKnowForwarderAddress.sol";
 
 contract GSNDagora is KlerosDagora, BaseRelayRecipient, IKnowForwarderAddress {
+    address public trustedPaymaster;
+
     constructor(
         address _forwarder,
         address _arbitrator,
+        address _trustedPaymaster,
         address _token,
         address _protocolFeeRecipient,
         uint256 _feeTimeoutDays,
@@ -36,6 +39,41 @@ contract GSNDagora is KlerosDagora, BaseRelayRecipient, IKnowForwarderAddress {
         )
     {
         trustedForwarder = _forwarder;
+        trustedPaymaster = _trustedPaymaster;
+    }
+
+    function chargeGasFee(
+        Order calldata _order,
+        Sig memory orderSig,
+        Sig memory listingSig,
+        uint256 fee
+    ) external returns (bool) {
+        require(trustedPaymaster == msg.sender, "Need to be trusted paymaster");
+        Transaction storage transaction = transactions[requireValidOrder(
+            _order,
+            orderSig,
+            listingSig
+        )];
+        require(
+            transaction.status > Status.NoTransaction &&
+                transaction.status < Status.Finalized
+        );
+        require(availableToken(_order) >= fee);
+        transaction.gasFee += fee;
+        _order.token.transferFrom(_msgSender(), msg.sender, fee); // TODO create a cheapier way
+        return true;
+    }
+
+    function availableToken(Order memory _order) public view returns (uint256) {
+        Transaction storage transaction = transactions[hashOrderToSign(_order)];
+        return
+            _order.total -
+            (transaction.refund +
+                transaction.gasFee +
+                _order.cashback +
+                _order.protocolFee +
+                _order.stakeHolderFee +
+                _order.commission);
     }
 
     function setTrustedForwarder(address _forwarder) external {

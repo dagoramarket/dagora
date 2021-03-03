@@ -11,9 +11,9 @@ import "@opengsn/gsn/contracts/utils/GSNTypes.sol";
 contract AcceptEverythingPaymaster is BasePaymaster {
     function versionPaymaster()
         external
+        view
         virtual
         override
-        view
         returns (string memory)
     {
         return "2.0.0-alpha.1+opengsn.accepteverything.ipaymaster";
@@ -24,7 +24,7 @@ contract AcceptEverythingPaymaster is BasePaymaster {
         bytes calldata signature,
         bytes calldata approvalData,
         uint256 maxPossibleGas
-    ) external override view returns (bytes memory) {}
+    ) external view override returns (bytes memory) {}
 
     function preRelayedCall(bytes calldata context)
         external

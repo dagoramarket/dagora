@@ -54,8 +54,8 @@ contract CentralizedArbitrator is Arbitrator {
      */
     function arbitrationCost(bytes memory _extraData)
         public
-        override
         view
+        override
         returns (uint256 fee)
     {
         return arbitrationPrice;
@@ -68,8 +68,8 @@ contract CentralizedArbitrator is Arbitrator {
      */
     function appealCost(uint256 _disputeID, bytes memory _extraData)
         public
-        override
         view
+        override
         returns (uint256 fee)
     {
         return NOT_PAYABLE_VALUE;
@@ -83,8 +83,8 @@ contract CentralizedArbitrator is Arbitrator {
      */
     function createDispute(uint256 _choices, bytes memory _extraData)
         public
-        override
         payable
+        override
         returns (uint256 disputeID)
     {
         super.createDispute(_choices, _extraData);
@@ -134,8 +134,8 @@ contract CentralizedArbitrator is Arbitrator {
      */
     function disputeStatus(uint256 _disputeID)
         public
-        override
         view
+        override
         returns (DisputeStatus status)
     {
         return disputes[_disputeID].status;
@@ -147,8 +147,8 @@ contract CentralizedArbitrator is Arbitrator {
      */
     function currentRuling(uint256 _disputeID)
         public
-        override
         view
+        override
         returns (uint256 ruling)
     {
         return disputes[_disputeID].ruling;

@@ -71,8 +71,8 @@ abstract contract Arbitrator {
      */
     function createDispute(uint256 _choices, bytes memory _extraData)
         public
-        virtual
         payable
+        virtual
         requireArbitrationFee(_extraData)
         returns (uint256 disputeID)
     {}
@@ -83,8 +83,8 @@ abstract contract Arbitrator {
      */
     function arbitrationCost(bytes memory _extraData)
         public
-        virtual
         view
+        virtual
         returns (uint256 fee);
 
     /** @dev Appeal a ruling. Note that it has to be called before the arbitrator contract calls rule.
@@ -106,8 +106,8 @@ abstract contract Arbitrator {
      */
     function appealCost(uint256 _disputeID, bytes memory _extraData)
         public
-        virtual
         view
+        virtual
         returns (uint256 fee);
 
     /** @dev Compute the start and end of the dispute's current or next appeal period, if possible.
@@ -116,8 +116,8 @@ abstract contract Arbitrator {
      */
     function appealPeriod(uint256 _disputeID)
         public
-        virtual
         view
+        virtual
         returns (uint256 start, uint256 end)
     {}
 
@@ -127,8 +127,8 @@ abstract contract Arbitrator {
      */
     function disputeStatus(uint256 _disputeID)
         public
-        virtual
         view
+        virtual
         returns (DisputeStatus status);
 
     /** @dev Return the current ruling of a dispute. This is useful for parties to know if they should appeal.
@@ -137,7 +137,7 @@ abstract contract Arbitrator {
      */
     function currentRuling(uint256 _disputeID)
         public
-        virtual
         view
+        virtual
         returns (uint256 ruling);
 }

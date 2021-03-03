@@ -11,8 +11,8 @@ import "@opengsn/gsn/contracts/utils/GSNTypes.sol";
 contract AcceptForwarder is ITrustedForwarder {
     function verify(GSNTypes.RelayRequest calldata req, bytes calldata sig)
         external
-        override
         view
+        override
     {}
 
     // validate the signature, and execute the call.
@@ -21,12 +21,12 @@ contract AcceptForwarder is ITrustedForwarder {
         bytes calldata sig
     ) external override {}
 
-    function getNonce(address from) external override view returns (uint256) {}
+    function getNonce(address from) external view override returns (uint256) {}
 
     function versionForwarder()
         external
-        override
         view
+        override
         returns (string memory)
     {}
 }

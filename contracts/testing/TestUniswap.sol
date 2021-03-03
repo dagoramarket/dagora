@@ -24,7 +24,7 @@ contract TestUniswap is IUniswap {
     // solhint-disable-next-line no-empty-blocks
     receive() external payable {}
 
-    function tokenAddress() external override view returns (address out) {
+    function tokenAddress() external view override returns (address out) {
         return address(token);
     }
 
@@ -44,8 +44,8 @@ contract TestUniswap is IUniswap {
 
     function getTokenToEthInputPrice(uint256 tokensSold)
         external
-        override
         view
+        override
         returns (uint256 out)
     {
         return (tokensSold * rateDiv) / rateMult;
@@ -69,8 +69,8 @@ contract TestUniswap is IUniswap {
 
     function getTokenToEthOutputPrice(uint256 ethBought)
         public
-        override
         view
+        override
         returns (uint256 out)
     {
         return (ethBought * rateMult) / rateDiv;

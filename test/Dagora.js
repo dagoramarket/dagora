@@ -35,288 +35,284 @@ contract("Dagora", async (accounts) => {
       await token.mint(accounts[0], 100000, {from: accounts[0]});
       await token.mint(accounts[1], 100000, {from: accounts[0]});
       await dagora.grantAuthentication(token.address);
+      await dagora.updateMinimumStakeToken(10);
+      await dagora.updateProtocolFeePercentage(100);
     });
 
-    it("should listing be valid with signature", async () => {
+    it("should listing hash be equal", async () => {
       await token.approve(dagora.address, 10, {from: accounts[0]});
-      await dagora.depositTokens(10, {from: accounts[0]});
+      await dagora.stakeTokens(10, {from: accounts[0]});
 
       let listing = generateListing(accounts[0]);
 
       var hash = hashListing(listing);
 
-      var hashReturned = await dagora._hashListing(listing);
+      var hashReturned = await dagora.hashListing(listing);
       assert.equal(hash, hashReturned);
-      var hashToSign = signHelper.hashToSign(hash);
-      var hashToSignReturned = await dagora._hashListingToSign(listing);
-      assert.equal(hashToSign, hashToSignReturned);
-      let signature = await signHelper.generateSignature(hash, accounts[0]);
-      let valid = await dagora._requireValidListing(listing, signature);
-      assert.equal(valid.valueOf(), true);
     });
 
     it("should listing be valid with approval", async () => {
       await token.approve(dagora.address, 10, {from: accounts[0]});
-      await dagora.depositTokens(10, {from: accounts[0]});
+      await dagora.stakeTokens(10, {from: accounts[0]});
 
       let listing = generateListing(accounts[0]);
 
-      let listingHash = hashListing(listing);
-
-      let listingSignature = await signHelper.generateSignature(
-        listingHash,
-        accounts[0]
-      );
-
-      await dagora.approveListing(listing);
-      let valid = await dagora._requireValidListing(listing, listingSignature);
+      await dagora.updateListing(listing, 1);
+      let valid = await dagora.requireValidListing(listing);
       assert.equal(valid.valueOf(), true);
     });
 
     it("should create order", async () => {
+      let seller = accounts[0];
+      let buyer = accounts[1];
+
       let sellerGasUsed = 0;
       let buyerGasUsed = 0;
+
       const approveSeller = await token.approve(dagora.address, -1, {
-        from: accounts[0],
+        from: seller,
       });
       sellerGasUsed += approveSeller.receipt.gasUsed;
+
       const approveBuyer = await token.approve(dagora.address, -1, {
-        from: accounts[1],
+        from: buyer,
       });
       buyerGasUsed += approveBuyer.receipt.gasUsed;
-      const deposit = await dagora.depositTokens(10, {from: accounts[0]});
+
+      const deposit = await dagora.stakeTokens(10, {from: seller});
       sellerGasUsed += deposit.receipt.gasUsed;
 
-      let listing = generateListing(accounts[0]);
+      let listing = generateListing(seller);
 
-      var listingHash = hashListing(listing);
-      let listingSignature = await signHelper.generateSignature(
-        listingHash,
-        accounts[0]
-      );
-      var listingHashToSign = signHelper.hashToSign(listingHash);
-      let order = generateOrder(listing, accounts[1], token.address);
+      let addProduct = await dagora.updateListing(listing, 1, {from: seller});
+      sellerGasUsed += addProduct.receipt.gasUsed;
 
-      var orderHash = hashOrder(listingHashToSign, order);
-      let orderSignature = await signHelper.generateSignature(
-        orderHash,
-        accounts[1]
-      );
-      let orderHashToSign = await dagora.createTransaction(
+      let order = generateOrder(listing, buyer, token.address);
+
+      let orderHash = await dagora.createTransaction(
         order,
-        orderSignature,
-        listingSignature,
-        {from: accounts[0]}
+        {from: buyer}
       );
       console.log(
-        `createTransaction() gas used: ${orderHashToSign.receipt.gasUsed}`
+        `createTransaction() gas used: ${orderHash.receipt.gasUsed}`
       );
-      sellerGasUsed += orderHashToSign.receipt.gasUsed;
-      const confirm = await dagora.executeTransaction(order, {
-        from: accounts[0],
+      buyerGasUsed += orderHash.receipt.gasUsed;
+
+      const accept = await dagora.acceptTransaction(order, {
+        from: seller,
       });
-      console.log(`executeTransaction() gas used: ${confirm.receipt.gasUsed}`);
-      sellerGasUsed += confirm.receipt.gasUsed;
+      console.log(`acceptTransaction() gas used: ${accept.receipt.gasUsed}`);
+      sellerGasUsed += accept.receipt.gasUsed;
+
+      const execute = await dagora.executeTransaction(order, {
+        from: seller,
+      });
+      console.log(`executeTransaction() gas used: ${execute.receipt.gasUsed}`);
+      sellerGasUsed += execute.receipt.gasUsed;
+
+
       console.log(`Seller gas used: ${sellerGasUsed}`);
       console.log(`Buyer gas used: ${buyerGasUsed}`);
     });
 
     it("should create batched orders", async () => {
+      let seller = accounts[0];
+      let buyer = accounts[1];
+
       let sellerGasUsed = 0;
       let buyerGasUsed = 0;
+
       const approveSeller = await token.approve(dagora.address, -1, {
-        from: accounts[0],
+        from: seller,
       });
       sellerGasUsed += approveSeller.receipt.gasUsed;
+
       const approveBuyer = await token.approve(dagora.address, -1, {
-        from: accounts[1],
+        from: buyer,
       });
       buyerGasUsed += approveBuyer.receipt.gasUsed;
-      const deposit = await dagora.depositTokens(10, {from: accounts[0]});
+
+      const deposit = await dagora.stakeTokens(10, {from: seller});
       sellerGasUsed += deposit.receipt.gasUsed;
 
-      let listing = generateListing(accounts[0]);
-
-      var listingHash = hashListing(listing);
-      let listingSignature = await signHelper.generateSignature(
-        listingHash,
-        accounts[0]
-      );
-      var listingHashToSign = signHelper.hashToSign(listingHash);
-
       let orders = [];
-      let ordersSignatures = [];
-      let listingsSignatures = [];
       let timestamp = 1;
       const total = 50;
+
+      let listing = generateListing(seller);
+      const updateListing = await dagora.updateListing(listing, total);
+      sellerGasUsed += updateListing.receipt.gasUsed;
+
       for (let i = 0; i < total; i++) {
         let order = generateOrder(
           listing,
-          accounts[1],
+          buyer,
           token.address,
           timestamp++
         );
-        var orderHash = hashOrder(listingHashToSign, order);
-        let orderSignature = await signHelper.generateSignature(
-          orderHash,
-          accounts[1]
-        );
         orders.push(order);
-        ordersSignatures.push(orderSignature);
-        listingsSignatures.push(listingSignature);
       }
 
-      let orderBatchHashToSign = await dagora.batchCreateTransaction(
+      let orderBatchHash = await dagora.batchCreateTransaction(
         orders,
-        ordersSignatures,
-        listingsSignatures,
-        {from: accounts[0]}
+        {from: buyer}
       );
-      // console.log(`createTransaction() gas used: ${orderBatchHashToSign.receipt.gasUsed}`);
+      buyerGasUsed += orderBatchHash.receipt.gasUsed;
       console.log(
         `batchCreateTransaction() gas used per order: ${
-          orderBatchHashToSign.receipt.gasUsed / total
+          orderBatchHash.receipt.gasUsed / total
         }`
       );
-      sellerGasUsed += orderBatchHashToSign.receipt.gasUsed;
-      const execute = await dagora.batchExecuteTransaction(orders, {
-        from: accounts[0],
+
+      const accept = await dagora.batchAcceptTransaction(orders, {
+        from: seller,
       });
+      sellerGasUsed += accept.receipt.gasUsed;
+      console.log(
+        `batchAcceptTransaction() gas used per order: ${
+          accept.receipt.gasUsed / total
+        }`
+      );
+
+      const execute = await dagora.batchExecuteTransaction(orders, {
+        from: seller,
+      });
+      sellerGasUsed += execute.receipt.gasUsed;
       console.log(
         `batchExecuteTransaction() gas used per order: ${
           execute.receipt.gasUsed / total
         }`
       );
-      // sellerGasUsed += confirm.receipt.gasUsed;
+
       console.log(`Seller gas used: ${sellerGasUsed}`);
       console.log(`Buyer gas used: ${buyerGasUsed}`);
     });
   });
 
-  context("GSN", function () {
-    let token;
-    let dagora;
+  // context("GSN", function () {
+  //   let token;
+  //   let dagora;
 
-    let gsnInstance;
-    let provider;
-    let contract;
+  //   let gsnInstance;
+  //   let provider;
+  //   let contract;
 
-    before(async () => {
-      token = await DagoraToken.deployed();
-      dagora = await DagoraMarket.deployed();
-      await token.mint(accounts[0], 10000, {from: accounts[0]});
-      await token.mint(accounts[1], 10000, {from: accounts[0]});
-      if (!dagora.contracts.call(token.address))
-        await dagora.grantAuthentication(token.address);
-      gsnInstance = await gsnTestEnv.startGsn(blockchain);
+  //   before(async () => {
+  //     token = await DagoraToken.deployed();
+  //     dagora = await DagoraMarket.deployed();
+  //     await token.mint(accounts[0], 10000, {from: accounts[0]});
+  //     await token.mint(accounts[1], 10000, {from: accounts[0]});
+  //     if (!dagora.contracts.call(token.address))
+  //       await dagora.grantAuthentication(token.address);
+  //     gsnInstance = await gsnTestEnv.startGsn(blockchain);
 
-      const paymaster = await DagoraPaymaster.new();
-      await paymaster.setRelayHub(gsnInstance.deploymentResult.relayHubAddress);
-      await paymaster.send(1e17);
-      await paymaster.setDagora(dagora.address);
+  //     const paymaster = await DagoraPaymaster.new();
+  //     await paymaster.setRelayHub(gsnInstance.deploymentResult.relayHubAddress);
+  //     await paymaster.send(1e17);
+  //     await paymaster.setDagora(dagora.address);
 
-      const gsnConfigParams = {
-        gasPriceFactorPercent: 70,
-        methodSuffix: "_v4",
-        jsonStringifyRequest: true,
-        chainId: "*",
-        relayLookupWindowBlocks: 1e5,
-        preferredRelays: [gsnInstance.relayUrl],
-        relayHubAddress: gsnInstance.deploymentResult.relayHubAddress,
-        stakeManagerAddress: gsnInstance.deploymentResult.stakeManagerAddress,
-        paymasterAddress: paymaster.address,
-        // verbose: true,
-      };
+  //     const gsnConfigParams = {
+  //       gasPriceFactorPercent: 70,
+  //       methodSuffix: "_v4",
+  //       jsonStringifyRequest: true,
+  //       chainId: "*",
+  //       relayLookupWindowBlocks: 1e5,
+  //       preferredRelays: [gsnInstance.relayUrl],
+  //       relayHubAddress: gsnInstance.deploymentResult.relayHubAddress,
+  //       stakeManagerAddress: gsnInstance.deploymentResult.stakeManagerAddress,
+  //       paymasterAddress: paymaster.address,
+  //       // verbose: true,
+  //     };
 
-      const gsnConfig = configureGSN(gsnConfigParams);
+  //     const gsnConfig = configureGSN(gsnConfigParams);
 
-      provider = new ethers.providers.Web3Provider(
-        new RelayProvider(web3.currentProvider, gsnConfig)
-      );
+  //     provider = new ethers.providers.Web3Provider(
+  //       new RelayProvider(web3.currentProvider, gsnConfig)
+  //     );
 
-      const acct = provider.provider.newAccount();
-      contract = await new ethers.Contract(
-        dagora.address,
-        dagora.abi,
-        provider.getSigner(acct.address, acct.privateKey)
-      );
-      await dagora.setTrustedForwarder(
-        gsnInstance.deploymentResult.forwarderAddress
-      );
-    });
+  //     const acct = provider.provider.newAccount();
+  //     contract = await new ethers.Contract(
+  //       dagora.address,
+  //       dagora.abi,
+  //       provider.getSigner(acct.address, acct.privateKey)
+  //     );
+  //     await dagora.setTrustedForwarder(
+  //       gsnInstance.deploymentResult.forwarderAddress
+  //     );
+  //   });
 
-    it("#createTransaction", async () => {
-      const approveSeller = await token.approve(dagora.address, -1, {
-        from: accounts[0],
-      });
-      const approveBuyer = await token.approve(dagora.address, -1, {
-        from: accounts[1],
-      });
-      const deposit = await dagora.depositTokens(10, {from: accounts[0]});
+  //   it("#createTransaction", async () => {
+  //     const approveSeller = await token.approve(dagora.address, -1, {
+  //       from: accounts[0],
+  //     });
+  //     const approveBuyer = await token.approve(dagora.address, -1, {
+  //       from: accounts[1],
+  //     });
+  //     const deposit = await dagora.stakeTokens(10, {from: accounts[0]});
 
-      let listing = generateListing(accounts[0]);
-      var listingHash = signHelper.hashListing(listing);
-      let listingSignature = await signHelper.generateSignature(
-        listingHash,
-        accounts[0]
-      );
-      var listingHashToSign = signHelper.hashToSign(listingHash);
-      let order = generateOrder(listing, accounts[1], token.address);
+  //     let listing = generateListing(accounts[0]);
+  //     var listingHash = signHelper.hashListing(listing);
+  //     let listingSignature = await signHelper.generateSignature(
+  //       listingHash,
+  //       accounts[0]
+  //     );
+  //     var listingHashToSign = signHelper.hashToSign(listingHash);
+  //     let order = generateOrder(listing, accounts[1], token.address);
 
-      var orderHash = signHelper.hashOrder(listingHashToSign, order);
-      let orderSignature = await signHelper.generateSignature(
-        orderHash,
-        accounts[1]
-      );
-      const func = dagora.contract.methods.createTransaction(
-        order,
-        orderSignature,
-        listingSignature
-      );
-      const transaction = await contract.createTransaction(
-        order,
-        orderSignature,
-        listingSignature
-      );
-      const receipt = await waitForTransaction(
-        provider,
-        contract,
-        transaction.hash
-      );
-    });
+  //     var orderHash = signHelper.hashOrder(listingHashToSign, order);
+  //     let orderSignature = await signHelper.generateSignature(
+  //       orderHash,
+  //       accounts[1]
+  //     );
+  //     const func = dagora.contract.methods.createTransaction(
+  //       order,
+  //       orderSignature,
+  //       listingSignature
+  //     );
+  //     const transaction = await contract.createTransaction(
+  //       order,
+  //       orderSignature,
+  //       listingSignature
+  //     );
+  //     const receipt = await waitForTransaction(
+  //       provider,
+  //       contract,
+  //       transaction.hash
+  //     );
+  //   });
 
-    // it("#createTransaction and #executeTransaction", async () => {
-    //   const approveSeller = await token.approve(dagora.address, -1, {
-    //     from: accounts[0],
-    //   });
-    //   const approveBuyer = await token.approve(dagora.address, -1, {
-    //     from: accounts[1],
-    //   });
-    //   const deposit = await dagora.depositTokens(10, {from: accounts[0]});
+  //   // it("#createTransaction and #executeTransaction", async () => {
+  //   //   const approveSeller = await token.approve(dagora.address, -1, {
+  //   //     from: accounts[0],
+  //   //   });
+  //   //   const approveBuyer = await token.approve(dagora.address, -1, {
+  //   //     from: accounts[1],
+  //   //   });
+  //   //   const deposit = await dagora.stakeTokens(10, {from: accounts[0]});
 
-    //   let listing = generateListing(accounts[0]);
-    //   var listingHash = signHelper.hashListing(listing);
-    //   let listingSignature = await signHelper.generateSignature(
-    //     listingHash,
-    //     accounts[0]
-    //   );
-    //   var listingHashToSign = signHelper.hashToSign(listingHash);
-    //   let order = generateOrder(listing, accounts[1], token.address);
+  //   //   let listing = generateListing(accounts[0]);
+  //   //   var listingHash = signHelper.hashListing(listing);
+  //   //   let listingSignature = await signHelper.generateSignature(
+  //   //     listingHash,
+  //   //     accounts[0]
+  //   //   );
+  //   //   var listingHashToSign = signHelper.hashToSign(listingHash);
+  //   //   let order = generateOrder(listing, accounts[1], token.address);
 
-    //   var orderHash = signHelper.hashOrder(listingHashToSign, order);
-    //   let orderSignature = await signHelper.generateSignature(
-    //     orderHash,
-    //     accounts[1]
-    //   );
+  //   //   var orderHash = signHelper.hashOrder(listingHashToSign, order);
+  //   //   let orderSignature = await signHelper.generateSignature(
+  //   //     orderHash,
+  //   //     accounts[1]
+  //   //   );
 
-    //   const transaction = await contract.createTransaction(
-    //     order,
-    //     orderSignature,
-    //     listingSignature
-    //   );
-    //   await waitForTransaction(provider, contract, transaction.hash);
-    //   transaction = await contract.executeTransaction(order);
-    //   await waitForTransaction(provider, contract, transaction.hash);
-    // });
-  });
+  //   //   const transaction = await contract.createTransaction(
+  //   //     order,
+  //   //     orderSignature,
+  //   //     listingSignature
+  //   //   );
+  //   //   await waitForTransaction(provider, contract, transaction.hash);
+  //   //   transaction = await contract.executeTransaction(order);
+  //   //   await waitForTransaction(provider, contract, transaction.hash);
+  //   // });
+  // });
 });

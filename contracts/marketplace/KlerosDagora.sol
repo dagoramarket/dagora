@@ -10,42 +10,29 @@ contract KlerosDagora is BatchDagora, IArbitrable {
     Arbitrator public arbitrator; // Address of the arbitrator contract.
     bytes public reportExtraData; // Extra data to set up the arbitration.
     bytes public orderExtraData; // Extra data to set up the arbitration.
+    string public ipfsDomain;
 
     constructor(
         address _arbitrator,
         address _token,
         address _protocolFeeRecipient,
-        uint256 _feeTimeoutDays,
-        uint256 _blacklistTimeoutDays,
-        uint256 _protocolFeePercentage,
-        uint256 _tokenOwnerFeePercentage,
         bytes memory _reportExtraData,
         bytes memory _orderExtraData,
         string memory _ipfsDomain
-    )
-        public
-        Dagora(
-            _token,
-            _protocolFeeRecipient,
-            _feeTimeoutDays,
-            _blacklistTimeoutDays,
-            _protocolFeePercentage,
-            _tokenOwnerFeePercentage,
-            _ipfsDomain
-        )
-    {
+    ) public Dagora(_token, _protocolFeeRecipient) {
         arbitrator = Arbitrator(_arbitrator);
         reportExtraData = _reportExtraData;
         orderExtraData = _orderExtraData;
+        ipfsDomain = _ipfsDomain;
     }
 
-    function report(Listing memory _listing, Sig memory sig)
+    function report(Listing memory _listing)
         public
         override
         payable
         returns (bytes32 hash)
     {
-        hash = Dagora.report(_listing, sig);
+        hash = Dagora.report(_listing);
         emit MetaEvidence(
             disputes[hash].metaEvidenceId,
             string(abi.encodePacked(ipfsDomain, _listing.ipfsHash))
@@ -65,11 +52,11 @@ contract KlerosDagora is BatchDagora, IArbitrable {
         );
     }
 
-    function raiseDispute(bytes32 hash, uint256 _arbitrationCost)
+    function _raiseDispute(bytes32 _hash, uint256 _arbitrationCost)
         internal
         override
     {
-        RunningDispute storage dispute = disputes[hash];
+        RunningDispute storage dispute = disputes[_hash];
         dispute.status = DisputeStatus.DisputeCreated;
         uint256 disputeId = arbitrator.createDispute{ value: _arbitrationCost }(
             AMOUNT_OF_CHOICES,
@@ -77,7 +64,7 @@ contract KlerosDagora is BatchDagora, IArbitrable {
                 ? orderExtraData
                 : reportExtraData
         );
-        disputeIDtoHash[disputeId] = hash;
+        disputeIDtoHash[disputeId] = _hash;
         emit Dispute(
             arbitrator,
             disputeId,
@@ -144,12 +131,7 @@ contract KlerosDagora is BatchDagora, IArbitrable {
             "The dispute has already been resolved."
         );
         emit Ruling(Arbitrator(_msgSender()), _disputeID, _ruling);
-        if (dispute.disputeType == DisputeType.Report) {
-            executeReportRuling(dispute, _ruling);
-        } else {
-            _executeOrderRuling(dispute, _ruling);
-            transactions[hash].status = Status.Finalized;
-        }
+        _executeRuling(hash, _ruling);
     }
 
     function appeal(bytes32 _hash) public override payable {

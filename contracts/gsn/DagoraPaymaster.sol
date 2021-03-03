@@ -38,30 +38,29 @@ contract DagoraPaymaster is BasePaymaster {
         bytes calldata signature,
         bytes calldata approvalData,
         uint256 maxPossibleGas
-    ) external view override returns (bytes memory) {
+    ) external override view returns (bytes memory) {
         (approvalData);
-        ITrustedForwarder forwarder =
-            ITrustedForwarder(relayRequest.relayData.forwarder);
+        ITrustedForwarder forwarder = ITrustedForwarder(
+            relayRequest.relayData.forwarder
+        );
         forwarder.verify(relayRequest, signature);
         bytes4 func = GsnUtils.getMethodSig(relayRequest.encodedFunction);
         if (func == Dagora.createTransaction.selector) {
-            (
-                Dagora.Order memory order,
-                Dagora.Sig memory orderSig,
-                Dagora.Sig memory listingSig
-            ) =
-                abi.decode(
-                    LibBytesV06.slice(
-                        relayRequest.encodedFunction,
-                        4,
-                        relayRequest.encodedFunction.length
-                    ),
-                    (Dagora.Order, Dagora.Sig, Dagora.Sig)
-                );
-            uint256 ethMaxCharge =
-                relayHub.calculateCharge(maxPossibleGas, relayRequest.gasData);
-            uint256 tokenPreCharge =
-                uniswap.getTokenToEthOutputPrice(ethMaxCharge);
+            Dagora.Order memory order = abi.decode(
+                LibBytesV06.slice(
+                    relayRequest.encodedFunction,
+                    4,
+                    relayRequest.encodedFunction.length
+                ),
+                (Dagora.Order)
+            );
+            uint256 ethMaxCharge = relayHub.calculateCharge(
+                maxPossibleGas,
+                relayRequest.gasData
+            );
+            uint256 tokenPreCharge = uniswap.getTokenToEthOutputPrice(
+                ethMaxCharge
+            );
             require(
                 dagora.availableToken(order) > tokenPreCharge,
                 "Order must be more expensive to include the gas fee"
@@ -75,7 +74,7 @@ contract DagoraPaymaster is BasePaymaster {
                     order.token.allowance(order.buyer, address(dagora)),
                 "allowance too low"
             );
-            return abi.encode(order, orderSig, listingSig, tokenPreCharge);
+            return abi.encode(order, tokenPreCharge);
         } else if (func == Dagora.createTransaction.selector) {} else {
             revert();
         }
@@ -86,18 +85,12 @@ contract DagoraPaymaster is BasePaymaster {
         override
         returns (bytes32)
     {
-        (
-            Dagora.Order memory order,
-            Dagora.Sig memory orderSig,
-            Dagora.Sig memory listingSig,
-            uint256 tokenPreCharge
-        ) =
-            abi.decode(
-                context,
-                (Dagora.Order, Dagora.Sig, Dagora.Sig, uint256)
-            );
+        (Dagora.Order memory order, uint256 tokenPreCharge) = abi.decode(
+            context,
+            (Dagora.Order, uint256)
+        );
         if (tokenPreCharge != 0) {
-            dagora.chargeGasFee(order, orderSig, listingSig, tokenPreCharge);
+            dagora.chargeGasFee(order, tokenPreCharge);
         }
         return bytes32(0);
     }
@@ -111,16 +104,10 @@ contract DagoraPaymaster is BasePaymaster {
     ) external override {
         (success, preRetVal);
 
-        (
-            Dagora.Order memory order,
-            Dagora.Sig memory orderSig,
-            Dagora.Sig memory listingSig,
-            uint256 tokenPreCharge
-        ) =
-            abi.decode(
-                context,
-                (Dagora.Order, Dagora.Sig, Dagora.Sig, uint256)
-            );
+        (Dagora.Order memory order, uint256 tokenPreCharge) = abi.decode(
+            context,
+            (Dagora.Order, uint256)
+        );
         uint256 ethActualCharge;
         uint256 justPost;
         uint256 tokenActualCharge;
@@ -137,12 +124,7 @@ contract DagoraPaymaster is BasePaymaster {
 
             //no precharge. we pay now entire sum.
             require(
-                dagora.chargeGasFee(
-                    order,
-                    orderSig,
-                    listingSig,
-                    tokenActualCharge
-                ),
+                dagora.chargeGasFee(order, tokenActualCharge),
                 "failed transfer"
             );
         } else {
@@ -184,7 +166,7 @@ contract DagoraPaymaster is BasePaymaster {
         uint256 tokenActualCharge
     );
 
-    function versionPaymaster() external view override returns (string memory) {
+    function versionPaymaster() external override view returns (string memory) {
         return "1.0";
     }
 }

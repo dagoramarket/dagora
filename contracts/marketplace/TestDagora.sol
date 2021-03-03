@@ -7,62 +7,38 @@ import "./GSNDagora.sol";
 contract TestDagora is GSNDagora {
     constructor(
         address _arbitrator,
+        address _trustedPaymaster,
         address _token,
         address _protocolFeeRecipient,
-        uint256 _feeTimeoutDays,
-        uint256 _blacklistTimeoutDays,
-        uint256 _protocolFeePercentage,
-        uint256 _tokenOwnerFeePercentage,
         bytes memory _reportExtraData,
         bytes memory _orderExtraData,
-        string memory _ipfsDomain,
-        address _forwarder
+        string memory _ipfsDomain
     )
         public
         GSNDagora(
-            _forwarder,
             _arbitrator,
+            _trustedPaymaster,
             _token,
             _protocolFeeRecipient,
-            _feeTimeoutDays,
-            _blacklistTimeoutDays,
-            _protocolFeePercentage,
-            _tokenOwnerFeePercentage,
             _reportExtraData,
             _orderExtraData,
             _ipfsDomain
         )
     {}
 
-    function _requireValidListing(Listing memory _listing, Sig memory sig)
+    function requireValidListing(Listing memory _listing)
         public
         view
         returns (bool)
     {
-        return requireValidListing(_listing, sig) != 0x0;
+        return _requireValidListing(_listing) != 0x0;
     }
 
-    function _hashListing(Listing memory listing)
+    function hashListing(Listing memory _listing)
         public
         pure
         returns (bytes32 hash)
     {
-        return hashListing(listing);
-    }
-
-    function _hashListingToSign(Listing memory listing)
-        public
-        pure
-        returns (bytes32 hash)
-    {
-        return hashListingToSign(listing);
-    }
-
-    function _ecrecover(bytes32 msgHash, Sig memory sig)
-        public
-        pure
-        returns (address)
-    {
-        return ecrecover(msgHash, sig.v, sig.r, sig.s);
+        return _hashListing(_listing);
     }
 }

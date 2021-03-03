@@ -11,15 +11,10 @@ contract GSNDagora is KlerosDagora, BaseRelayRecipient, IKnowForwarderAddress {
     address public trustedPaymaster;
 
     constructor(
-        address _forwarder,
         address _arbitrator,
         address _trustedPaymaster,
         address _token,
         address _protocolFeeRecipient,
-        uint256 _feeTimeoutDays,
-        uint256 _blacklistTimeoutDays,
-        uint256 _protocolFeePercentage,
-        uint256 _tokenOwnerFeePercentage,
         bytes memory _reportExtraData,
         bytes memory _orderExtraData,
         string memory _ipfsDomain
@@ -29,50 +24,40 @@ contract GSNDagora is KlerosDagora, BaseRelayRecipient, IKnowForwarderAddress {
             _arbitrator,
             _token,
             _protocolFeeRecipient,
-            _feeTimeoutDays,
-            _blacklistTimeoutDays,
-            _protocolFeePercentage,
-            _tokenOwnerFeePercentage,
             _reportExtraData,
             _orderExtraData,
             _ipfsDomain
         )
     {
-        trustedForwarder = _forwarder;
         trustedPaymaster = _trustedPaymaster;
     }
 
-    function chargeGasFee(
-        Order calldata _order,
-        Sig memory orderSig,
-        Sig memory listingSig,
-        uint256 fee
-    ) external returns (bool) {
+    function chargeGasFee(Order calldata _order, uint256 _fee)
+        external
+        returns (bool)
+    {
         require(trustedPaymaster == msg.sender, "Need to be trusted paymaster");
-        Transaction storage transaction = transactions[requireValidOrder(
-            _order,
-            orderSig,
-            listingSig
+        Transaction storage transaction = transactions[_requireValidOrder(
+            _order
         )];
         require(
             transaction.status > Status.NoTransaction &&
                 transaction.status < Status.Finalized
         );
-        require(availableToken(_order) >= fee);
-        transaction.gasFee += fee;
-        _order.token.transferFrom(_msgSender(), msg.sender, fee); // TODO create a cheapier way
+        require(availableToken(_order) >= _fee);
+        transaction.gasFee += _fee;
+        _order.token.transferFrom(_msgSender(), msg.sender, _fee); // TODO create a cheapier way
         return true;
     }
 
     function availableToken(Order memory _order) public view returns (uint256) {
-        Transaction storage transaction = transactions[hashOrderToSign(_order)];
+        Transaction storage transaction = transactions[_hashOrder(_order)];
         return
             _order.total -
             (transaction.refund +
                 transaction.gasFee +
                 _order.cashback +
                 _order.protocolFee +
-                _order.stakeHolderFee +
                 _order.commission);
     }
 

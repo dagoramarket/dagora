@@ -54,8 +54,8 @@ contract CentralizedArbitrator is Arbitrator {
      */
     function arbitrationCost(bytes memory _extraData)
         public
-        view
         override
+        view
         returns (uint256 fee)
     {
         return arbitrationPrice;
@@ -68,8 +68,8 @@ contract CentralizedArbitrator is Arbitrator {
      */
     function appealCost(uint256 _disputeID, bytes memory _extraData)
         public
-        view
         override
+        view
         returns (uint256 fee)
     {
         return NOT_PAYABLE_VALUE;
@@ -83,8 +83,8 @@ contract CentralizedArbitrator is Arbitrator {
      */
     function createDispute(uint256 _choices, bytes memory _extraData)
         public
-        payable
         override
+        payable
         returns (uint256 disputeID)
     {
         super.createDispute(_choices, _extraData);
@@ -116,7 +116,7 @@ contract CentralizedArbitrator is Arbitrator {
         dispute.ruling = _ruling;
         dispute.status = DisputeStatus.Solved;
         /* solium-disable-next-line */
-        msg.sender.send(dispute.fee); // Avoid blocking.
+        msg.sender.transfer(dispute.fee); // Avoid blocking.
         dispute.arbitrated.rule(_disputeID, _ruling);
     }
 
@@ -134,8 +134,8 @@ contract CentralizedArbitrator is Arbitrator {
      */
     function disputeStatus(uint256 _disputeID)
         public
-        view
         override
+        view
         returns (DisputeStatus status)
     {
         return disputes[_disputeID].status;
@@ -147,8 +147,8 @@ contract CentralizedArbitrator is Arbitrator {
      */
     function currentRuling(uint256 _disputeID)
         public
-        view
         override
+        view
         returns (uint256 ruling)
     {
         return disputes[_disputeID].ruling;

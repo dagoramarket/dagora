@@ -21,17 +21,13 @@ module.exports = function (_deployer) {
       // Get the deployed instance of B
       return _deployer.deploy(
         DagoraMarket,
-        arbitrator,
-        token,
-        arbitrator,
-        1,
-        1,
-        30,
-        30,
+        arbitrator, // arbitrator
+        arbitrator, // paymaster
+        token,      // market token
+        arbitrator, // fee recipient
         web3.utils.toHex("a"),
         web3.utils.toHex("a"),
-        "http://ipfs.infura.io/ipfs/",
-        arbitrator
+        "http://ipfs.infura.io/ipfs/"
       );
     });
 };

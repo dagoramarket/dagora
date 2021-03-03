@@ -15,8 +15,6 @@ function hashListing(_listing) {
   return web3.utils.soliditySha3(
     _listing.ipfsHash,
     _listing.seller,
-    _listing.stakeOwner,
-    _listing.stakedAmount,
     _listing.commissionPercentage,
     _listing.warranty,
     _listing.cashbackPercentage,
@@ -24,19 +22,17 @@ function hashListing(_listing) {
   );
 }
 
-function hashOrder(listingHashToSign, _order) {
+function hashOrder(listingHash, _order) {
   return web3.utils.soliditySha3(
-    listingHashToSign,
+    listingHash,
     _order.buyer,
-    _order.fundsHolder,
     _order.commissioner,
     _order.token,
+    _order.quantity,
     _order.total,
     _order.cashback,
     _order.commission,
     _order.protocolFee,
-    _order.stakeHolderFee,
-    _order.expiration,
     _order.confirmationTimeout,
     _order.timestamp
   );

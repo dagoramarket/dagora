@@ -7,28 +7,25 @@ import "../arbitration/Arbitrator.sol";
 import "../arbitration/IArbitrable.sol";
 
 abstract contract BatchDagora is Dagora {
-    function batchCreateTransaction(
-        Order[] memory orders,
-        Sig[] memory orderSignatures,
-        Sig[] memory listingSignatures
-    ) public returns (bytes32[] memory hashes) {
-        require(
-            orders.length == orderSignatures.length &&
-                orderSignatures.length == listingSignatures.length
-        );
-        hashes = new bytes32[](orders.length);
-        for (uint256 i = 0; i < orders.length; i++) {
-            hashes[i] = createTransaction(
-                orders[i],
-                orderSignatures[i],
-                listingSignatures[i]
-            );
+    function batchCreateTransaction(Order[] memory _orders)
+        public
+        returns (bytes32[] memory hashes)
+    {
+        hashes = new bytes32[](_orders.length);
+        for (uint256 i = 0; i < _orders.length; i++) {
+            hashes[i] = createTransaction(_orders[i]);
         }
     }
 
-    function batchExecuteTransaction(Order[] memory orders) public {
-        for (uint256 i = 0; i < orders.length; i++) {
-            executeTransaction(orders[i]);
+    function batchAcceptTransaction(Order[] memory _orders) public {
+        for (uint256 i = 0; i < _orders.length; i++) {
+            acceptTransaction(_orders[i]);
+        }
+    }
+
+    function batchExecuteTransaction(Order[] memory _orders) public {
+        for (uint256 i = 0; i < _orders.length; i++) {
+            executeTransaction(_orders[i]);
         }
     }
 }

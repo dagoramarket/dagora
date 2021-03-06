@@ -16,9 +16,9 @@ const configureGSN = require("@opengsn/gsn/dist/src/relayclient/GSNConfigurator"
 
 const Web3 = require("web3");
 const ethers = require("ethers");
-const {generateListing, generateOrder} = require("./helpers/populator");
-const {waitForTransaction} = require("./helpers/gsnHelper");
-const {hashListing, hashOrder} = require("./helpers/signatureHelper");
+const { generateListing, generateOrder } = require("./helpers/populator");
+const { waitForTransaction } = require("./helpers/gsnHelper");
+const { hashListing, hashOrder } = require("./helpers/signatureHelper");
 
 const AcceptEverythingPaymaster = artifacts.require(
   "testing/AcceptEverythingPaymaster.sol"
@@ -28,20 +28,22 @@ contract("Dagora", async (accounts) => {
   context("Single Transactions", function () {
     let token;
     let dagora;
+    let protocol_percentage;
 
     before(async () => {
       token = await DagoraToken.deployed();
       dagora = await DagoraMarket.deployed();
-      await token.mint(accounts[0], 100000, {from: accounts[0]});
-      await token.mint(accounts[1], 100000, {from: accounts[0]});
+      await token.mint(accounts[0], 100000, { from: accounts[0] });
+      await token.mint(accounts[1], 100000, { from: accounts[0] });
       await dagora.grantAuthentication(token.address);
       await dagora.updateMinimumStakeToken(10);
-      await dagora.updateProtocolFeePercentage(100);
+      protocol_percentage = 100;
+      await dagora.updateProtocolFeePercentage(protocol_percentage);
     });
 
     it("should listing hash be equal", async () => {
-      await token.approve(dagora.address, 10, {from: accounts[0]});
-      await dagora.stakeTokens(10, {from: accounts[0]});
+      await token.approve(dagora.address, 10, { from: accounts[0] });
+      await dagora.stakeTokens(10, { from: accounts[0] });
 
       let listing = generateListing(accounts[0]);
 
@@ -52,8 +54,8 @@ contract("Dagora", async (accounts) => {
     });
 
     it("should listing be valid with approval", async () => {
-      await token.approve(dagora.address, 10, {from: accounts[0]});
-      await dagora.stakeTokens(10, {from: accounts[0]});
+      await token.approve(dagora.address, 10, { from: accounts[0] });
+      await dagora.stakeTokens(10, { from: accounts[0] });
 
       let listing = generateListing(accounts[0]);
 
@@ -79,23 +81,22 @@ contract("Dagora", async (accounts) => {
       });
       buyerGasUsed += approveBuyer.receipt.gasUsed;
 
-      const deposit = await dagora.stakeTokens(10, {from: seller});
+      const deposit = await dagora.stakeTokens(10, { from: seller });
       sellerGasUsed += deposit.receipt.gasUsed;
 
       let listing = generateListing(seller);
 
-      let addProduct = await dagora.updateListing(listing, 1, {from: seller});
+      let addProduct = await dagora.updateListing(listing, 5, { from: seller });
       sellerGasUsed += addProduct.receipt.gasUsed;
-
-      let order = generateOrder(listing, buyer, token.address);
-
-      let orderHash = await dagora.createTransaction(
-        order,
-        {from: buyer}
+      let order = generateOrder(
+        listing,
+        buyer,
+        token.address,
+        protocol_percentage
       );
-      console.log(
-        `createTransaction() gas used: ${orderHash.receipt.gasUsed}`
-      );
+
+      let orderHash = await dagora.createTransaction(order, { from: buyer });
+      console.log(`createTransaction() gas used: ${orderHash.receipt.gasUsed}`);
       buyerGasUsed += orderHash.receipt.gasUsed;
 
       const accept = await dagora.acceptTransaction(order, {
@@ -109,7 +110,6 @@ contract("Dagora", async (accounts) => {
       });
       console.log(`executeTransaction() gas used: ${execute.receipt.gasUsed}`);
       sellerGasUsed += execute.receipt.gasUsed;
-
 
       console.log(`Seller gas used: ${sellerGasUsed}`);
       console.log(`Buyer gas used: ${buyerGasUsed}`);
@@ -132,7 +132,7 @@ contract("Dagora", async (accounts) => {
       });
       buyerGasUsed += approveBuyer.receipt.gasUsed;
 
-      const deposit = await dagora.stakeTokens(10, {from: seller});
+      const deposit = await dagora.stakeTokens(10, { from: seller });
       sellerGasUsed += deposit.receipt.gasUsed;
 
       let orders = [];
@@ -140,7 +140,7 @@ contract("Dagora", async (accounts) => {
       const total = 50;
 
       let listing = generateListing(seller);
-      const updateListing = await dagora.updateListing(listing, total);
+      const updateListing = await dagora.updateListing(listing, total * 5);
       sellerGasUsed += updateListing.receipt.gasUsed;
 
       for (let i = 0; i < total; i++) {
@@ -148,15 +148,15 @@ contract("Dagora", async (accounts) => {
           listing,
           buyer,
           token.address,
+          protocol_percentage,
           timestamp++
         );
         orders.push(order);
       }
 
-      let orderBatchHash = await dagora.batchCreateTransaction(
-        orders,
-        {from: buyer}
-      );
+      let orderBatchHash = await dagora.batchCreateTransaction(orders, {
+        from: buyer,
+      });
       buyerGasUsed += orderBatchHash.receipt.gasUsed;
       console.log(
         `batchCreateTransaction() gas used per order: ${
@@ -189,6 +189,79 @@ contract("Dagora", async (accounts) => {
     });
   });
 
+  context("Gas cost evaluation", function () {
+    let token;
+    let dagora;
+    let protocol_percentage;
+    let REPETITIONS = 10;
+
+    before(async () => {
+      token = await DagoraToken.deployed();
+      dagora = await DagoraMarket.deployed();
+      await token.mint(accounts[0], 100000, { from: accounts[0] });
+      await token.mint(accounts[1], 100000, { from: accounts[0] });
+      if (!dagora.contracts.call(token.address))
+        await dagora.grantAuthentication(token.address);
+      await dagora.updateMinimumStakeToken(10);
+      protocol_percentage = 100;
+      await dagora.updateProtocolFeePercentage(protocol_percentage);
+    });
+
+    it("listing update", async () => {
+      let gasUsed = 0;
+      await token.approve(dagora.address, 10, { from: accounts[0] });
+      await dagora.stakeTokens(10, { from: accounts[0] });
+
+      for (let i = 0; i < REPETITIONS; i++) {
+        let listing = generateListing(accounts[0]);
+        let updateListing = await dagora.updateListing(listing, 1);
+        let valid = await dagora.requireValidListing(listing);
+        assert.equal(valid.valueOf(), true);
+        console.log(
+          `updateListing() gas used: ${updateListing.receipt.gasUsed}`
+        );
+        gasUsed += updateListing.receipt.gasUsed;
+      }
+      console.log(`updateListing() AVERAGE GAS USED: ${gasUsed / REPETITIONS}`);
+    });
+
+    it("create transaction", async () => {
+      let seller = accounts[0];
+      let buyer = accounts[1];
+
+      let gasUsed = 0;
+      await token.approve(dagora.address, 10, { from: seller });
+      await dagora.stakeTokens(10, { from: seller });
+
+      await token.approve(dagora.address, -1, {
+        from: buyer,
+      });
+
+      let listing = generateListing(seller);
+      await dagora.updateListing(listing, REPETITIONS * 5);
+      let valid = await dagora.requireValidListing(listing);
+      assert.equal(valid.valueOf(), true);
+
+      let timestamp = 1;
+      for (let i = 0; i < REPETITIONS; i++) {
+        let order = generateOrder(
+          listing,
+          buyer,
+          token.address,
+          protocol_percentage,
+          timestamp++
+        );
+        let orderHash = await dagora.createTransaction(order, { from: buyer });
+        console.log(
+          `createTransaction() gas used: ${orderHash.receipt.gasUsed}`
+        );
+        gasUsed += orderHash.receipt.gasUsed;
+      }
+      console.log(
+        `createTransaction() AVERAGE GAS USED: ${gasUsed / REPETITIONS}`
+      );
+    });
+  });
   // context("GSN", function () {
   //   let token;
   //   let dagora;

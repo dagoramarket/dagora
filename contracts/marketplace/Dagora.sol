@@ -70,6 +70,13 @@ abstract contract Dagora is Ownable {
         Status status;
     }
 
+    struct ListingInfo {
+        /* Products available */
+        uint256 available;
+        /* Expiration for non-answered transactions */
+        uint256 expiration;
+    }
+
     struct Staker {
         // The amount of tokens the contract holds for this staker.
         uint256 balance;
@@ -143,7 +150,9 @@ abstract contract Dagora is Ownable {
     mapping(bytes32 => bool) public cancelledOrFinalized;
 
     /* Listings running in the contract */
-    mapping(bytes32 => uint256) public listingProducts;
+    mapping(bytes32 => ListingInfo) public listingProducts;
+    /* Order approve */
+    mapping(bytes32 => bool) public orderApprove;
     /* Transactions running in the contract */
     mapping(bytes32 => Transaction) public transactions; // Order Hash to Transaction
     /* Disputes running in the contract*/
@@ -170,28 +179,24 @@ abstract contract Dagora is Ownable {
     uint256 public MINIMUM_STAKED_TOKEN;
     uint256 public GRACE_PERIOD;
 
-    constructor(
-        address _token,
-        address _protocolFeeRecipient
-    ) public Ownable() {
+    constructor(address _token, address _protocolFeeRecipient)
+        public
+        Ownable()
+    {
         marketToken = ERC20Burnable(_token);
         protocolFeeRecipient = _protocolFeeRecipient;
         PROTOCOL_FEE_PERCENTAGE = 100; // Default 1%
         SELLER_CONFIRMATION_TIMEOUT = 7 * (1 days); // Default = 7 days
     }
 
-    function updateProtocolFeePercentage(uint256 _percent)
-        public
-        onlyOwner
-    {
-        PROTOCOL_FEE_PERCENTAGE =_percent;
+    function updateProtocolFeePercentage(uint256 _percent) public onlyOwner {
+        PROTOCOL_FEE_PERCENTAGE = _percent;
         emit UptadeProtocolFeePercentage(BLACKLIST_TIMEOUT);
     }
 
-    function updateSellerConfirmationTimeout(uint256 _sellerConfirmationTimeoutDays)
-        public
-        onlyOwner
-    {
+    function updateSellerConfirmationTimeout(
+        uint256 _sellerConfirmationTimeoutDays
+    ) public onlyOwner {
         BLACKLIST_TIMEOUT = _sellerConfirmationTimeoutDays * (1 days);
         emit UptadeSellerConfirmationTimeout(BLACKLIST_TIMEOUT);
     }
@@ -239,10 +244,7 @@ abstract contract Dagora is Ownable {
         );
         if (staker.productCount > 0) {
             require(
-                staker.productCount -
-                    staker.lockedTokens -
-                    MINIMUM_STAKED_TOKEN >=
-                    _value,
+                staker.lockedTokens - MINIMUM_STAKED_TOKEN >= _value,
                 "You don't have enoght tokens"
             );
         }
@@ -268,9 +270,17 @@ abstract contract Dagora is Ownable {
         bytes32 hash = _requireValidListing(_listing);
         /* Assert listing has not already been approved. */
         /* EFFECTS */
-        uint256 stakerCount = SafeMath.add(SafeMath.sub(stakers[_msgSender()].productCount, listingProducts[hash]), _quantity);
+        uint256 stakerCount =
+            SafeMath.add(
+                SafeMath.sub(
+                    stakers[_msgSender()].productCount,
+                    listingProducts[hash].available
+                ),
+                _quantity
+            );
 
-        listingProducts[hash] = _quantity;
+        listingProducts[hash].available = _quantity;
+        listingProducts[hash].expiration = _listing.expiration;
 
         stakers[_msgSender()].productCount = stakerCount;
 
@@ -298,8 +308,10 @@ abstract contract Dagora is Ownable {
         cancelledOrFinalized[hash] = true;
         stakers[_msgSender()].productCount = SafeMath.sub(
             stakers[_msgSender()].productCount,
-            listingProducts[hash]
+            listingProducts[hash].available
         );
+
+        delete listingProducts[hash];
 
         /* Log cancel event. */
         emit ListingCancelled(hash);
@@ -315,16 +327,20 @@ abstract contract Dagora is Ownable {
             transaction.status == Status.NoTransaction,
             "Order already has been processed"
         );
-        transaction.lastStatusUpdate = now;
-        transaction.status = Status.WaitingSeller;
-        bytes32 listingHash = _hashListing(_order.listing);
-        listingProducts[listingHash] = SafeMath.sub(
-            listingProducts[listingHash],
-            _order.quantity
-        );
+        // transaction.lastStatusUpdate = now;
+        // transaction.status = Status.WaitingSeller;
+        // bytes32 listingHash = _hashListing(_order.listing);
+        // listingProducts[listingHash] = SafeMath.sub(
+        //     listingProducts[listingHash],
+        //     _order.quantity
+        // );
+        orderApprove[hash] = true;
+        if (listingProducts[hash].expiration > _order.confirmationTimeout) {
+            listingProducts[hash].expiration = _order.confirmationTimeout;
+        }
         emit TransactionCreated(
             hash,
-            listingHash,
+            _hashListing(_order.listing),
             _order.buyer,
             _order.commissioner,
             _order.token,
@@ -336,36 +352,46 @@ abstract contract Dagora is Ownable {
     }
 
     function cancelTransaction(Order memory _order) public {
-        require(_msgSender() == _order.listing.seller || _msgSender() == _order.buyer, "You must be the buyer or seller");
+        require(
+            _msgSender() == _order.listing.seller ||
+                _msgSender() == _order.buyer,
+            "You must be the buyer or seller"
+        );
         bytes32 hash = _hashOrder(_order);
         Transaction storage transaction = transactions[hash];
         require(
-            transaction.status == Status.WaitingSeller,
+            transaction.status == Status.NoTransaction,
+            // transaction.status == Status.WaitingSeller,
             "Order must be waiting for seller"
         );
         delete transaction.lastStatusUpdate;
         delete transaction.status;
         bytes32 listingHash = _hashListing(_order.listing);
-        listingProducts[listingHash] = SafeMath.add(
-            listingProducts[listingHash],
+        listingProducts[listingHash].available = SafeMath.add(
+            listingProducts[listingHash].available,
             _order.quantity
         );
-        emit TransactionCancelled(
-            hash
-        );
+        listingProducts[hash].expiration = _order.listing.expiration;
+        emit TransactionCancelled(hash);
     }
 
     function acceptTransaction(Order memory _order) public {
-        require(_msgSender() == _order.listing.seller, "You must be the seller");
-        bytes32 hash = _hashOrder(_order);
+        require(
+            _msgSender() == _order.listing.seller,
+            "You must be the seller"
+        );
+        bytes32 hash = _requireValidOrder(_order);
         Transaction storage transaction = transactions[hash];
         require(
-            transaction.status == Status.WaitingSeller,
+            transaction.status == Status.NoTransaction,
+            // transaction.status == Status.WaitingSeller,
             "Order must be waiting for seller"
         );
-        require(now <
-                    transaction.lastStatusUpdate + SELLER_CONFIRMATION_TIMEOUT, "Order has expired");
-        
+        // require(
+        //     now < transaction.lastStatusUpdate + SELLER_CONFIRMATION_TIMEOUT,
+        //     "Order has expired"
+        // );
+
         require(
             _order.token.transferFrom(
                 _order.buyer,
@@ -374,11 +400,18 @@ abstract contract Dagora is Ownable {
             ),
             "Failed to transfer buyer's funds."
         );
+
+        /* After */
+        bytes32 listingHash = _hashListing(_order.listing);
+        listingProducts[listingHash].available = SafeMath.sub(
+            listingProducts[listingHash].available,
+            _order.quantity
+        );
+        listingProducts[hash].expiration = _order.listing.expiration;
+
         transaction.lastStatusUpdate = now;
         transaction.status = Status.WaitingConfirmation;
-        emit TransactionAccepted(
-            hash
-        );
+        emit TransactionAccepted(hash);
     }
 
     function confirmReceipt(Order memory _order) public {
@@ -431,11 +464,14 @@ abstract contract Dagora is Ownable {
         }
         _finalizeTransaction(_order, executed);
     }
+
     /** @dev Submit a reference to evidence. EVENT.
      *  @param _order The order transaction
      *  @param _executed when to give cashback or not
      */
-    function _finalizeTransaction(Order memory _order, bool _executed) internal {
+    function _finalizeTransaction(Order memory _order, bool _executed)
+        internal
+    {
         bytes32 hash = _hashOrder(_order);
         Transaction storage transaction = transactions[hash];
         uint256 refund = transaction.refund;
@@ -518,8 +554,8 @@ abstract contract Dagora is Ownable {
 
     function report(Listing memory _listing)
         public
-        virtual
         payable
+        virtual
         returns (bytes32 hash)
     {
         /* CHECKS */
@@ -545,8 +581,8 @@ abstract contract Dagora is Ownable {
             now > prosecution.blackListExpire,
             "You are not allowed to report listings."
         );
-        uint256 availableBalance = prosecution.balance -
-            prosecution.lockedTokens;
+        uint256 availableBalance =
+            prosecution.balance - prosecution.lockedTokens;
         if (availableBalance < MINIMUM_STAKED_TOKEN) {
             require(
                 marketToken.transferFrom(
@@ -576,8 +612,8 @@ abstract contract Dagora is Ownable {
 
     function disputeTransaction(Order memory _order)
         public
-        virtual
         payable
+        virtual
         returns (bytes32 hash)
     {
         hash = _hashOrder(_order);
@@ -739,7 +775,7 @@ abstract contract Dagora is Ownable {
      *  Note that no checks are required as the checks are done by the arbitrator.
      *  @param _hash The hash of the order.
      */
-    function appeal(bytes32 _hash) public virtual payable;
+    function appeal(bytes32 _hash) public payable virtual;
 
     function _executeRuling(bytes32 _hash, uint256 _ruling) internal {
         if (disputes[_hash].disputeType == DisputeType.Report) {
@@ -803,8 +839,8 @@ abstract contract Dagora is Ownable {
 
     function arbitrationCost(DisputeType _type)
         public
-        virtual
         view
+        virtual
         returns (uint256 fee);
 
     function _executeReportRuling(bytes32 _hash, uint256 _ruling) internal {
@@ -826,7 +862,8 @@ abstract contract Dagora is Ownable {
         bool success = false;
         if (_ruling == uint256(RulingOptions.ProsecutionWins)) {
             /* Defendant is always seller */
-            stakers[dispute.defendant].productCount -= listingProducts[_hash];
+            stakers[dispute.defendant].productCount -= listingProducts[_hash]
+                .available;
             /* Cancelling Listing */
             cancelledOrFinalized[_hash] = true;
 
@@ -863,7 +900,7 @@ abstract contract Dagora is Ownable {
         returns (bool)
     {
         /* Listing has expired */
-        if (_listing.expiration != 0 && now > _listing.expiration) {
+        if (now > _listing.expiration) {
             return false;
         }
 
@@ -895,7 +932,6 @@ abstract contract Dagora is Ownable {
         view
         returns (bool)
     {
-
         /* Token contract must be allowed */
         if (!contracts[address(_order.token)]) {
             return false;
@@ -906,14 +942,17 @@ abstract contract Dagora is Ownable {
             return false;
         }
 
-        /* The seller doesn't have enought products */
-        if (_order.quantity > listingProducts[_hashListing(_order.listing)]) {
+        /* Buyer cannot be the seller. */
+        if (_order.buyer == _order.listing.seller) {
             return false;
         }
 
-        /* Check if buyer is sender */
-
-        if (_order.buyer != _msgSender()) {
+        /* The seller doesn't have enought products */
+        if (
+            _order.quantity <= 0 ||
+            _order.quantity >
+            listingProducts[_hashListing(_order.listing)].available
+        ) {
             return false;
         }
 
@@ -955,7 +994,13 @@ abstract contract Dagora is Ownable {
             return false;
         }
 
-        return true;
+        /* Check if order is approved */
+        if (orderApprove[_hash]) {
+            return true;
+        }
+
+        /* Check if buyer is sender */
+        return _order.buyer == _msgSender();
     }
 
     function _hashListing(Listing memory _listing)

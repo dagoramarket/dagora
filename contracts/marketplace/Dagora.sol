@@ -56,7 +56,7 @@ abstract contract Dagora is Ownable {
         uint256 commission;
         uint256 protocolFee;
         uint256 confirmationTimeout; /* In days */
-        uint256 timestamp; /* A buyer may want to buy the same product twice */
+        uint256 nonce; /* A buyer may want to buy the same product twice */
     }
 
     struct Transaction {
@@ -75,6 +75,8 @@ abstract contract Dagora is Ownable {
         uint256 available;
         /* Expiration for non-answered transactions */
         uint256 expiration;
+        /* Expiration for non-answered transactions */
+        uint256 orders;
     }
 
     struct Staker {
@@ -150,14 +152,13 @@ abstract contract Dagora is Ownable {
     mapping(bytes32 => bool) public cancelledOrFinalized;
 
     /* Listings running in the contract */
-    mapping(bytes32 => ListingInfo) public listingProducts;
+    mapping(bytes32 => ListingInfo) public listingInfos;
     /* Order approve */
     mapping(bytes32 => bool) public orderApprove;
     /* Transactions running in the contract */
     mapping(bytes32 => Transaction) public transactions; // Order Hash to Transaction
     /* Disputes running in the contract*/
     mapping(bytes32 => RunningDispute) public disputes; // Listing/Order Hash to Dispute
-    mapping(uint256 => bytes32) public disputeIDtoHash;
 
     /* Tokens allowed */
     mapping(address => bool) public contracts;
@@ -177,6 +178,7 @@ abstract contract Dagora is Ownable {
     uint256 public SELLER_CONFIRMATION_TIMEOUT;
 
     uint256 public MINIMUM_STAKED_TOKEN;
+    uint256 public PERCENTAGE_BURN;
     uint256 public GRACE_PERIOD;
 
     constructor(address _token, address _protocolFeeRecipient)
@@ -191,14 +193,14 @@ abstract contract Dagora is Ownable {
 
     function updateProtocolFeePercentage(uint256 _percent) public onlyOwner {
         PROTOCOL_FEE_PERCENTAGE = _percent;
-        emit UptadeProtocolFeePercentage(BLACKLIST_TIMEOUT);
+        emit UptadeProtocolFeePercentage(PROTOCOL_FEE_PERCENTAGE);
     }
 
     function updateSellerConfirmationTimeout(
         uint256 _sellerConfirmationTimeoutDays
     ) public onlyOwner {
-        BLACKLIST_TIMEOUT = _sellerConfirmationTimeoutDays * (1 days);
-        emit UptadeSellerConfirmationTimeout(BLACKLIST_TIMEOUT);
+        SELLER_CONFIRMATION_TIMEOUT = _sellerConfirmationTimeoutDays * (1 days);
+        emit UptadeSellerConfirmationTimeout(SELLER_CONFIRMATION_TIMEOUT);
     }
 
     function updateBlacklistTimeout(uint256 _blacklistTimeoutDays)
@@ -261,26 +263,33 @@ abstract contract Dagora is Ownable {
         /* Assert sender is authorized to approve listing. */
         require(_msgSender() == _listing.seller, "You must be the seller");
 
+        /* Calculate listing hash. */
+        bytes32 hash = _requireValidListing(_listing);
+
+        if (
+            listingInfos[hash].expiration < now && listingInfos[hash].orders > 0
+        ) {
+            // BURN TOKENS
+            _burnStake(_msgSender());
+        }
         require(
             stakers[_msgSender()].balance >= MINIMUM_STAKED_TOKEN,
             "You don't have enoght funds"
         );
 
-        /* Calculate listing hash. */
-        bytes32 hash = _requireValidListing(_listing);
         /* Assert listing has not already been approved. */
         /* EFFECTS */
         uint256 stakerCount =
             SafeMath.add(
                 SafeMath.sub(
                     stakers[_msgSender()].productCount,
-                    listingProducts[hash].available
+                    listingInfos[hash].available
                 ),
                 _quantity
             );
 
-        listingProducts[hash].available = _quantity;
-        listingProducts[hash].expiration = _listing.expiration;
+        listingInfos[hash].available = _quantity;
+        listingInfos[hash].expiration = _listing.expiration;
 
         stakers[_msgSender()].productCount = stakerCount;
 
@@ -301,17 +310,23 @@ abstract contract Dagora is Ownable {
 
         /* Assert sender is authorized to cancel listing. */
         require(_msgSender() == _listing.seller, "You must be the seller");
-
         /* EFFECTS */
+
+        if (
+            listingInfos[hash].expiration < now && listingInfos[hash].orders > 0
+        ) {
+            // BURN TOKENS
+            _burnStake(_msgSender());
+        }
 
         /* Mark listing as cancelled, preventing it from being matched. */
         cancelledOrFinalized[hash] = true;
         stakers[_msgSender()].productCount = SafeMath.sub(
             stakers[_msgSender()].productCount,
-            listingProducts[hash].available
+            listingInfos[hash].available
         );
 
-        delete listingProducts[hash];
+        delete listingInfos[hash];
 
         /* Log cancel event. */
         emit ListingCancelled(hash);
@@ -329,14 +344,11 @@ abstract contract Dagora is Ownable {
         );
         // transaction.lastStatusUpdate = now;
         // transaction.status = Status.WaitingSeller;
-        // bytes32 listingHash = _hashListing(_order.listing);
-        // listingProducts[listingHash] = SafeMath.sub(
-        //     listingProducts[listingHash],
-        //     _order.quantity
-        // );
         orderApprove[hash] = true;
-        if (listingProducts[hash].expiration > _order.confirmationTimeout) {
-            listingProducts[hash].expiration = _order.confirmationTimeout;
+        bytes32 listingHash = _hashListing(_order.listing);
+        listingInfos[listingHash].orders++;
+        if (listingInfos[listingHash].expiration > _order.confirmationTimeout) {
+            listingInfos[listingHash].expiration = _order.confirmationTimeout;
         }
         emit TransactionCreated(
             hash,
@@ -367,11 +379,8 @@ abstract contract Dagora is Ownable {
         delete transaction.lastStatusUpdate;
         delete transaction.status;
         bytes32 listingHash = _hashListing(_order.listing);
-        listingProducts[listingHash].available = SafeMath.add(
-            listingProducts[listingHash].available,
-            _order.quantity
-        );
-        listingProducts[hash].expiration = _order.listing.expiration;
+        listingInfos[listingHash].orders--;
+        listingInfos[listingHash].expiration = _order.listing.expiration;
         emit TransactionCancelled(hash);
     }
 
@@ -403,17 +412,20 @@ abstract contract Dagora is Ownable {
 
         /* After */
         bytes32 listingHash = _hashListing(_order.listing);
-        listingProducts[listingHash].available = SafeMath.sub(
-            listingProducts[listingHash].available,
+        listingInfos[listingHash].available = SafeMath.sub(
+            listingInfos[listingHash].available,
             _order.quantity
         );
-        listingProducts[hash].expiration = _order.listing.expiration;
-
+        listingInfos[hash].expiration = _order.listing.expiration;
+        listingInfos[listingHash].orders--;
         transaction.lastStatusUpdate = now;
         transaction.status = Status.WaitingConfirmation;
         emit TransactionAccepted(hash);
     }
 
+    /**
+        We need to find incentives for a seller to confirmReceipt
+     */
     function confirmReceipt(Order memory _order) public {
         bytes32 hash = _hashOrder(_order);
         Transaction storage transaction = transactions[hash];
@@ -428,8 +440,7 @@ abstract contract Dagora is Ownable {
             transaction.status = Status.Warranty;
             transaction.lastStatusUpdate = now;
         } else {
-            // We are giving a refund, the buyer doesn't need cashback
-            _finalizeTransaction(_order, transaction.refund != 0);
+            _finalizeTransaction(_order, false);
         }
     }
 
@@ -475,34 +486,46 @@ abstract contract Dagora is Ownable {
         bytes32 hash = _hashOrder(_order);
         Transaction storage transaction = transactions[hash];
         uint256 refund = transaction.refund;
-        uint256 price = SafeMath.sub(_order.total, refund);
+        uint256 price = _order.total;
         transaction.status = Status.Finalized;
         delete transaction.lastStatusUpdate;
         delete transaction.refund;
+        if (refund == price) {
+            // Warranty refund, we don't want to pay for any comissions
+            require(_order.token.transfer(_order.buyer, refund));
+        } else {
+            if (_order.protocolFee > 0) {
+                price -= _order.protocolFee;
+                require(
+                    _order.token.transfer(
+                        protocolFeeRecipient,
+                        _order.protocolFee
+                    )
+                );
+            }
 
-        if (_order.protocolFee > 0) {
-            price -= _order.protocolFee;
-            require(
-                _order.token.transfer(protocolFeeRecipient, _order.protocolFee)
-            );
-        }
+            if (_order.commission > 0) {
+                price -= _order.commission;
+                require(
+                    _order.token.transfer(
+                        _order.commissioner,
+                        _order.commission
+                    )
+                );
+            }
 
-        if (_order.commission > 0) {
-            price -= _order.commission;
-            require(
-                _order.token.transfer(_order.commissioner, _order.commission)
-            );
-        }
+            if (!_executed) {
+                // We are giving a refund, the buyer doesn't need cashback
+                uint256 totalRefund = refund > 0 ? refund : _order.cashback;
+                if (totalRefund > 0) {
+                    price -= totalRefund;
+                    require(_order.token.transfer(_order.buyer, totalRefund));
+                }
+            }
 
-        if (!_executed && _order.cashback > 0) {
-            price -= _order.cashback;
-            require(
-                _order.token.transfer(_order.buyer, (_order.cashback + refund))
-            );
-        }
-
-        if (price > 0) {
-            require(_order.token.transfer(_order.listing.seller, price));
+            if (price > 0) {
+                require(_order.token.transfer(_order.listing.seller, price));
+            }
         }
         emit TransactionFinalized(hash);
     }
@@ -542,10 +565,13 @@ abstract contract Dagora is Ownable {
                     (_order.confirmationTimeout * (1 days)),
             "Confirmation time has timed out."
         );
+
         require(
-            _refund +
-                (_order.cashback + _order.protocolFee + _order.commission) <=
-                _order.total,
+            _refund > _order.cashback,
+            "Refund must be greater than cashback."
+        );
+        require(
+            _refund + (_order.protocolFee + _order.commission) <= _order.total,
             "Refund can't be greater than total allowed."
         );
         transaction.refund = _refund;
@@ -645,8 +671,8 @@ abstract contract Dagora is Ownable {
                 _msgSender() == _order.listing.seller,
                 "Only seller can dispute."
             );
-            prosecution = _order.buyer;
-            defendant = _order.listing.seller;
+            prosecution = _order.listing.seller;
+            defendant = _order.buyer;
         }
         transaction.status = Status.InDispute;
         transaction.lastStatusUpdate = now;
@@ -677,7 +703,7 @@ abstract contract Dagora is Ownable {
         dispute.prosecutionFee += _prosecutionFee;
         dispute.disputeType = _disputeType;
         /* We know the token is market token, save gas*/
-        if (_disputeType == DisputeType.Report) dispute.token = _token;
+        if (_disputeType != DisputeType.Report) dispute.token = _token;
         dispute.status = DisputeStatus.WaitingDefendant;
         dispute.lastInteraction = now;
         dispute.metaEvidenceId = metaEvidenceCount++;
@@ -695,17 +721,17 @@ abstract contract Dagora is Ownable {
             now - dispute.lastInteraction >= DISPUTE_TIMEOUT,
             "Timeout time has not passed yet."
         );
-        bool success;
-        if (dispute.prosecutionFee != 0) {
-            uint256 prosecutionFee = dispute.prosecutionFee;
-            dispute.prosecutionFee = 0;
-            (success, ) = dispute.prosecution.call{ value: prosecutionFee }("");
-        }
-        if (dispute.defendantFee != 0) {
-            uint256 defendantFee = dispute.defendantFee;
-            dispute.defendantFee = 0;
-            (success, ) = dispute.defendant.call{ value: defendantFee }("");
-        }
+        // bool success;
+        // if (dispute.prosecutionFee != 0) {
+        //     uint256 prosecutionFee = dispute.prosecutionFee;
+        //     dispute.prosecutionFee = 0;
+        //     (success, ) = dispute.prosecution.call{ value: prosecutionFee }("");
+        // }
+        // if (dispute.defendantFee != 0) {
+        //     uint256 defendantFee = dispute.defendantFee;
+        //     dispute.defendantFee = 0;
+        //     (success, ) = dispute.defendant.call{ value: defendantFee }("");
+        // }
         if (dispute.status == DisputeStatus.WaitingDefendant) {
             _executeRuling(_hash, uint256(RulingOptions.ProsecutionWins));
         } else {
@@ -862,7 +888,7 @@ abstract contract Dagora is Ownable {
         bool success = false;
         if (_ruling == uint256(RulingOptions.ProsecutionWins)) {
             /* Defendant is always seller */
-            stakers[dispute.defendant].productCount -= listingProducts[_hash]
+            stakers[dispute.defendant].productCount -= listingInfos[_hash]
                 .available;
             /* Cancelling Listing */
             cancelledOrFinalized[_hash] = true;
@@ -892,6 +918,13 @@ abstract contract Dagora is Ownable {
             stakers[dispute.prosecution].balance -= amount / 2;
             stakers[dispute.defendant].balance -= amount / 2;
         }
+    }
+
+    function _burnStake(address stakeHolder) internal {
+        uint256 total = stakers[_msgSender()].balance;
+        uint256 burn = _calculateTotalFromPercentage(total, PERCENTAGE_BURN);
+        marketToken.burn(burn);
+        stakers[_msgSender()].balance = total - burn;
     }
 
     function _validateListing(bytes32 _hash, Listing memory _listing)
@@ -951,7 +984,7 @@ abstract contract Dagora is Ownable {
         if (
             _order.quantity <= 0 ||
             _order.quantity >
-            listingProducts[_hashListing(_order.listing)].available
+            listingInfos[_hashListing(_order.listing)].available
         ) {
             return false;
         }
@@ -1038,7 +1071,7 @@ abstract contract Dagora is Ownable {
                 _order.commission,
                 _order.protocolFee,
                 _order.confirmationTimeout,
-                _order.timestamp
+                _order.nonce
             )
         );
         return hash;

@@ -22,9 +22,9 @@ function hashListing(_listing) {
   );
 }
 
-function hashOrder(listingHash, _order) {
+function hashOrder(_order) {
   return web3.utils.soliditySha3(
-    listingHash,
+    hashListing(_order.listing),
     _order.buyer,
     _order.commissioner,
     _order.token,
@@ -34,7 +34,7 @@ function hashOrder(listingHash, _order) {
     _order.commission,
     _order.protocolFee,
     _order.confirmationTimeout,
-    _order.timestamp
+    _order.nonce
   );
 }
 

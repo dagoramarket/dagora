@@ -23,6 +23,12 @@ abstract contract BatchDagora is Dagora {
         }
     }
 
+    function batchCancelTransaction(Order[] memory _orders) public {
+        for (uint256 i = 0; i < _orders.length; i++) {
+            cancelTransaction(_orders[i]);
+        }
+    }
+
     function batchExecuteTransaction(Order[] memory _orders) public {
         for (uint256 i = 0; i < _orders.length; i++) {
             executeTransaction(_orders[i]);

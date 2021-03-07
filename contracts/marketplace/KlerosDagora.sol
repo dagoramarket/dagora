@@ -11,6 +11,7 @@ contract KlerosDagora is BatchDagora, IArbitrable {
     bytes public reportExtraData; // Extra data to set up the arbitration.
     bytes public orderExtraData; // Extra data to set up the arbitration.
     string public ipfsDomain;
+    mapping(uint256 => bytes32) public disputeIDtoHash;
 
     constructor(
         address _arbitrator,
@@ -28,8 +29,8 @@ contract KlerosDagora is BatchDagora, IArbitrable {
 
     function report(Listing memory _listing)
         public
-        override
         payable
+        override
         returns (bytes32 hash)
     {
         hash = Dagora.report(_listing);
@@ -41,8 +42,8 @@ contract KlerosDagora is BatchDagora, IArbitrable {
 
     function disputeTransaction(Order memory _order)
         public
-        override
         payable
+        override
         returns (bytes32 hash)
     {
         hash = Dagora.disputeTransaction(_order);
@@ -58,12 +59,14 @@ contract KlerosDagora is BatchDagora, IArbitrable {
     {
         RunningDispute storage dispute = disputes[_hash];
         dispute.status = DisputeStatus.DisputeCreated;
-        uint256 disputeId = arbitrator.createDispute{ value: _arbitrationCost }(
-            AMOUNT_OF_CHOICES,
-            dispute.disputeType == DisputeType.Order
-                ? orderExtraData
-                : reportExtraData
-        );
+        uint256 disputeId =
+            arbitrator.createDispute{ value: _arbitrationCost }(
+                AMOUNT_OF_CHOICES,
+                dispute.disputeType == DisputeType.Order
+                    ? orderExtraData
+                    : reportExtraData
+            );
+        dispute.disputeId = disputeId;
         disputeIDtoHash[disputeId] = _hash;
         emit Dispute(
             arbitrator,
@@ -74,8 +77,8 @@ contract KlerosDagora is BatchDagora, IArbitrable {
         // Refund sender if it overpaid.
         bool success;
         if (dispute.prosecutionFee > _arbitrationCost) {
-            uint256 extraFeeProsecution = dispute.prosecutionFee -
-                _arbitrationCost;
+            uint256 extraFeeProsecution =
+                dispute.prosecutionFee - _arbitrationCost;
             dispute.prosecutionFee = _arbitrationCost;
             (success, ) = dispute.prosecution.call{
                 value: extraFeeProsecution
@@ -134,7 +137,7 @@ contract KlerosDagora is BatchDagora, IArbitrable {
         _executeRuling(hash, _ruling);
     }
 
-    function appeal(bytes32 _hash) public override payable {
+    function appeal(bytes32 _hash) public payable override {
         RunningDispute storage dispute = disputes[_hash];
         require(
             dispute.disputeType == DisputeType.Order,
@@ -149,8 +152,8 @@ contract KlerosDagora is BatchDagora, IArbitrable {
 
     function arbitrationCost(DisputeType _type)
         public
-        override
         view
+        override
         returns (uint256 fee)
     {
         require(_type > DisputeType.None);

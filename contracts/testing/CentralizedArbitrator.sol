@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: UNLICENSED
 /**
  *  @authors: [@clesaege, @n1c01a5, @epiqueras, @ferittuncer]
  *  @reviewers: [@clesaege*, @unknownunknown1*]
@@ -37,7 +38,7 @@ contract CentralizedArbitrator is Arbitrator {
     /** @dev Constructor. Set the initial arbitration price.
      *  @param _arbitrationPrice Amount to be paid for arbitration.
      */
-    constructor(uint256 _arbitrationPrice) public {
+    constructor(uint256 _arbitrationPrice) {
         arbitrationPrice = _arbitrationPrice;
     }
 
@@ -49,27 +50,24 @@ contract CentralizedArbitrator is Arbitrator {
     }
 
     /** @dev Cost of arbitration. Accessor to arbitrationPrice.
-     *  @param _extraData Not used by this contract.
      *  @return fee Amount to be paid.
      */
-    function arbitrationCost(bytes memory _extraData)
+    function arbitrationCost(bytes memory)
         public
-        override
         view
+        override
         returns (uint256 fee)
     {
         return arbitrationPrice;
     }
 
     /** @dev Cost of appeal. Since it is not possible, it's a high value which can never be paid.
-     *  @param _disputeID ID of the dispute to be appealed. Not used by this contract.
-     *  @param _extraData Not used by this contract.
      *  @return fee Amount to be paid.
      */
-    function appealCost(uint256 _disputeID, bytes memory _extraData)
+    function appealCost(uint256, bytes memory)
         public
+        pure
         override
-        view
         returns (uint256 fee)
     {
         return NOT_PAYABLE_VALUE;
@@ -83,8 +81,8 @@ contract CentralizedArbitrator is Arbitrator {
      */
     function createDispute(uint256 _choices, bytes memory _extraData)
         public
-        override
         payable
+        override
         returns (uint256 disputeID)
     {
         super.createDispute(_choices, _extraData);
@@ -116,7 +114,7 @@ contract CentralizedArbitrator is Arbitrator {
         dispute.ruling = _ruling;
         dispute.status = DisputeStatus.Solved;
         /* solium-disable-next-line */
-        msg.sender.transfer(dispute.fee); // Avoid blocking.
+        payable(msg.sender).transfer(dispute.fee); // Avoid blocking.
         dispute.arbitrated.rule(_disputeID, _ruling);
     }
 
@@ -134,8 +132,8 @@ contract CentralizedArbitrator is Arbitrator {
      */
     function disputeStatus(uint256 _disputeID)
         public
-        override
         view
+        override
         returns (DisputeStatus status)
     {
         return disputes[_disputeID].status;
@@ -147,8 +145,8 @@ contract CentralizedArbitrator is Arbitrator {
      */
     function currentRuling(uint256 _disputeID)
         public
-        override
         view
+        override
         returns (uint256 ruling)
     {
         return disputes[_disputeID].ruling;

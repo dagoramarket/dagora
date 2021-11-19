@@ -1,13 +1,12 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.6.0;
+pragma solidity ^0.8.0;
 pragma experimental ABIEncoderV2;
 
 import "./KlerosDagora.sol";
 
-import "@opengsn/gsn/contracts/BaseRelayRecipient.sol";
-import "@opengsn/gsn/contracts/interfaces/IKnowForwarderAddress.sol";
+import "@opengsn/contracts/src/BaseRelayRecipient.sol";
 
-contract GSNDagora is KlerosDagora, BaseRelayRecipient, IKnowForwarderAddress {
+contract GSNDagora is KlerosDagora, BaseRelayRecipient {
     address public trustedPaymaster;
 
     constructor(
@@ -19,7 +18,6 @@ contract GSNDagora is KlerosDagora, BaseRelayRecipient, IKnowForwarderAddress {
         bytes memory _orderExtraData,
         string memory _ipfsDomain
     )
-        public
         KlerosDagora(
             _arbitrator,
             _token,
@@ -37,9 +35,8 @@ contract GSNDagora is KlerosDagora, BaseRelayRecipient, IKnowForwarderAddress {
         returns (bool)
     {
         require(trustedPaymaster == msg.sender, "Need to be trusted paymaster");
-        Transaction storage transaction = transactions[_requireValidOrder(
-            _order
-        )];
+        Transaction storage transaction =
+            transactions[_requireValidOrder(_order)];
         require(
             transaction.status > Status.NoTransaction &&
                 transaction.status < Status.Finalized
@@ -61,24 +58,27 @@ contract GSNDagora is KlerosDagora, BaseRelayRecipient, IKnowForwarderAddress {
                 _order.commission);
     }
 
-    function setTrustedForwarder(address _forwarder) external {
-        trustedForwarder = _forwarder;
-    }
-
-    function getTrustedForwarder() external override view returns (address) {
-        return trustedForwarder;
-    }
-
     function _msgSender()
         internal
-        override(Context, BaseRelayRecipient)
         view
-        returns (address payable)
+        virtual
+        override(BaseRelayRecipient, Context)
+        returns (address ret)
     {
         return BaseRelayRecipient._msgSender();
     }
 
-    function versionRecipient() external override view returns (string memory) {
-        return "1.0";
+    function _msgData()
+        internal
+        view
+        virtual
+        override(BaseRelayRecipient, Context)
+        returns (bytes calldata ret)
+    {
+        return BaseRelayRecipient._msgData();
+    }
+
+    function versionRecipient() external pure override returns (string memory) {
+        return "2.0.0";
     }
 }

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.6.0;
+pragma solidity ^0.8.0;
 pragma experimental ABIEncoderV2;
 
 import "./BatchDagora.sol";
@@ -20,7 +20,7 @@ contract KlerosDagora is BatchDagora, IArbitrable {
         bytes memory _reportExtraData,
         bytes memory _orderExtraData,
         string memory _ipfsDomain
-    ) public Dagora(_token, _protocolFeeRecipient) {
+    ) Dagora(_token, _protocolFeeRecipient) {
         arbitrator = Arbitrator(_arbitrator);
         reportExtraData = _reportExtraData;
         orderExtraData = _orderExtraData;

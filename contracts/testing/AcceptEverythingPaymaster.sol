@@ -1,13 +1,14 @@
 //SPDX-License-Identifier: MIT
-pragma solidity ^0.6.2;
+pragma solidity ^0.8.0;
 pragma experimental ABIEncoderV2;
 
-import "@opengsn/gsn/contracts/BasePaymaster.sol";
-
-import "@opengsn/gsn/contracts/utils/GSNTypes.sol";
+import "@opengsn/contracts/src/BasePaymaster.sol";
 
 // accept everything.
 // this paymaster accepts any request.
+//
+// NOTE: Do NOT use this contract on a mainnet: it accepts anything, so anyone can "grief" it and drain its account
+
 contract AcceptEverythingPaymaster is BasePaymaster {
     function versionPaymaster()
         external
@@ -16,32 +17,30 @@ contract AcceptEverythingPaymaster is BasePaymaster {
         override
         returns (string memory)
     {
-        return "2.0.0-alpha.1+opengsn.accepteverything.ipaymaster";
+        return "2.2.0+opengsn.accepteverything.ipaymaster";
     }
 
-    function acceptRelayedCall(
-        GSNTypes.RelayRequest calldata relayRequest,
+    function preRelayedCall(
+        GsnTypes.RelayRequest calldata relayRequest,
         bytes calldata signature,
         bytes calldata approvalData,
         uint256 maxPossibleGas
-    ) external view override returns (bytes memory) {}
-
-    function preRelayedCall(bytes calldata context)
+    )
         external
+        virtual
         override
-        returns (bytes32)
+        returns (bytes memory context, bool revertOnRecipientRevert)
     {
-        (context);
-        return "";
+        (relayRequest, signature, approvalData, maxPossibleGas);
+        return ("", false);
     }
 
     function postRelayedCall(
         bytes calldata context,
         bool success,
-        bytes32 preRetVal,
         uint256 gasUseWithoutPost,
-        GSNTypes.GasData calldata gasData
+        GsnTypes.RelayData calldata relayData
     ) external virtual override {
-        (context, success, preRetVal, gasUseWithoutPost, gasData);
+        (context, success, gasUseWithoutPost, relayData);
     }
 }

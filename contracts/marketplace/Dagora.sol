@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.6.0;
+pragma solidity ^0.8.0;
 pragma experimental ABIEncoderV2;
 
-import "@openzeppelin/contracts/token/ERC20/ERC20Burnable.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-import "@openzeppelin/contracts/math/SafeMath.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 abstract contract Dagora is Ownable {
     /* 2 decimal plates for percentage */
@@ -181,10 +181,7 @@ abstract contract Dagora is Ownable {
     uint256 public PERCENTAGE_BURN;
     uint256 public GRACE_PERIOD;
 
-    constructor(address _token, address _protocolFeeRecipient)
-        public
-        Ownable()
-    {
+    constructor(address _token, address _protocolFeeRecipient) Ownable() {
         marketToken = ERC20Burnable(_token);
         protocolFeeRecipient = _protocolFeeRecipient;
         PROTOCOL_FEE_PERCENTAGE = 100; // Default 1%
@@ -267,7 +264,8 @@ abstract contract Dagora is Ownable {
         bytes32 hash = _requireValidListing(_listing);
 
         if (
-            listingInfos[hash].expiration < now && listingInfos[hash].orders > 0
+            listingInfos[hash].expiration < block.timestamp &&
+            listingInfos[hash].orders > 0
         ) {
             // BURN TOKENS
             _burnStake(_msgSender());
@@ -313,7 +311,8 @@ abstract contract Dagora is Ownable {
         /* EFFECTS */
 
         if (
-            listingInfos[hash].expiration < now && listingInfos[hash].orders > 0
+            listingInfos[hash].expiration < block.timestamp &&
+            listingInfos[hash].orders > 0
         ) {
             // BURN TOKENS
             _burnStake(_msgSender());
@@ -342,7 +341,7 @@ abstract contract Dagora is Ownable {
             transaction.status == Status.NoTransaction,
             "Order already has been processed"
         );
-        // transaction.lastStatusUpdate = now;
+        // transaction.lastStatusUpdate = block.timestamp;
         // transaction.status = Status.WaitingSeller;
         orderApprove[hash] = true;
         bytes32 listingHash = _hashListing(_order.listing);
@@ -397,7 +396,7 @@ abstract contract Dagora is Ownable {
             "Order must be waiting for seller"
         );
         // require(
-        //     now < transaction.lastStatusUpdate + SELLER_CONFIRMATION_TIMEOUT,
+        //     block.timestamp < transaction.lastStatusUpdate + SELLER_CONFIRMATION_TIMEOUT,
         //     "Order has expired"
         // );
 
@@ -418,7 +417,7 @@ abstract contract Dagora is Ownable {
         );
         listingInfos[hash].expiration = _order.listing.expiration;
         listingInfos[listingHash].orders--;
-        transaction.lastStatusUpdate = now;
+        transaction.lastStatusUpdate = block.timestamp;
         transaction.status = Status.WaitingConfirmation;
         emit TransactionAccepted(hash);
     }
@@ -438,7 +437,7 @@ abstract contract Dagora is Ownable {
         );
         if (transaction.refund == 0 && _order.listing.warranty > 0) {
             transaction.status = Status.Warranty;
-            transaction.lastStatusUpdate = now;
+            transaction.lastStatusUpdate = block.timestamp;
         } else {
             _finalizeTransaction(_order, false);
         }
@@ -459,7 +458,7 @@ abstract contract Dagora is Ownable {
             transaction.status == Status.WarrantyConfirmation
         ) {
             require(
-                now >=
+                block.timestamp >=
                     transaction.lastStatusUpdate +
                         (_order.confirmationTimeout * (1 days)),
                 "Timeout time has not passed yet."
@@ -467,7 +466,7 @@ abstract contract Dagora is Ownable {
             executed = true;
         } else {
             require(
-                now >=
+                block.timestamp >=
                     transaction.lastStatusUpdate +
                         (_order.listing.warranty * (1 days)),
                 "Timeout time has not passed yet."
@@ -536,7 +535,7 @@ abstract contract Dagora is Ownable {
         require(transaction.status == Status.Warranty, "Invalid phase");
         require(_msgSender() == _order.buyer, "You must be buyer");
         require(
-            now <=
+            block.timestamp <=
                 transaction.lastStatusUpdate +
                     (_order.listing.warranty * (1 days)),
             "Warranty time has timed out."
@@ -544,7 +543,7 @@ abstract contract Dagora is Ownable {
 
         transaction.status = Status.WarrantyConfirmation;
         transaction.refund = _order.total;
-        transaction.lastStatusUpdate = now;
+        transaction.lastStatusUpdate = block.timestamp;
         emit WarrantyClaimed(hash);
     }
 
@@ -560,7 +559,7 @@ abstract contract Dagora is Ownable {
             "Invalid phase"
         );
         require(
-            now <=
+            block.timestamp <=
                 transaction.lastStatusUpdate +
                     (_order.confirmationTimeout * (1 days)),
             "Confirmation time has timed out."
@@ -590,21 +589,21 @@ abstract contract Dagora is Ownable {
         require(
             dispute.status == DisputeStatus.NoDispute ||
                 (dispute.status == DisputeStatus.Resolved &&
-                    dispute.lastInteraction + GRACE_PERIOD < now),
+                    dispute.lastInteraction + GRACE_PERIOD < block.timestamp),
             "Listing has already been reported"
         );
         require(
             _msgSender() != _listing.seller,
             "You can't report yourself. Use cancelListing()"
         );
-        uint256 arbitrationCost = arbitrationCost(DisputeType.Report);
+        uint256 arbCost = arbitrationCost(DisputeType.Report);
         require(
-            msg.value >= arbitrationCost,
+            msg.value >= arbCost,
             "Value must be greater than arbitrationCost"
         );
         Staker storage prosecution = stakers[_msgSender()];
         require(
-            now > prosecution.blackListExpire,
+            block.timestamp > prosecution.blackListExpire,
             "You are not allowed to report listings."
         );
         uint256 availableBalance =
@@ -627,7 +626,7 @@ abstract contract Dagora is Ownable {
         defendant.lockedTokens += MINIMUM_STAKED_TOKEN;
         _createDispute(
             hash,
-            _msgSender(),
+            payable(_msgSender()),
             _listing.seller,
             MINIMUM_STAKED_TOKEN,
             marketToken,
@@ -650,14 +649,14 @@ abstract contract Dagora is Ownable {
             "Invalid phase"
         );
         require(
-            now <=
+            block.timestamp <=
                 transaction.lastStatusUpdate +
                     (_order.confirmationTimeout * (1 days)),
             "Confirmation time has timed out."
         );
-        uint256 arbitrationCost = arbitrationCost(DisputeType.Order);
+        uint256 arbCost = arbitrationCost(DisputeType.Order);
         require(
-            msg.value >= arbitrationCost,
+            msg.value >= arbCost,
             "Value must be greater than arbitrationCost"
         );
         address payable prosecution;
@@ -675,7 +674,7 @@ abstract contract Dagora is Ownable {
             defendant = _order.buyer;
         }
         transaction.status = Status.InDispute;
-        transaction.lastStatusUpdate = now;
+        transaction.lastStatusUpdate = block.timestamp;
         _createDispute(
             hash,
             prosecution,
@@ -705,7 +704,7 @@ abstract contract Dagora is Ownable {
         /* We know the token is market token, save gas*/
         if (_disputeType != DisputeType.Report) dispute.token = _token;
         dispute.status = DisputeStatus.WaitingDefendant;
-        dispute.lastInteraction = now;
+        dispute.lastInteraction = block.timestamp;
         dispute.metaEvidenceId = metaEvidenceCount++;
         emit HasToPayFee(_hash, Party.Defendant);
     }
@@ -718,7 +717,7 @@ abstract contract Dagora is Ownable {
             "Dispute is not waiting for any party."
         );
         require(
-            now - dispute.lastInteraction >= DISPUTE_TIMEOUT,
+            block.timestamp - dispute.lastInteraction >= DISPUTE_TIMEOUT,
             "Timeout time has not passed yet."
         );
         // bool success;
@@ -741,7 +740,7 @@ abstract contract Dagora is Ownable {
 
     function payArbitrationFee(bytes32 _hash) public payable {
         RunningDispute storage dispute = disputes[_hash];
-        uint256 arbitrationCost = arbitrationCost(dispute.disputeType);
+        uint256 arbCost = arbitrationCost(dispute.disputeType);
         require(
             DisputeStatus.NoDispute < dispute.status &&
                 dispute.status < DisputeStatus.DisputeCreated,
@@ -756,30 +755,30 @@ abstract contract Dagora is Ownable {
         if (_msgSender() == dispute.prosecution) {
             dispute.prosecutionFee += msg.value;
             require(
-                dispute.prosecutionFee >= arbitrationCost,
+                dispute.prosecutionFee >= arbCost,
                 "The prosecution fee must cover arbitration costs."
             );
-            dispute.lastInteraction = now;
-            if (dispute.defendantFee < arbitrationCost) {
+            dispute.lastInteraction = block.timestamp;
+            if (dispute.defendantFee < arbCost) {
                 dispute.status = DisputeStatus.WaitingDefendant;
                 emit HasToPayFee(_hash, Party.Defendant);
             } else {
                 // The receiver has also paid the fee. We create the dispute.
-                _raiseDispute(_hash, arbitrationCost);
+                _raiseDispute(_hash, arbCost);
             }
         } else {
             dispute.defendantFee += msg.value;
             require(
-                dispute.defendantFee >= arbitrationCost,
+                dispute.defendantFee >= arbCost,
                 "The prosecution fee must cover arbitration costs."
             );
-            dispute.lastInteraction = now;
-            if (dispute.prosecutionFee < arbitrationCost) {
+            dispute.lastInteraction = block.timestamp;
+            if (dispute.prosecutionFee < arbCost) {
                 dispute.status = DisputeStatus.WaitingProsecution;
                 emit HasToPayFee(_hash, Party.Prosecution);
             } else {
                 // The receiver has also paid the fee. We create the dispute.
-                _raiseDispute(_hash, arbitrationCost);
+                _raiseDispute(_hash, arbCost);
             }
         }
     }
@@ -900,7 +899,7 @@ abstract contract Dagora is Ownable {
         } else if (_ruling == uint256(RulingOptions.DefendantWins)) {
             (success, ) = dispute.defendant.call{ value: defendantFee }("");
             stakers[dispute.prosecution].blackListExpire =
-                now +
+                block.timestamp +
                 BLACKLIST_TIMEOUT;
             stakers[dispute.prosecution].balance -= amount;
             stakers[dispute.defendant].balance += amount / 2;
@@ -921,10 +920,10 @@ abstract contract Dagora is Ownable {
     }
 
     function _burnStake(address stakeHolder) internal {
-        uint256 total = stakers[_msgSender()].balance;
+        uint256 total = stakers[stakeHolder].balance;
         uint256 burn = _calculateTotalFromPercentage(total, PERCENTAGE_BURN);
         marketToken.burn(burn);
-        stakers[_msgSender()].balance = total - burn;
+        stakers[stakeHolder].balance = total - burn;
     }
 
     function _validateListing(bytes32 _hash, Listing memory _listing)
@@ -933,7 +932,7 @@ abstract contract Dagora is Ownable {
         returns (bool)
     {
         /* Listing has expired */
-        if (now > _listing.expiration) {
+        if (block.timestamp > _listing.expiration) {
             return false;
         }
 

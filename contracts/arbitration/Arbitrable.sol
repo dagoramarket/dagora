@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: UNLICENSED
 /**
  *  @authors: [@clesaege]
  *  @reviewers: [@remedcu]
@@ -35,9 +36,7 @@ abstract contract Arbitrable is IArbitrable {
      *  @param _arbitrator The arbitrator of the contract.
      *  @param _arbitratorExtraData Extra data for the arbitrator.
      */
-    constructor(Arbitrator _arbitrator, bytes memory _arbitratorExtraData)
-        public
-    {
+    constructor(Arbitrator _arbitrator, bytes memory _arbitratorExtraData) {
         arbitrator = _arbitrator;
         arbitratorExtraData = _arbitratorExtraData;
     }

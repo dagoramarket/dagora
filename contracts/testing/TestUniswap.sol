@@ -1,8 +1,8 @@
 // SPDX-License-Identifier:MIT
-pragma solidity ^0.6.2;
+pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@opengsn/gsn/contracts/paymaster/IUniswap.sol";
+import "./IUniswap.sol";
 import "./TestToken.sol";
 
 // naive, no-calculation swapper.
@@ -13,7 +13,7 @@ contract TestUniswap is IUniswap {
     uint256 public rateMult;
     uint256 public rateDiv;
 
-    constructor(uint256 _rateMult, uint256 _rateDiv) public payable {
+    constructor(uint256 _rateMult, uint256 _rateDiv) payable {
         token = new TestToken();
         rateMult = _rateMult;
         rateDiv = _rateDiv;
@@ -37,8 +37,8 @@ contract TestUniswap is IUniswap {
         uint256 tokensToSell = getTokenToEthOutputPrice(ethBought);
         require(address(this).balance > ethBought, "not enough liquidity");
 
-        token.transferFrom(msg.sender, address(this), tokensToSell);
-        msg.sender.transfer(ethBought);
+        token.transferFrom(payable(msg.sender), address(this), tokensToSell);
+        payable(msg.sender).transfer(ethBought);
         return tokensToSell;
     }
 

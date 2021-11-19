@@ -7,14 +7,15 @@
     "test": "test"
   },
   "dependencies": {
-    "@opengsn/gsn": "^0.10.0",
+    "@opengsn/contracts": "^2.2.4",
     "csv-writer": "^1.6.0",
     "openzeppelin-solidity": "^3.1.0",
-    "solc": "^0.6.0"
+    "solc": "0.8.9"
   },
   "devDependencies": {
     "@openzeppelin/cli": "^2.8.2",
-    "@openzeppelin/contracts": "^3.1.0",
+    "@openzeppelin/contracts": "4.3.3",
+    "hardhat": "^2.6.8",
     "prettier": "^2.0.5",
     "prettier-plugin-solidity": "^1.0.0-beta.5"
   },

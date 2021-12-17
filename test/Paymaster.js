@@ -1,27 +1,27 @@
-const DagoraMarket = artifacts.require("marketplace/TestDagora.sol");
-const DagoraPaymaster = artifacts.require("gsn/DagoraPaymaster.sol");
-const DagoraToken = artifacts.require("token/DagoraToken.sol");
-const AcceptEverythingPaymaster = artifacts.require(
-  "testing/AcceptEverythingPaymaster.sol"
-);
+// const DagoraMarket = artifacts.require("marketplace/TestDagora.sol");
+// const DagoraPaymaster = artifacts.require("gsn/DagoraPaymaster.sol");
+// const DagoraToken = artifacts.require("token/DagoraToken.sol");
+// const AcceptEverythingPaymaster = artifacts.require(
+//   "testing/AcceptEverythingPaymaster.sol"
+// );
 
-const AcceptForwarder = artifacts.require("testing/AcceptForwarder.sol");
-const signHelper = require("./helpers/signatureHelper");
+// const AcceptForwarder = artifacts.require("testing/AcceptForwarder.sol");
+// const signHelper = require("./helpers/signatureHelper");
 
-const blockchain = "localhost";
+// const blockchain = "localhost";
 
-const gsn = require("@opengsn/gsn");
+// const gsn = require("@opengsn/gsn");
 
-const RelayProvider = require("@opengsn/gsn/dist/src/relayclient/")
-  .RelayProvider;
+// const RelayProvider = require("@opengsn/gsn/dist/src/relayclient/")
+//   .RelayProvider;
 
-const gsnTestEnv = require("@opengsn/gsn/dist/GsnTestEnvironment").default;
-const configureGSN = require("@opengsn/gsn/dist/src/relayclient/GSNConfigurator")
-  .configureGSN;
+// const gsnTestEnv = require("@opengsn/gsn/dist/GsnTestEnvironment").default;
+// const configureGSN = require("@opengsn/gsn/dist/src/relayclient/GSNConfigurator")
+//   .configureGSN;
 
-const Web3 = require("web3");
-const ethers = require("ethers");
-const {generateListing, generateOrder} = require("./helpers/populator");
+// const Web3 = require("web3");
+// const ethers = require("ethers");
+// const {generateListing, generateOrder} = require("./helpers/populator");
 
 // contract("Paymaster", async (accounts) => {
 //   context("methods", function () {

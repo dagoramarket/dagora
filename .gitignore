@@ -6,3 +6,6 @@ cache
 typechain/
 dist
 .env
+coverage/
+coverage.json
+bin/

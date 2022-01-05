@@ -218,6 +218,33 @@ describe("Staking", async () => {
         .to.emit(stakeManager, "BurnLockedStake")
         .withArgs(seller.address, stakeAmount);
     });
+    it("shouldn't burn more than locked tokens", async () => {
+      const stakeAmount = 100;
+      await token.connect(seller).approve(stakeManager.address, stakeAmount);
+      const stakeTokensTx = await stakeManager
+        .connect(seller)
+        .stakeTokens(stakeAmount);
+      await stakeTokensTx.wait();
+
+      const lockStakeTx = await stakeManager.lockStake(
+        seller.address,
+        stakeAmount
+      );
+      await lockStakeTx.wait();
+
+      const lockedTokens = await stakeManager.lockedTokens(seller.address);
+      const burnTx = stakeManager.burnLockedStake(
+        seller.address,
+        lockedTokens.toNumber() + 1
+      );
+      await expect(burnTx).to.be.reverted;
+    });
+  });
+  context("getTokenAddress()", () => {
+    it("should return correct token address", async () => {
+      const tokenAddress = await stakeManager.getTokenAddress();
+      expect(tokenAddress).to.be.equal(token.address);
+    });
   });
   it("non-operator shouldn't be able to use operator's methods", async () => {
     await (await stakeManager.setOperator(seller.address)).wait();

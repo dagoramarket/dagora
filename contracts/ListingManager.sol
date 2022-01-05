@@ -4,22 +4,20 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 import "./libraries/DagoraLib.sol";
+import "./libraries/PercentageLib.sol";
+import "./libraries/DisputeLib.sol";
 import "./interfaces/IListingManager.sol";
 import "./interfaces/IStakeManager.sol";
 import "./interfaces/IDisputeManager.sol";
 
-contract ListingManager is Context, IListingManager {
-    struct ListingInfo {
-        /* Products available */
-        uint256 available;
-        /* Expiration for non-answered transactions */
-        uint256 expiration;
-        /* Expiration for non-answered transactions */
-        uint256 orders;
-    }
+contract ListingManager is Context, IListingManager, IDisputable {
+    // struct ListingInfo {
+    //     /* Products available */
+    //     uint256 available;
+    // }
 
-    /* Listings running in the contract */
-    mapping(bytes32 => ListingInfo) public listingInfos;
+    // /* Listings running in the contract */
+    // mapping(bytes32 => ListingInfo) public listingInfos;
 
     mapping(bytes32 => bool) public cancelledListings;
 
@@ -30,15 +28,34 @@ contract ListingManager is Context, IListingManager {
     uint256 public PERCENTAGE_BURN;
 
     modifier onlySeller(DagoraLib.Listing calldata _listing) {
-        require(msg.sender == _listing.seller, "You must be the seller");
+        require(msg.sender == _listing.seller, "You must be seller");
+        _;
+    }
+
+    modifier onlyDisputeManager() {
+        require(
+            msg.sender == address(disputeManager),
+            "Only dispute manager can call this function"
+        );
         _;
     }
 
     // Listing functions
-    function createListing(DagoraLib.Listing calldata _listing)
-        public
-        override
-    {}
+    function createListing(
+        DagoraLib.Listing calldata _listing,
+        uint256 _quantity
+    ) public override onlySeller(_listing) {
+        /* Calculate listing hash. */
+        bytes32 hash = requireValidListing(_listing);
+
+        emit ListingCreated(
+            hash,
+            _listing.seller,
+            _listing.ipfsHash,
+            _listing.expiration,
+            _quantity
+        );
+    }
 
     function updateListing(
         DagoraLib.Listing calldata _listing,
@@ -48,75 +65,25 @@ contract ListingManager is Context, IListingManager {
 
         /* Calculate listing hash. */
         bytes32 hash = requireValidListing(_listing);
-        if (
-            listingInfos[hash].expiration < block.timestamp &&
-            listingInfos[hash].orders > 0
-        ) {
-            // BURN TOKENS
-            stakeManager.burnLockedStake(_msgSender(), PERCENTAGE_BURN);
-        }
-        address seller = _listing.seller;
-        require(
-            stakeManager.balance(seller) >= MINIMUM_STAKED_TOKEN,
-            "You don't have enoght funds"
-        );
 
-        /* Assert listing has not already been approved. */
-        /* EFFECTS */
-        // stakeManager.addProduct(seller, _quantity);
-        // uint256 stakerCount = SafeMath.add(
-        //     SafeMath.sub(
-        //         stakeManager.productCount(seller),
-        //         listingInfos[hash].available
-        //     ),
-        //     _quantity
-        // );
-
-        listingInfos[hash].available = _quantity;
-        listingInfos[hash].expiration = _listing.expiration;
-
-        // stakeManager.setProductCount(seller, stakerCount);
-
-        emit ListingUpdated(
-            hash,
-            _listing.seller,
-            _listing.ipfsHash,
-            _listing.expiration,
-            _quantity
-        );
+        emit ListingUpdated(hash, _quantity);
         return true;
     }
 
     function cancelListing(DagoraLib.Listing calldata _listing)
         public
         override
+        onlySeller(_listing)
     {
         /* CHECKS */
         /* Calculate listing hash. */
         bytes32 hash = requireValidListing(_listing);
 
-        /* Assert sender is authorized to cancel listing. */
-        // TODO Verify if this is needed
-        require(_msgSender() == _listing.seller, "You must be the seller");
         /* EFFECTS */
 
-        if (
-            listingInfos[hash].expiration < block.timestamp &&
-            listingInfos[hash].orders > 0
-        ) {
-            // BURN TOKENS
-            stakeManager.burnLockedStake(_listing.seller, PERCENTAGE_BURN);
-        }
-
-        /* Mark listing as cancelled, preventing it from being matched. */
         cancelledListings[hash] = true;
 
-        // stakeManager.removeProduct(
-        //     _listing.seller,
-        //     listingInfos[hash].available
-        // );
-
-        delete listingInfos[hash];
+        // delete listingInfos[hash];
 
         /* Log cancel event. */
         emit ListingCancelled(hash);
@@ -144,10 +111,7 @@ contract ListingManager is Context, IListingManager {
             return false;
         }
 
-        /* Stake owner must have enough tokens */
-        if (
-            stakeManager.unlockedTokens(_listing.seller) < MINIMUM_STAKED_TOKEN
-        ) {
+        if (stakeManager.balance(_listing.seller) < MINIMUM_STAKED_TOKEN) {
             return false;
         }
 
@@ -156,15 +120,10 @@ contract ListingManager is Context, IListingManager {
             return false;
         }
 
-        // TODO Check for disputes
         /* Listing must not be in dispute */
-        // DisputeStatus status = disputes[_hash].status;
-        // if (
-        //     status != DisputeStatus.NoDispute &&
-        //     status != DisputeStatus.Resolved
-        // ) {
-        //     return false;
-        // }
+        if (disputeManager.inDispute(_hash)) {
+            return false;
+        }
 
         return true;
     }
@@ -176,6 +135,47 @@ contract ListingManager is Context, IListingManager {
         override
         returns (bytes32 hash)
     {
-        // TODO create report dispute
+        /* CHECKS */
+        /* Calculate listing hash. */
+        hash = requireValidListing(_listing);
+
+        address payable prosecution = payable(_msgSender());
+        address payable defendant = _listing.seller;
+        uint256 amount = PercentageLib.calculateTotalFromPercentage(
+            stakeManager.balance(defendant),
+            PERCENTAGE_BURN
+        );
+        disputeManager.createDispute{ value: msg.value }(
+            hash,
+            prosecution,
+            defendant,
+            stakeManager.getTokenAddress(),
+            amount
+        );
+    }
+
+    function onDispute(bytes32 _hash) external override onlyDisputeManager {
+        DisputeLib.Dispute memory dispute = disputeManager.getDispute(_hash);
+        stakeManager.lockStake(dispute.defendant, dispute.amount);
+    }
+
+    // Maybe create an incentive for the reporter to not report for denying the listing (even tho he loses money doing so)
+    function rulingCallback(bytes32 _hash, uint256 _ruling)
+        external
+        override
+        onlyDisputeManager
+    {
+        DisputeLib.Dispute memory dispute = disputeManager.getDispute(_hash);
+        if (_ruling == uint256(DisputeLib.RulingOptions.DefendantWins)) {
+            stakeManager.unlockStake(dispute.defendant, dispute.amount);
+        } else if (
+            _ruling == uint256(DisputeLib.RulingOptions.ProsecutionWins)
+        ) {
+            stakeManager.burnLockedStake(dispute.defendant, dispute.amount);
+        } else {
+            uint256 split = dispute.amount / 2;
+            stakeManager.unlockStake(dispute.defendant, dispute.amount - split);
+            stakeManager.burnLockedStake(dispute.defendant, split);
+        }
     }
 }

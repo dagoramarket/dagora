@@ -4,17 +4,22 @@ pragma solidity ^0.8.0;
 import "../libraries/DagoraLib.sol";
 
 interface IListingManager {
-    event ListingUpdated(
+    event ListingCreated(
         bytes32 indexed hash,
         address indexed seller,
         bytes32 ipfs,
         uint256 expiration,
         uint256 quantity
     );
+
+    event ListingUpdated(bytes32 indexed hash, uint256 quantity);
     event ListingCancelled(bytes32 indexed hash);
 
     // Listing functions
-    function createListing(DagoraLib.Listing calldata _listing) external;
+    function createListing(
+        DagoraLib.Listing calldata _listing,
+        uint256 _quantity
+    ) external;
 
     function updateListing(
         DagoraLib.Listing calldata _listing,

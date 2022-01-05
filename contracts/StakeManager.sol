@@ -2,7 +2,6 @@
 pragma solidity ^0.8.0;
 
 import "./interfaces/IStakeManager.sol";
-import "./libraries/PercentageLib.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
@@ -21,7 +20,7 @@ contract StakeManager is Context, IStakeManager, Ownable {
     }
 
     modifier onlyOperator() {
-        require(msg.sender == operator);
+        require(msg.sender == operator, "Only operator");
         _;
     }
 
@@ -37,8 +36,10 @@ contract StakeManager is Context, IStakeManager, Ownable {
             unlockedTokens(_msgSender()) >= _value,
             "You don't have enoght tokens"
         );
-        require(token.transfer(_msgSender(), _value));
         stakers[_msgSender()].balance -= _value;
+
+        token.transfer(_msgSender(), _value);
+
         emit UnstakeToken(_msgSender(), _value);
     }
 
@@ -48,7 +49,7 @@ contract StakeManager is Context, IStakeManager, Ownable {
         onlyOperator
     {
         require(stakers[_staker].balance >= _value);
-        // require(token.transfer(_msgSender(), _value));
+
         stakers[_staker].lockedTokens += _value;
         emit LockStake(_staker, _value);
     }
@@ -59,27 +60,23 @@ contract StakeManager is Context, IStakeManager, Ownable {
         onlyOperator
     {
         require(stakers[_staker].lockedTokens >= _value);
-        // require(token.transferFrom(_msgSender(), address(this), _value));
+
         stakers[_staker].lockedTokens -= _value;
         emit UnlockStake(_staker, _value);
     }
 
-    function burnLockedStake(address _staker, uint256 _percentage)
+    function burnLockedStake(address _staker, uint256 _value)
         public
         override
         onlyOperator
     {
-        uint256 total = stakers[_staker].lockedTokens;
-        uint256 burn = PercentageLib.calculateTotalFromPercentage(
-            total,
-            _percentage
-        );
-        stakers[_staker].balance -= burn;
-        stakers[_staker].lockedTokens -= burn;
+        require(stakers[_staker].lockedTokens >= _value);
+        stakers[_staker].balance -= _value;
+        stakers[_staker].lockedTokens -= _value;
 
-        token.burn(burn);
+        token.burn(_value);
 
-        emit BurnLockedStake(_staker, burn);
+        emit BurnLockedStake(_staker, _value);
     }
 
     function balance(address _staker) public view override returns (uint256) {
@@ -102,5 +99,9 @@ contract StakeManager is Context, IStakeManager, Ownable {
         returns (uint256)
     {
         return stakers[_staker].balance - stakers[_staker].lockedTokens;
+    }
+
+    function getTokenAddress() public view override returns (ERC20) {
+        return token;
     }
 }

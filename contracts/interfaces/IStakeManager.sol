@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+
 interface IStakeManager {
     struct Staker {
         // The amount of tokens the contract holds for this staker.
@@ -33,4 +35,6 @@ interface IStakeManager {
     function lockedTokens(address _staker) external view returns (uint256);
 
     function unlockedTokens(address _staker) external view returns (uint256);
+
+    function getTokenAddress() external view returns (ERC20);
 }

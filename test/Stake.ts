@@ -4,52 +4,58 @@ import { ethers } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { expect } from "chai";
 
-describe("Dagora", async () => {
-  context("Staking", () => {
-    let token: DagoraToken;
-    let stakeManager: StakeManager;
-    let owner: SignerWithAddress,
-      buyer: SignerWithAddress,
-      seller: SignerWithAddress;
+describe("Staking", async () => {
+  let token: DagoraToken;
+  let stakeManager: StakeManager;
+  let owner: SignerWithAddress,
+    buyer: SignerWithAddress,
+    seller: SignerWithAddress;
 
-    before(async () => {
-      [owner, buyer, seller] = await ethers.getSigners();
+  before(async () => {
+    [owner, buyer, seller] = await ethers.getSigners();
+    const StakeManager = await ethers.getContractFactory("StakeManager");
+    const DagoraToken = await ethers.getContractFactory("DagoraToken");
+    token = (await DagoraToken.deploy()) as DagoraToken;
+    await token.deployed();
 
-      const PercentageLib = await ethers.getContractFactory("PercentageLib");
-      const percentageLib = await PercentageLib.deploy();
-      const StakeManager = await ethers.getContractFactory("StakeManager", {
-        libraries: {
-          PercentageLib: percentageLib.address,
-        },
-      });
-      const DagoraToken = await ethers.getContractFactory("DagoraToken");
-      token = (await DagoraToken.deploy()) as DagoraToken;
-      await token.deployed();
+    stakeManager = (await StakeManager.deploy(token.address)) as StakeManager;
+    stakeManager.deployed();
 
-      stakeManager = (await StakeManager.deploy(token.address)) as StakeManager;
-      stakeManager.deployed();
-
-      await (await stakeManager.setOperator(owner.address)).wait();
-      await token.mint(owner.address, 100000);
-      await token.mint(buyer.address, 100000);
-      await token.mint(seller.address, 100000);
-    });
-
+    await (await stakeManager.setOperator(owner.address)).wait();
+    await token.mint(owner.address, 100000);
+    await token.mint(buyer.address, 100000);
+    await token.mint(seller.address, 100000);
+  });
+  context("stake()", () => {
     it("should be able to stake", async () => {
       const stakeAmount = 10;
       await token.connect(seller).approve(stakeManager.address, stakeAmount);
+
+      const balanceBefore = await stakeManager.balance(seller.address);
+
       const stakeTokensTx = await stakeManager
         .connect(seller)
         .stakeTokens(stakeAmount);
       await stakeTokensTx.wait();
 
-      const balance = await stakeManager.balance(seller.address);
+      const balanceAfter = await stakeManager.balance(seller.address);
 
-      expect(balance.toNumber()).to.be.equal(stakeAmount);
+      expect(balanceAfter.toNumber() - balanceBefore.toNumber()).to.be.equal(
+        stakeAmount
+      );
       expect(stakeTokensTx)
         .to.emit(stakeManager, "StakeToken")
         .withArgs(seller.address, stakeAmount);
     });
+    it("shouldn't be able to stake because it isn't allowed", async () => {
+      const stakeAmount = 10;
+      const stakeTokensTx = stakeManager
+        .connect(seller)
+        .stakeTokens(stakeAmount);
+      await expect(stakeTokensTx).to.be.reverted;
+    });
+  });
+  context("unstake()", () => {
     it("should be able to unstake", async () => {
       const balanceBefore = await stakeManager.balance(seller.address);
       const stakeAmount = 10;
@@ -71,13 +77,6 @@ describe("Dagora", async () => {
         .to.emit(stakeManager, "UnstakeToken")
         .withArgs(seller.address, stakeAmount);
     });
-    it("shouldn't be able to stake because it isn't allowed", async () => {
-      const stakeAmount = 10;
-      const stakeTokensTx = stakeManager
-        .connect(seller)
-        .stakeTokens(stakeAmount);
-      await expect(stakeTokensTx).to.be.reverted;
-    });
     it("shouldn't be able to unstake because passes total staked value", async () => {
       const stakeAmount = 10;
       await token.connect(seller).approve(stakeManager.address, stakeAmount);
@@ -95,7 +94,10 @@ describe("Dagora", async () => {
         "You don't have enoght tokens"
       );
     });
-    it("operator should be able to lock stake", async () => {
+  });
+
+  context("lockStake()", () => {
+    it("should be able to lock stake", async () => {
       const stakeAmount = 10;
       await token.connect(seller).approve(stakeManager.address, stakeAmount);
       const stakeTokensTx = await stakeManager
@@ -116,7 +118,18 @@ describe("Dagora", async () => {
         .to.emit(stakeManager, "LockStake")
         .withArgs(seller.address, stakeAmount);
     });
-    it("operator should be able to unlock stake", async () => {
+    it("shouldn't be able to lock stake not enoght balance", async () => {
+      const balance = await stakeManager.balance(seller.address);
+
+      const lockStakeTx = stakeManager.lockStake(
+        seller.address,
+        balance.toNumber() + 1
+      );
+      await expect(lockStakeTx).to.be.reverted;
+    });
+  });
+  context("unlockStake()", () => {
+    it("should be able to unlock stake", async () => {
       const stakeAmount = 10;
       await token.connect(seller).approve(stakeManager.address, stakeAmount);
       const stakeTokensTx = await stakeManager
@@ -149,6 +162,32 @@ describe("Dagora", async () => {
         .to.emit(stakeManager, "UnlockStake")
         .withArgs(seller.address, stakeAmount);
     });
+    it("shouldn't be able to unlock stake because not enoght locked tokens", async () => {
+      const stakeAmount = 10;
+      await token.connect(seller).approve(stakeManager.address, stakeAmount);
+      const stakeTokensTx = await stakeManager
+        .connect(seller)
+        .stakeTokens(stakeAmount);
+      await stakeTokensTx.wait();
+
+      const lockStakeTx = await stakeManager.lockStake(
+        seller.address,
+        stakeAmount
+      );
+      await lockStakeTx.wait();
+
+      const beforeLockedTokens = await stakeManager.lockedTokens(
+        seller.address
+      );
+
+      const unlockStakeTx = stakeManager.unlockStake(
+        seller.address,
+        beforeLockedTokens.toNumber() + 1
+      );
+      await expect(unlockStakeTx).to.be.reverted;
+    });
+  });
+  context("burnLockedStake()", () => {
     it("should burn locked stake", async () => {
       const stakeAmount = 100;
       await token.connect(seller).approve(stakeManager.address, stakeAmount);
@@ -166,23 +205,33 @@ describe("Dagora", async () => {
       const beforeLockedTokens = await stakeManager.lockedTokens(
         seller.address
       );
-      const percentage = 1000; // 10%
       const burnTx = await stakeManager.burnLockedStake(
         seller.address,
-        percentage
+        stakeAmount
       );
       await burnTx.wait();
       const afterLockedTokens = await stakeManager.lockedTokens(seller.address);
-
-      const expectedAmount = Math.floor(
-        (beforeLockedTokens.toNumber() * percentage) / 10000
-      );
       expect(
         beforeLockedTokens.toNumber() - afterLockedTokens.toNumber()
-      ).to.be.equals(expectedAmount);
+      ).to.be.equals(stakeAmount);
       expect(burnTx)
         .to.emit(stakeManager, "BurnLockedStake")
-        .withArgs(seller.address, expectedAmount);
+        .withArgs(seller.address, stakeAmount);
     });
+  });
+  it("non-operator shouldn't be able to use operator's methods", async () => {
+    await (await stakeManager.setOperator(seller.address)).wait();
+    const stakeAmount = 10;
+    const lockStakeTx = stakeManager.lockStake(seller.address, stakeAmount);
+    await expect(lockStakeTx).to.be.revertedWith("Only operator");
+    const unlockStakeTx = stakeManager.unlockStake(seller.address, stakeAmount);
+    await expect(unlockStakeTx).to.be.revertedWith("Only operator");
+    const burnLockedStake = stakeManager.burnLockedStake(
+      seller.address,
+      stakeAmount
+    );
+    await expect(burnLockedStake).to.be.revertedWith("Only operator");
+
+    await (await stakeManager.setOperator(owner.address)).wait();
   });
 });

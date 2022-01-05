@@ -262,11 +262,7 @@ contract OrderManager is Context, IOrderManager, IDisputable {
 
     // IDisputable Functions
 
-    function transferToken(
-        bytes32 _hash,
-        address _to,
-        uint256 _amount
-    ) public override {
+    function onDispute(bytes32 _hash) public override {
         // onlyDisputeManager {
     }
 

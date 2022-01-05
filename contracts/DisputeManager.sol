@@ -36,16 +36,17 @@ abstract contract DisputeManager is Context, IDisputeManager {
 
         IDisputable disputable = IDisputable(_msgSender());
 
-        disputable.transferToken(_hash, address(this), _amount);
-
         dispute.prosecution = _prosecution;
         dispute.defendant = _defendant;
         dispute.amount = _amount;
-        dispute.fees[_prosecution] += msg.value;
+        dispute.prosecutionFee += msg.value;
         dispute.disputable = disputable;
         dispute.status = DisputeLib.Status.WaitingDefendant;
         dispute.lastInteraction = block.timestamp;
         dispute.token = _token;
+
+        disputable.onDispute(_hash);
+
         emit HasToPayFee(_hash, DisputeLib.Party.Defendant);
     }
 
@@ -87,32 +88,37 @@ abstract contract DisputeManager is Context, IDisputeManager {
             "The caller must be the sender."
         );
         address feePayer = _msgSender();
+        uint256 feePaid = 0;
+        if (feePayer == dispute.prosecution) {
+            dispute.prosecutionFee += msg.value;
+            feePaid = dispute.prosecutionFee;
+        } else {
+            dispute.defendantFee += msg.value;
+            feePaid = dispute.defendantFee;
+        }
 
-        dispute.fees[feePayer] += msg.value;
-        require(
-            dispute.fees[feePayer] >= arbCost,
-            "The fee must cover arbitration costs."
-        );
+        require(feePaid == arbCost, "The fee must cover arbitration costs.");
         dispute.lastInteraction = block.timestamp;
 
         DisputeLib.Status newStatus;
         DisputeLib.Party hasToPayParty;
-        address otherPayer;
+        uint256 otherPartyFee;
 
         if (feePayer == dispute.prosecution) {
-            otherPayer = dispute.defendant;
+            otherPartyFee = dispute.defendantFee;
             newStatus = DisputeLib.Status.WaitingDefendant;
             hasToPayParty = DisputeLib.Party.Defendant;
         } else {
-            otherPayer = dispute.prosecution;
+            otherPartyFee = dispute.prosecutionFee;
             newStatus = DisputeLib.Status.WaitingProsecution;
             hasToPayParty = DisputeLib.Party.Prosecution;
         }
 
-        if (dispute.fees[otherPayer] < arbCost) {
+        if (otherPartyFee < arbCost) {
             dispute.status = newStatus;
             emit HasToPayFee(_hash, hasToPayParty);
         } else {
+            // dispute.arbCost = arbCost;
             // The receiver has also paid the fee. We create the dispute.
             _raiseDispute(_hash, arbCost);
         }
@@ -123,18 +129,9 @@ abstract contract DisputeManager is Context, IDisputeManager {
 
         DisputeLib.Dispute storage dispute = disputes[_hash];
 
-        uint256 amount = dispute.amount;
-        uint256 prosecutionFee = dispute.fees[dispute.prosecution];
-        uint256 defendantFee = dispute.fees[dispute.defendant];
+        uint256 prosecutionFee = dispute.prosecutionFee;
+        uint256 defendantFee = dispute.defendantFee;
         IDisputable disputable = dispute.disputable;
-        ERC20 token = dispute.token;
-
-        delete dispute.amount;
-        delete dispute.fees[dispute.prosecution];
-        delete dispute.fees[dispute.defendant];
-        delete dispute.disputable;
-        delete dispute.token;
-
         dispute.status = DisputeLib.Status.Resolved;
 
         // Give the arbitration fee back.
@@ -142,16 +139,8 @@ abstract contract DisputeManager is Context, IDisputeManager {
         bool success = false;
         if (_ruling == uint256(DisputeLib.RulingOptions.ProsecutionWins)) {
             (success, ) = dispute.prosecution.call{ value: prosecutionFee }("");
-            require(
-                token.transfer(dispute.prosecution, amount),
-                "The `transfer` function must not fail."
-            );
         } else if (_ruling == uint256(DisputeLib.RulingOptions.DefendantWins)) {
             (success, ) = dispute.defendant.call{ value: defendantFee }("");
-            require(
-                token.transfer(dispute.defendant, amount),
-                "The `transfer` function must not fail."
-            );
         } else {
             // `senderFee` and `receiverFee` are equal to the arbitration cost.
             uint256 splitArbitrationFee = prosecutionFee / 2;
@@ -162,18 +151,16 @@ abstract contract DisputeManager is Context, IDisputeManager {
             (success, ) = dispute.prosecution.call{
                 value: splitArbitrationFee
             }("");
-            uint256 half = amount / 2;
-            require(
-                token.transfer(dispute.defendant, amount - half),
-                "The `transfer` function must not fail."
-            );
-            require(
-                token.transfer(dispute.prosecution, half),
-                "The `transfer` function must not fail."
-            );
         }
         /* Finalizing transaction */
         disputable.rulingCallback(_hash, _ruling);
+
+        delete dispute.amount;
+        delete dispute.prosecutionFee;
+        delete dispute.defendantFee;
+        delete dispute.disputable;
+        delete dispute.token;
+        delete dispute.amount;
     }
 
     // Virtual functions

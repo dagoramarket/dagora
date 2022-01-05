@@ -31,11 +31,10 @@ library DisputeLib {
         address payable defendant;
         ERC20 token;
         uint256 amount;
-        mapping(address => uint256) fees;
-        // uint256 prosecutionFee;
-        // uint256 defendantFee;
+        uint256 prosecutionFee;
+        uint256 defendantFee;
+        IDisputable disputable;
         uint256 lastInteraction;
         Status status;
-        IDisputable disputable;
     }
 }

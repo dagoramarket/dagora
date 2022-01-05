@@ -24,4 +24,11 @@ interface IDisputeManager {
     function appeal(bytes32 _hash) external payable;
 
     function arbitrationCost() external view returns (uint256);
+
+    function getDispute(bytes32 _hash)
+        external
+        view
+        returns (DisputeLib.Dispute memory);
+
+    function inDispute(bytes32 _hash) external view returns (bool);
 }

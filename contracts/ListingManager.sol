@@ -27,6 +27,18 @@ contract ListingManager is Context, IListingManager, IDisputable {
     uint256 public MINIMUM_STAKED_TOKEN;
     uint256 public PERCENTAGE_BURN;
 
+    constructor(
+        IStakeManager _stakeManager,
+        IDisputeManager _disputeManager,
+        uint256 _MINIMUM_STAKED_TOKEN,
+        uint256 _PERCENTAGE_BURN
+    ) {
+        stakeManager = _stakeManager;
+        disputeManager = _disputeManager;
+        MINIMUM_STAKED_TOKEN = _MINIMUM_STAKED_TOKEN;
+        PERCENTAGE_BURN = _PERCENTAGE_BURN;
+    }
+
     modifier onlySeller(DagoraLib.Listing calldata _listing) {
         require(msg.sender == _listing.seller, "You must be seller");
         _;

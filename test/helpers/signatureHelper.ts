@@ -1,5 +1,4 @@
 import { arrayify, solidityKeccak256 } from "ethers/lib/utils";
-import { ethers } from "hardhat";
 import { Listing, Order } from "./populator";
 
 export function hashListing(_listing: Listing) {

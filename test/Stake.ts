@@ -25,11 +25,15 @@ describe("Staking", async () => {
     await token.mint(owner.address, 100000);
     await token.mint(buyer.address, 100000);
     await token.mint(seller.address, 100000);
+    await (
+      await token
+        .connect(seller)
+        .approve(stakeManager.address, ethers.constants.MaxUint256)
+    ).wait();
   });
   context("stake()", () => {
     it("should be able to stake", async () => {
       const stakeAmount = 10;
-      await token.connect(seller).approve(stakeManager.address, stakeAmount);
 
       const balanceBefore = await stakeManager.balance(seller.address);
 
@@ -48,18 +52,25 @@ describe("Staking", async () => {
         .withArgs(seller.address, stakeAmount);
     });
     it("shouldn't be able to stake because it isn't allowed", async () => {
+      await (
+        await token.connect(seller).approve(stakeManager.address, 0)
+      ).wait();
       const stakeAmount = 10;
       const stakeTokensTx = stakeManager
         .connect(seller)
         .stakeTokens(stakeAmount);
       await expect(stakeTokensTx).to.be.reverted;
+      await (
+        await token
+          .connect(seller)
+          .approve(stakeManager.address, ethers.constants.MaxUint256)
+      ).wait();
     });
   });
   context("unstake()", () => {
     it("should be able to unstake", async () => {
       const balanceBefore = await stakeManager.balance(seller.address);
       const stakeAmount = 10;
-      await token.connect(seller).approve(stakeManager.address, stakeAmount);
       const stakeTokensTx = await stakeManager
         .connect(seller)
         .stakeTokens(stakeAmount);
@@ -79,7 +90,6 @@ describe("Staking", async () => {
     });
     it("shouldn't be able to unstake because passes total staked value", async () => {
       const stakeAmount = 10;
-      await token.connect(seller).approve(stakeManager.address, stakeAmount);
       const stakeTokensTx = await stakeManager
         .connect(seller)
         .stakeTokens(stakeAmount);
@@ -99,7 +109,6 @@ describe("Staking", async () => {
   context("lockStake()", () => {
     it("should be able to lock stake", async () => {
       const stakeAmount = 10;
-      await token.connect(seller).approve(stakeManager.address, stakeAmount);
       const stakeTokensTx = await stakeManager
         .connect(seller)
         .stakeTokens(stakeAmount);
@@ -131,7 +140,6 @@ describe("Staking", async () => {
   context("unlockStake()", () => {
     it("should be able to unlock stake", async () => {
       const stakeAmount = 10;
-      await token.connect(seller).approve(stakeManager.address, stakeAmount);
       const stakeTokensTx = await stakeManager
         .connect(seller)
         .stakeTokens(stakeAmount);
@@ -164,7 +172,6 @@ describe("Staking", async () => {
     });
     it("shouldn't be able to unlock stake because not enoght locked tokens", async () => {
       const stakeAmount = 10;
-      await token.connect(seller).approve(stakeManager.address, stakeAmount);
       const stakeTokensTx = await stakeManager
         .connect(seller)
         .stakeTokens(stakeAmount);
@@ -190,7 +197,6 @@ describe("Staking", async () => {
   context("burnLockedStake()", () => {
     it("should burn locked stake", async () => {
       const stakeAmount = 100;
-      await token.connect(seller).approve(stakeManager.address, stakeAmount);
       const stakeTokensTx = await stakeManager
         .connect(seller)
         .stakeTokens(stakeAmount);
@@ -220,7 +226,6 @@ describe("Staking", async () => {
     });
     it("shouldn't burn more than locked tokens", async () => {
       const stakeAmount = 100;
-      await token.connect(seller).approve(stakeManager.address, stakeAmount);
       const stakeTokensTx = await stakeManager
         .connect(seller)
         .stakeTokens(stakeAmount);

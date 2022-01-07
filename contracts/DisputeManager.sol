@@ -169,5 +169,22 @@ abstract contract DisputeManager is Context, IDisputeManager {
         internal
         virtual;
 
-    function arbitrationCost() public view virtual override returns (uint256);
+    function arbitrationCost() public pure virtual override returns (uint256);
+
+    function inDispute(bytes32 _hash) external view override returns (bool) {
+        DisputeLib.Dispute storage dispute = disputes[_hash];
+        return
+            dispute.status > DisputeLib.Status.NoDispute &&
+            dispute.status < DisputeLib.Status.Resolved;
+    }
+
+    function getDispute(bytes32 _hash)
+        external
+        view
+        override
+        returns (DisputeLib.Dispute memory)
+    {
+        DisputeLib.Dispute storage dispute = disputes[_hash];
+        return dispute;
+    }
 }

@@ -7,8 +7,9 @@ import "./interfaces/IDisputeManager.sol";
 import "./interfaces/IDisputable.sol";
 import "./libraries/DagoraLib.sol";
 import "./libraries/PercentageLib.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract OrderManager is Context, IOrderManager, IDisputable {
+contract OrderManager is Context, IOrderManager, IDisputable, Ownable {
     IListingManager public listingManager;
     IDisputeManager public disputeManager;
 

@@ -9,8 +9,9 @@ import "./libraries/DisputeLib.sol";
 import "./interfaces/IListingManager.sol";
 import "./interfaces/IStakeManager.sol";
 import "./interfaces/IDisputeManager.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract ListingManager is Context, IListingManager, IDisputable {
+contract ListingManager is Context, IListingManager, IDisputable, Ownable {
     // struct ListingInfo {
     //     /* Products available */
     //     uint256 available;
@@ -40,13 +41,13 @@ contract ListingManager is Context, IListingManager, IDisputable {
     }
 
     modifier onlySeller(DagoraLib.Listing calldata _listing) {
-        require(msg.sender == _listing.seller, "You must be seller");
+        require(_msgSender() == _listing.seller, "You must be seller");
         _;
     }
 
     modifier onlyDisputeManager() {
         require(
-            msg.sender == address(disputeManager),
+            _msgSender() == address(disputeManager),
             "Only dispute manager can call this function"
         );
         _;

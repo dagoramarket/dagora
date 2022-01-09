@@ -30,7 +30,7 @@ export function generateListing(
   expiration: number = 0
 ): Listing {
   return {
-    ipfsHash: ethers.utils.randomBytes(32),
+    ipfsHash: generateRandomHash(),
     seller: sellerAddress,
     commissionPercentage: Math.floor(Math.random() * 10) * 10,
     warranty: warranty ? Math.floor(Math.random() * 7) + 1 : 0,
@@ -66,4 +66,8 @@ export function generateOrder(
     confirmationTimeout: timeout ? Math.floor(Math.random() * 30) + 1 : 0,
     nonce: nonce,
   };
+}
+
+export function generateRandomHash(): Uint8Array {
+  return ethers.utils.randomBytes(32);
 }

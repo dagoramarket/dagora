@@ -9,7 +9,7 @@ import { ethers } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { expect } from "chai";
 import { generateListing } from "./helpers/populator";
-import { hashListing } from "./helpers/signatureHelper";
+import { hashListing, toHex } from "./helpers/signatureHelper";
 import { advanceTimeAndBlock } from "./helpers/testHelper";
 import { BigNumber } from "ethers";
 
@@ -150,7 +150,7 @@ describe("Listing", async () => {
         .withArgs(
           hash,
           listing.seller,
-          "0x" + Buffer.from(listing.ipfsHash).toString("hex"),
+          toHex(listing.ipfsHash),
           listing.expiration,
           quantity
         );
@@ -236,7 +236,6 @@ describe("Listing", async () => {
     });
     it("shouldn't report itself", async () => {
       const listing = generateListing(seller.address);
-      const hash = hashListing(listing);
 
       const reportTx = listingManager.connect(seller).report(listing, {
         value: arbCost,

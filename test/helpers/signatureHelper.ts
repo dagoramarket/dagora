@@ -52,3 +52,7 @@ export function hashToSign(_hash: string) {
     ["\x19Ethereum Signed Message:\n32", _hash]
   ) as string;
 }
+
+export function toHex(_hash: Uint8Array) {
+  return "0x" + Buffer.from(_hash).toString("hex");
+}

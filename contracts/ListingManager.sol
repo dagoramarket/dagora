@@ -56,9 +56,9 @@ contract ListingManager is Context, IListingManager, IDisputable {
     function createListing(
         DagoraLib.Listing calldata _listing,
         uint256 _quantity
-    ) public override onlySeller(_listing) {
+    ) public override onlySeller(_listing) returns (bytes32 hash) {
         /* Calculate listing hash. */
-        bytes32 hash = requireValidListing(_listing);
+        hash = requireValidListing(_listing);
 
         emit ListingCreated(
             hash,
@@ -72,14 +72,13 @@ contract ListingManager is Context, IListingManager, IDisputable {
     function updateListing(
         DagoraLib.Listing calldata _listing,
         uint256 _quantity
-    ) public override onlySeller(_listing) returns (bool) {
+    ) public override onlySeller(_listing) returns (bytes32 hash) {
         /* CHECKS */
 
         /* Calculate listing hash. */
-        bytes32 hash = requireValidListing(_listing);
+        hash = requireValidListing(_listing);
 
         emit ListingUpdated(hash, _quantity);
-        return true;
     }
 
     function cancelListing(DagoraLib.Listing calldata _listing)
@@ -94,8 +93,6 @@ contract ListingManager is Context, IListingManager, IDisputable {
         /* EFFECTS */
 
         cancelledListings[hash] = true;
-
-        // delete listingInfos[hash];
 
         /* Log cancel event. */
         emit ListingCancelled(hash);
@@ -148,6 +145,7 @@ contract ListingManager is Context, IListingManager, IDisputable {
         returns (bytes32 hash)
     {
         /* CHECKS */
+        require(_msgSender() != _listing.seller, "You can't report yourself");
         /* Calculate listing hash. */
         hash = requireValidListing(_listing);
 

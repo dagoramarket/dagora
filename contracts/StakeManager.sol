@@ -20,7 +20,7 @@ contract StakeManager is Context, IStakeManager, Ownable {
     }
 
     modifier onlyOperator() {
-        require(msg.sender == operator, "Only operator");
+        require(_msgSender() == operator, "Only operator");
         _;
     }
 

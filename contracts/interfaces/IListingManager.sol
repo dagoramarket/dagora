@@ -19,12 +19,12 @@ interface IListingManager {
     function createListing(
         DagoraLib.Listing calldata _listing,
         uint256 _quantity
-    ) external;
+    ) external returns (bytes32 hash);
 
     function updateListing(
         DagoraLib.Listing calldata _listing,
         uint256 _quantity
-    ) external returns (bool);
+    ) external returns (bytes32 hash);
 
     function cancelListing(DagoraLib.Listing calldata _listing) external;
 

@@ -13,26 +13,31 @@ abstract contract DisputeManager is Context, IDisputeManager {
     uint256 public GRACE_PERIOD;
     uint256 public DISPUTE_TIMEOUT;
 
+    modifier notInDispute(bytes32 _hash) {
+        require(!inDispute(_hash));
+        _;
+    }
+
+    modifier mustBeParty(bytes32 _hash) {
+        require(
+            _msgSender() == disputes[_hash].prosecution ||
+                _msgSender() == disputes[_hash].defendant,
+            "Must be party"
+        );
+        _;
+    }
+
     function createDispute(
         bytes32 _hash,
         address payable _prosecution,
         address payable _defendant,
         ERC20 _token,
         uint256 _amount
-    ) public payable override {
+    ) public payable override notInDispute(_hash) {
         DisputeLib.Dispute storage dispute = disputes[_hash];
-        require(
-            dispute.status == DisputeLib.Status.NoDispute ||
-                (dispute.status == DisputeLib.Status.Resolved &&
-                    dispute.lastInteraction + GRACE_PERIOD < block.timestamp),
-            "Listing has already been reported"
-        );
 
         uint256 arbCost = arbitrationCost();
-        require(
-            msg.value >= arbCost,
-            "Value must be greater than arbitrationCost"
-        );
+        require(msg.value == arbCost, "Value must be equal to arbitrationCost");
 
         IDisputable disputable = IDisputable(_msgSender());
 
@@ -74,18 +79,18 @@ abstract contract DisputeManager is Context, IDisputeManager {
         }
     }
 
-    function payArbitrationFee(bytes32 _hash) public payable override {
+    function payArbitrationFee(bytes32 _hash)
+        public
+        payable
+        override
+        mustBeParty(_hash)
+    {
         DisputeLib.Dispute storage dispute = disputes[_hash];
         uint256 arbCost = arbitrationCost();
         require(
             DisputeLib.Status.NoDispute < dispute.status &&
                 dispute.status < DisputeLib.Status.DisputeCreated,
             "Dispute has already been created."
-        );
-        require(
-            _msgSender() == dispute.prosecution ||
-                _msgSender() == dispute.defendant,
-            "The caller must be the sender."
         );
         address feePayer = _msgSender();
         uint256 feePaid = 0;
@@ -171,7 +176,7 @@ abstract contract DisputeManager is Context, IDisputeManager {
 
     function arbitrationCost() public pure virtual override returns (uint256);
 
-    function inDispute(bytes32 _hash) external view override returns (bool) {
+    function inDispute(bytes32 _hash) public view override returns (bool) {
         DisputeLib.Dispute storage dispute = disputes[_hash];
         return
             dispute.status > DisputeLib.Status.NoDispute &&

@@ -35,14 +35,12 @@ export function generateListing(
     commissionPercentage: Math.floor(Math.random() * 10) * 10,
     warranty: warranty ? Math.floor(Math.random() * 7) + 1 : 0,
     cashbackPercentage: Math.floor(Math.random() * 10) * 10,
-    expiration: expiration
-      ? Math.random() < 0.5
-        ? ethers.constants.MaxUint256
-        : BigNumber.from(
-            Math.floor(new Date().getTime() / 1000) +
-              (Math.floor(Math.random() * 29) + 1) * 86400
+    expiration:
+      expiration > 0
+        ? BigNumber.from(
+            Math.floor(new Date().getTime() / 1000) + expiration * 86400
           )
-      : ethers.constants.MaxUint256, // Days
+        : ethers.constants.MaxUint256, // Days
   };
 }
 

@@ -5,19 +5,47 @@ import "../DisputeManager.sol";
 import "hardhat/console.sol";
 
 contract TestDisputeManager is DisputeManager {
-    function submitEvidence(bytes32, string calldata) external view override {
-        console.log("submitEvidence");
+    event DisputeCreated(bytes32 indexed _hash);
+    event Appeal(bytes32 indexed _hash, address indexed _appealer);
+    event Evidence(
+        bytes32 indexed _hash,
+        address indexed _evidenceHolder,
+        string data
+    );
+
+    uint256 public arbCost;
+
+    function updateArbCost(uint256 _arbCost) public onlyOwner {
+        arbCost = _arbCost;
     }
 
-    function appeal(bytes32) external payable override {
-        console.log("Appeal");
+    function rule(bytes32 _hash, uint256 _ruling) public onlyOwner {
+        _executeRuling(_hash, _ruling);
     }
 
-    function _raiseDispute(bytes32, uint256) internal view override {
-        console.log("_raiseDispute");
+    function submitEvidence(bytes32 _hash, string calldata data)
+        external
+        override
+        mustBeParty(_hash)
+    {
+        emit Evidence(_hash, _msgSender(), data);
     }
 
-    function arbitrationCost() public pure override returns (uint256) {
-        return 0;
+    function appeal(bytes32 _hash)
+        external
+        payable
+        override
+        mustBeParty(_hash)
+    {
+        emit Appeal(_hash, _msgSender());
+    }
+
+    function _raiseDispute(bytes32 _hash, uint256 _arbCost) internal override {
+        super._raiseDispute(_hash, _arbCost);
+        emit DisputeCreated(_hash);
+    }
+
+    function arbitrationCost() public view override returns (uint256) {
+        return arbCost;
     }
 }

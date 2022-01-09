@@ -5,12 +5,12 @@ import "./interfaces/IDisputeManager.sol";
 import "./interfaces/IDisputable.sol";
 import "./libraries/DisputeLib.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
-abstract contract DisputeManager is Context, IDisputeManager {
+abstract contract DisputeManager is Context, IDisputeManager, Ownable {
     mapping(bytes32 => DisputeLib.Dispute) public disputes;
 
     // Time after a dispute is created before it can be disputed
-    uint256 public GRACE_PERIOD;
     uint256 public DISPUTE_TIMEOUT;
 
     modifier notInDispute(bytes32 _hash) {
@@ -27,6 +27,10 @@ abstract contract DisputeManager is Context, IDisputeManager {
         _;
     }
 
+    function updateDisputeTimeout(uint256 _timeout) public onlyOwner {
+        DISPUTE_TIMEOUT = _timeout;
+    }
+
     function createDispute(
         bytes32 _hash,
         address payable _prosecution,
@@ -37,7 +41,7 @@ abstract contract DisputeManager is Context, IDisputeManager {
         DisputeLib.Dispute storage dispute = disputes[_hash];
 
         uint256 arbCost = arbitrationCost();
-        require(msg.value == arbCost, "Value must be equal to arbitrationCost");
+        require(msg.value >= arbCost, "The fee must cover arbitration costs.");
 
         IDisputable disputable = IDisputable(_msgSender());
 
@@ -88,8 +92,7 @@ abstract contract DisputeManager is Context, IDisputeManager {
         DisputeLib.Dispute storage dispute = disputes[_hash];
         uint256 arbCost = arbitrationCost();
         require(
-            DisputeLib.Status.NoDispute < dispute.status &&
-                dispute.status < DisputeLib.Status.DisputeCreated,
+            dispute.status < DisputeLib.Status.DisputeCreated,
             "Dispute has already been created."
         );
         address feePayer = _msgSender();
@@ -102,8 +105,7 @@ abstract contract DisputeManager is Context, IDisputeManager {
             feePaid = dispute.defendantFee;
         }
 
-        require(feePaid == arbCost, "The fee must cover arbitration costs.");
-        dispute.lastInteraction = block.timestamp;
+        require(feePaid >= arbCost, "The fee must cover arbitration costs.");
 
         DisputeLib.Status newStatus;
         DisputeLib.Party hasToPayParty;
@@ -121,6 +123,7 @@ abstract contract DisputeManager is Context, IDisputeManager {
 
         if (otherPartyFee < arbCost) {
             dispute.status = newStatus;
+            dispute.lastInteraction = block.timestamp;
             emit HasToPayFee(_hash, hasToPayParty);
         } else {
             // dispute.arbCost = arbCost;
@@ -130,8 +133,6 @@ abstract contract DisputeManager is Context, IDisputeManager {
     }
 
     function _executeRuling(bytes32 _hash, uint256 _ruling) internal {
-        require(_ruling <= DisputeLib.AMOUNT_OF_CHOICES, "Invalid ruling.");
-
         DisputeLib.Dispute storage dispute = disputes[_hash];
 
         uint256 prosecutionFee = dispute.prosecutionFee;
@@ -168,13 +169,33 @@ abstract contract DisputeManager is Context, IDisputeManager {
         delete dispute.amount;
     }
 
-    // Virtual functions
-
     function _raiseDispute(bytes32 _hash, uint256 _arbitrationCost)
         internal
-        virtual;
+        virtual
+    {
+        DisputeLib.Dispute storage dispute = disputes[_hash];
+        dispute.status = DisputeLib.Status.DisputeCreated;
 
-    function arbitrationCost() public pure virtual override returns (uint256);
+        // Refund sender if it overpaid.
+        bool success;
+        if (dispute.prosecutionFee > _arbitrationCost) {
+            uint256 extraFeeProsecution = dispute.prosecutionFee -
+                _arbitrationCost;
+            dispute.prosecutionFee = _arbitrationCost;
+            (success, ) = dispute.prosecution.call{
+                value: extraFeeProsecution
+            }("");
+        }
+
+        // Refund receiver if it overpaid.
+        if (dispute.defendantFee > _arbitrationCost) {
+            uint256 extraFeeDefendant = dispute.defendantFee - _arbitrationCost;
+            dispute.defendantFee = _arbitrationCost;
+            (success, ) = dispute.defendant.call{ value: extraFeeDefendant }(
+                ""
+            );
+        }
+    }
 
     function inDispute(bytes32 _hash) public view override returns (bool) {
         DisputeLib.Dispute storage dispute = disputes[_hash];
@@ -192,4 +213,6 @@ abstract contract DisputeManager is Context, IDisputeManager {
         DisputeLib.Dispute storage dispute = disputes[_hash];
         return dispute;
     }
+
+    function arbitrationCost() public view virtual override returns (uint256);
 }

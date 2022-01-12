@@ -52,13 +52,13 @@ export function generateOrder(
   nonce = 0,
   timeout = false
 ): Order {
-  const price = Math.floor(Math.random() * 1000);
+  const price = Math.floor(Math.random() * 1000) + 100;
   return {
     listing: listing,
     buyer: buyer,
     commissioner: buyer,
     token: tokenAddress,
-    quantity: Math.floor(Math.random() * 5) + 1,
+    quantity: Math.floor(Math.random() * 100) + 1,
     total: price,
     cashback: Math.floor((listing.cashbackPercentage * price) / 10000),
     commission: Math.floor((price * listing.commissionPercentage) / 10000),

@@ -8,6 +8,7 @@ import "./interfaces/IDisputeManager.sol";
 import "./libraries/DagoraLib.sol";
 import "./libraries/PercentageLib.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "hardhat/console.sol";
 
 contract OrderManager is Context, IOrderManager, Disputable {
     IListingManager public listingManager;
@@ -60,7 +61,7 @@ contract OrderManager is Context, IOrderManager, Disputable {
         returns (bytes32 _hash)
     {
         bytes32 listingHash;
-        (_hash, listingHash) = _requireValidOrder(_order);
+        (_hash, listingHash) = requireValidOrder(_order);
         DagoraLib.Transaction storage transaction = transactions[_hash];
         require(
             transaction.status == DagoraLib.Status.NoTransaction,
@@ -320,19 +321,17 @@ contract OrderManager is Context, IOrderManager, Disputable {
         emit TransactionFinalized(_hash);
     }
 
-    function _requireValidOrder(DagoraLib.Order memory _order)
-        internal
+    function requireValidOrder(DagoraLib.Order memory _order)
+        public
         view
         returns (bytes32 _hash, bytes32 listingHash)
     {
         listingHash = listingManager.requireValidListing(_order.listing);
-        require(
-            _validateOrder(_hash = DagoraLib.hashOrder(_order), _order),
-            "Invalid order"
-        );
+        _hash = DagoraLib.hashOrder(_order);
+        require(_validateOrder(_order), "Invalid order");
     }
 
-    function _validateOrder(bytes32 _hash, DagoraLib.Order memory _order)
+    function _validateOrder(DagoraLib.Order memory _order)
         internal
         view
         returns (bool)
@@ -343,12 +342,14 @@ contract OrderManager is Context, IOrderManager, Disputable {
         // }
 
         /* Listing must have not been canceled or already filled. */
-        if (cancelledOrders[_hash]) {
-            return false;
-        }
+        // if (cancelledOrders[_hash]) {
+        //     console.log("Order canceled");
+        //     return false;
+        // }
 
         /* Buyer cannot be the seller. */
         if (_order.buyer == _order.listing.seller) {
+            console.log("Buyer cannot be the seller");
             return false;
         }
 
@@ -360,6 +361,7 @@ contract OrderManager is Context, IOrderManager, Disputable {
                 _order.listing.commissionPercentage
             )
         ) {
+            console.log("Commission not enough");
             return false;
         }
 
@@ -371,6 +373,7 @@ contract OrderManager is Context, IOrderManager, Disputable {
                 _order.listing.cashbackPercentage
             )
         ) {
+            console.log("Cashback not enough");
             return false;
         }
 
@@ -382,6 +385,7 @@ contract OrderManager is Context, IOrderManager, Disputable {
                 PROTOCOL_FEE_PERCENTAGE
             )
         ) {
+            console.log("ProtocolFee not enough");
             return false;
         }
 
@@ -390,6 +394,7 @@ contract OrderManager is Context, IOrderManager, Disputable {
             _order.total <
             (_order.cashback + _order.protocolFee + _order.commission)
         ) {
+            console.log("Not enough money for paying taxes");
             return false;
         }
 

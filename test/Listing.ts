@@ -3,6 +3,7 @@ import type {
   StakeManager,
   ListingManager,
   DisputeManager,
+  TestDisputeManager,
 } from "../typechain";
 import { ethers } from "hardhat";
 
@@ -19,7 +20,7 @@ describe("Listing", async () => {
   let token: DagoraToken;
   let stakeManager: StakeManager;
   let listingManager: ListingManager;
-  let disputeManager: DisputeManager;
+  let disputeManager: TestDisputeManager;
   let owner: SignerWithAddress,
     buyer: SignerWithAddress,
     seller: SignerWithAddress;
@@ -51,7 +52,7 @@ describe("Listing", async () => {
     stakeManager = (await StakeManager.deploy(token.address)) as StakeManager;
     stakeManager.deployed();
 
-    disputeManager = (await TestDisputeManager.deploy()) as DisputeManager;
+    disputeManager = (await TestDisputeManager.deploy()) as TestDisputeManager;
 
     arbCost = await disputeManager.arbitrationCost();
     listingManager = (await ListingManager.deploy(
@@ -74,7 +75,7 @@ describe("Listing", async () => {
 
     const stakeTx = await stakeManager
       .connect(seller)
-      .stakeTokens(MINIMUM_STAKE);
+      .stakeTokens(MINIMUM_STAKE * 2);
     await stakeTx.wait();
   });
 
@@ -216,10 +217,11 @@ describe("Listing", async () => {
     });
   });
   context("report()", () => {
-    it("should report listing", async () => {
+    it("should report listing and finalize in favor of reporter", async () => {
       const listing = generateListing(seller.address);
       const hash = hashListing(listing);
       const balanceStake = await stakeManager.balance(seller.address);
+      const tokensReported = balanceStake.mul(PERCENTAGE_BURN).div(10000);
 
       const beforeLockedStake = await stakeManager.lockedTokens(seller.address);
 
@@ -231,7 +233,7 @@ describe("Listing", async () => {
 
       expect(reportTx).to.emit(disputeManager, "HasToPayFee").withArgs(hash, 1);
       expect(afterLockedStake.sub(beforeLockedStake)).to.be.equal(
-        balanceStake.mul(PERCENTAGE_BURN).div(10000)
+        tokensReported
       );
     });
     it("shouldn't report itself", async () => {
@@ -242,8 +244,6 @@ describe("Listing", async () => {
       });
       await expect(reportTx).to.be.revertedWith("You can't report yourself");
     });
-  });
-  context("onlyDisputeManager()", () => {
     it("should revert only dispute manager", async () => {
       const listing = generateListing(seller.address);
       const hash = hashListing(listing);
@@ -252,6 +252,89 @@ describe("Listing", async () => {
       await expect(onDisputeTx).to.be.revertedWith(
         "Only dispute manager can call this function"
       );
+    });
+  });
+  context("rulingCallback()", () => {
+    let hash: string;
+    let tokensReported: BigNumber;
+    beforeEach(async () => {
+      const listing = generateListing(seller.address);
+      hash = hashListing(listing);
+      const balanceStake = await stakeManager.balance(seller.address);
+      tokensReported = balanceStake.mul(PERCENTAGE_BURN).div(10000);
+      const reportTx = await listingManager.report(listing, {
+        value: arbCost,
+      });
+      await reportTx.wait();
+      const payArbitrationFee = await disputeManager
+        .connect(seller)
+        .payArbitrationFee(hash, {
+          value: arbCost,
+        });
+      await payArbitrationFee.wait();
+    });
+    it("should finalize in favor of reporter", async () => {
+      const balanceBeforeRule = await stakeManager.balance(seller.address);
+
+      const ruleTx = await disputeManager.rule(hash, 1);
+      await ruleTx.wait();
+
+      const balanceAfterRule = await stakeManager.balance(seller.address);
+
+      expect(balanceBeforeRule.sub(balanceAfterRule)).to.be.equal(
+        tokensReported
+      );
+      expect(ruleTx)
+        .to.emit(stakeManager, "BurnLockedStake")
+        .withArgs(seller.address, tokensReported);
+    });
+    it("should finalize in favor of seller", async () => {
+      const balanceBeforeRule = await stakeManager.balance(seller.address);
+      const lockedTokensBeforeRule = await stakeManager.lockedTokens(
+        seller.address
+      );
+
+      const ruleTx = await disputeManager.rule(hash, 2);
+      await ruleTx.wait();
+
+      const balanceAfterRule = await stakeManager.balance(seller.address);
+      const lockedTokensAfterRule = await stakeManager.lockedTokens(
+        seller.address
+      );
+
+      expect(balanceBeforeRule).to.be.equal(balanceAfterRule);
+      expect(lockedTokensBeforeRule.sub(lockedTokensAfterRule)).to.be.equal(
+        tokensReported
+      );
+      expect(ruleTx)
+        .to.emit(stakeManager, "UnlockStake")
+        .withArgs(seller.address, tokensReported);
+    });
+    it("should finalize in favor of neither", async () => {
+      const balanceBeforeRule = await stakeManager.balance(seller.address);
+      const lockedTokensBeforeRule = await stakeManager.lockedTokens(
+        seller.address
+      );
+
+      const ruleTx = await disputeManager.rule(hash, 0);
+      await ruleTx.wait();
+
+      const balanceAfterRule = await stakeManager.balance(seller.address);
+      const lockedTokensAfterRule = await stakeManager.lockedTokens(
+        seller.address
+      );
+
+      const half = tokensReported.div(2);
+      expect(balanceBeforeRule.sub(balanceAfterRule)).to.be.equal(half);
+      expect(lockedTokensBeforeRule.sub(lockedTokensAfterRule)).to.be.equal(
+        tokensReported
+      );
+      expect(ruleTx)
+        .to.emit(stakeManager, "UnlockStake")
+        .withArgs(seller.address, half);
+      expect(ruleTx)
+        .to.emit(stakeManager, "BurnLockedStake")
+        .withArgs(seller.address, half);
     });
   });
 });

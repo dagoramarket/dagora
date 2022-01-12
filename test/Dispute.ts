@@ -568,4 +568,44 @@ describe("Dispute", async () => {
       expect(defendantBalance2.sub(defendantBalance)).to.be.eq(arbCost.div(2));
     });
   });
+  context("TestDisputeManager coverage", () => {
+    let hash: string;
+    before(async () => {
+      hash = toHex(generateRandomHash());
+      const totalValue = 100;
+
+      const createDisputeTx = await disputable
+        .connect(prosecution)
+        .createDispute(
+          hash,
+          prosecution.address,
+          defendant.address,
+          token.address,
+          totalValue,
+          {
+            value: arbCost,
+          }
+        );
+      await createDisputeTx.wait();
+    });
+    it("submitEvidence()", async () => {
+      const data = "testing";
+      const submitEvidenceTx = await disputeManager
+        .connect(prosecution)
+        .submitEvidence(hash, data);
+      await submitEvidenceTx.wait();
+
+      expect(submitEvidenceTx)
+        .to.emit(disputeManager, "Evidence")
+        .withArgs(hash, prosecution.address, data);
+    });
+    it("appeal()", async () => {
+      const appealTx = await disputeManager.connect(prosecution).appeal(hash);
+      await appealTx.wait();
+
+      expect(appealTx)
+        .to.emit(disputeManager, "Appeal")
+        .withArgs(hash, prosecution.address);
+    });
+  });
 });

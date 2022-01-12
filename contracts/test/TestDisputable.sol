@@ -1,16 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "../interfaces/IDisputable.sol";
-import "../interfaces/IDisputeManager.sol";
-import "../libraries/DisputeLib.sol";
+import "../arbitration/Disputable.sol";
 
-contract TestDisputable is IDisputable {
-    IDisputeManager public disputeManager;
-
-    constructor(IDisputeManager _disputeManager) {
-        disputeManager = _disputeManager;
-    }
+contract TestDisputable is Disputable {
+    constructor(IDisputeManager _disputeManager) Disputable(_disputeManager) {}
 
     function createDispute(
         bytes32 _hash,
@@ -19,8 +13,8 @@ contract TestDisputable is IDisputable {
         ERC20 _token,
         uint256 _amount
     ) public payable {
-        require(_token.allowance(_defendant, address(this)) >= _amount);
-        require(_token.allowance(_prosecution, address(this)) >= _amount);
+        // require(_token.allowance(_defendant, address(this)) >= _amount);
+        // require(_token.allowance(_prosecution, address(this)) >= _amount);
         disputeManager.createDispute{ value: msg.value }(
             _hash,
             _prosecution,
@@ -30,7 +24,7 @@ contract TestDisputable is IDisputable {
         );
     }
 
-    function onDispute(bytes32 _hash) external override {
+    function onDispute(bytes32 _hash) external override onlyDisputeManager {
         DisputeLib.Dispute memory dispute = disputeManager.getDispute(_hash);
         dispute.token.transferFrom(
             dispute.defendant,
@@ -44,7 +38,11 @@ contract TestDisputable is IDisputable {
         );
     }
 
-    function rulingCallback(bytes32 _hash, uint256 _ruling) external override {
+    function rulingCallback(bytes32 _hash, uint256 _ruling)
+        external
+        override
+        onlyDisputeManager
+    {
         DisputeLib.Dispute memory dispute = disputeManager.getDispute(_hash);
 
         if (_ruling == uint256(DisputeLib.RulingOptions.DefendantWins)) {

@@ -3,6 +3,7 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
+import "./arbitration/Disputable.sol";
 import "./libraries/DagoraLib.sol";
 import "./libraries/PercentageLib.sol";
 import "./libraries/DisputeLib.sol";
@@ -10,20 +11,12 @@ import "./interfaces/IListingManager.sol";
 import "./interfaces/IStakeManager.sol";
 import "./interfaces/IDisputeManager.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "hardhat/console.sol";
 
-contract ListingManager is Context, IListingManager, IDisputable, Ownable {
-    // struct ListingInfo {
-    //     /* Products available */
-    //     uint256 available;
-    // }
-
-    // /* Listings running in the contract */
-    // mapping(bytes32 => ListingInfo) public listingInfos;
-
+contract ListingManager is Context, IListingManager, Disputable {
     mapping(bytes32 => bool) public cancelledListings;
 
     IStakeManager public stakeManager;
-    IDisputeManager public disputeManager;
 
     uint256 public MINIMUM_STAKED_TOKEN;
     uint256 public PERCENTAGE_BURN;
@@ -33,23 +26,14 @@ contract ListingManager is Context, IListingManager, IDisputable, Ownable {
         IDisputeManager _disputeManager,
         uint256 _MINIMUM_STAKED_TOKEN,
         uint256 _PERCENTAGE_BURN
-    ) {
+    ) Disputable(_disputeManager) {
         stakeManager = _stakeManager;
-        disputeManager = _disputeManager;
         MINIMUM_STAKED_TOKEN = _MINIMUM_STAKED_TOKEN;
         PERCENTAGE_BURN = _PERCENTAGE_BURN;
     }
 
     modifier onlySeller(DagoraLib.Listing calldata _listing) {
         require(_msgSender() == _listing.seller, "You must be seller");
-        _;
-    }
-
-    modifier onlyDisputeManager() {
-        require(
-            _msgSender() == address(disputeManager),
-            "Only dispute manager can call this function"
-        );
         _;
     }
 
@@ -118,20 +102,24 @@ contract ListingManager is Context, IListingManager, IDisputable, Ownable {
     {
         /* Listing has expired */
         if (block.timestamp > _listing.expiration) {
+            console.log("Listing expired");
             return false;
         }
 
         if (stakeManager.balance(_listing.seller) < MINIMUM_STAKED_TOKEN) {
+            console.log("Not enough tokens");
             return false;
         }
 
         /* Listing must have not been canceled or already filled. */
         if (cancelledListings[_hash]) {
+            console.log("Listing canceled");
             return false;
         }
 
         /* Listing must not be in dispute */
         if (disputeManager.inDispute(_hash)) {
+            console.log("Listing in dispute");
             return false;
         }
 

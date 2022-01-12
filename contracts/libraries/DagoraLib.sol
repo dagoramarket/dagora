@@ -27,15 +27,16 @@ library DagoraLib {
     struct Order {
         Listing listing;
         address payable buyer;
-        address payable commissioner;
         ERC20 token;
-        uint256 quantity;
         uint256 total;
-        uint256 cashback;
-        uint256 commission;
         uint256 protocolFee;
         uint256 confirmationTimeout; /* In days */
         uint256 nonce; /* A buyer may want to buy the same product twice */
+        // bytes32 extraData; switch from struct to extradata hash
+        address payable commissioner;
+        uint256 quantity;
+        uint256 cashback;
+        uint256 commission;
     }
 
     struct Transaction {
@@ -69,34 +70,6 @@ library DagoraLib {
 
     event TokenDeposited(address indexed sender, uint256 value);
     event TokenWithdrawed(address indexed sender, uint256 value);
-
-    event ListingUpdated(
-        bytes32 indexed hash,
-        address indexed seller,
-        bytes32 ipfs,
-        uint256 expiration,
-        uint256 quantity
-    );
-    event ListingCancelled(bytes32 indexed hash);
-
-    event TransactionCreated(
-        bytes32 indexed orderHash,
-        bytes32 indexed listingHash,
-        address indexed buyer,
-        address commissioner,
-        ERC20 token,
-        uint256 total,
-        uint256 commission,
-        uint256 cashback,
-        uint256 confirmationTimeout
-    );
-
-    event TransactionAccepted(bytes32 indexed hash);
-    event TransactionCancelled(bytes32 indexed hash);
-    event TransactionRefunded(bytes32 indexed hash, uint256 value);
-    event TransactionFinalized(bytes32 indexed hash);
-
-    event WarrantyClaimed(bytes32 indexed hash);
 
     function _hashListing(Listing calldata _listing)
         internal

@@ -21,6 +21,8 @@ interface IOrderManager {
     event TransactionRefunded(bytes32 indexed hash, uint256 value);
     event TransactionFinalized(bytes32 indexed hash);
 
+    event WarrantyClaimed(bytes32 indexed hash);
+
     function createOrder(DagoraLib.Order calldata _order)
         external
         returns (bytes32 hash);

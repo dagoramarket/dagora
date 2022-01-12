@@ -7,15 +7,16 @@ import "../libraries/DisputeLib.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract Disputable is IDisputable, Ownable {
+    mapping(address => bool) public managerAllowed;
     IDisputeManager public disputeManager;
 
     constructor(IDisputeManager _disputeManager) {
-        disputeManager = _disputeManager;
+        updateDisputeManager(_disputeManager);
     }
 
     modifier onlyDisputeManager() {
         require(
-            _msgSender() == address(disputeManager),
+            managerAllowed[_msgSender()],
             "Only dispute manager can call this function"
         );
         _;
@@ -26,6 +27,7 @@ contract Disputable is IDisputable, Ownable {
         onlyOwner
     {
         disputeManager = _disputeManager;
+        managerAllowed[address(disputeManager)] = true;
     }
 
     function onDispute(bytes32 _hash)

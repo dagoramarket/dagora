@@ -73,7 +73,7 @@ contract ListingManager is Context, IListingManager, Disputable {
     {
         /* CHECKS */
         /* Calculate listing hash. */
-        bytes32 hash = requireValidListing(_listing);
+        bytes32 hash = DagoraLib.hashListing(_listing);
 
         /* EFFECTS */
 
@@ -154,7 +154,8 @@ contract ListingManager is Context, IListingManager, Disputable {
     }
 
     function onDispute(bytes32 _hash) external override onlyDisputeManager {
-        DisputeLib.Dispute memory dispute = disputeManager.getDispute(_hash);
+        DisputeLib.Dispute memory dispute = IDisputeManager(_msgSender())
+            .getDispute(_hash);
         stakeManager.lockStake(dispute.defendant, dispute.amount);
     }
 
@@ -164,7 +165,8 @@ contract ListingManager is Context, IListingManager, Disputable {
         override
         onlyDisputeManager
     {
-        DisputeLib.Dispute memory dispute = disputeManager.getDispute(_hash);
+        DisputeLib.Dispute memory dispute = IDisputeManager(_msgSender())
+            .getDispute(_hash);
         if (_ruling == uint256(DisputeLib.RulingOptions.DefendantWins)) {
             stakeManager.unlockStake(dispute.defendant, dispute.amount);
         } else if (

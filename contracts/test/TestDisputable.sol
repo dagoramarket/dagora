@@ -25,7 +25,8 @@ contract TestDisputable is Disputable {
     }
 
     function onDispute(bytes32 _hash) external override onlyDisputeManager {
-        DisputeLib.Dispute memory dispute = disputeManager.getDispute(_hash);
+        DisputeLib.Dispute memory dispute = IDisputeManager(_msgSender())
+            .getDispute(_hash);
         dispute.token.transferFrom(
             dispute.defendant,
             address(this),
@@ -43,7 +44,8 @@ contract TestDisputable is Disputable {
         override
         onlyDisputeManager
     {
-        DisputeLib.Dispute memory dispute = disputeManager.getDispute(_hash);
+        DisputeLib.Dispute memory dispute = IDisputeManager(_msgSender())
+            .getDispute(_hash);
 
         if (_ruling == uint256(DisputeLib.RulingOptions.DefendantWins)) {
             dispute.token.transfer(dispute.defendant, dispute.amount * 2);

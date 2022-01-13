@@ -31,7 +31,7 @@ describe("Staking", async () => {
         .approve(stakeManager.address, ethers.constants.MaxUint256)
     ).wait();
   });
-  context("stake()", () => {
+  context("#stake()", () => {
     it("should be able to stake", async () => {
       const stakeAmount = 10;
 
@@ -67,7 +67,7 @@ describe("Staking", async () => {
       ).wait();
     });
   });
-  context("unstake()", () => {
+  context("#unstake()", () => {
     it("should be able to unstake", async () => {
       const balanceBefore = await stakeManager.balance(seller.address);
       const stakeAmount = 10;
@@ -106,7 +106,7 @@ describe("Staking", async () => {
     });
   });
 
-  context("lockStake()", () => {
+  context("#lockStake()", () => {
     it("should be able to lock stake", async () => {
       const stakeAmount = 10;
       const stakeTokensTx = await stakeManager
@@ -137,7 +137,7 @@ describe("Staking", async () => {
       await expect(lockStakeTx).to.be.reverted;
     });
   });
-  context("unlockStake()", () => {
+  context("#unlockStake()", () => {
     it("should be able to unlock stake", async () => {
       const stakeAmount = 10;
       const stakeTokensTx = await stakeManager
@@ -194,7 +194,7 @@ describe("Staking", async () => {
       await expect(unlockStakeTx).to.be.reverted;
     });
   });
-  context("burnLockedStake()", () => {
+  context("#burnLockedStake()", () => {
     it("should burn locked stake", async () => {
       const stakeAmount = 100;
       const stakeTokensTx = await stakeManager
@@ -245,7 +245,7 @@ describe("Staking", async () => {
       await expect(burnTx).to.be.reverted;
     });
   });
-  context("getTokenAddress()", () => {
+  context("#getTokenAddress()", () => {
     it("should return correct token address", async () => {
       const tokenAddress = await stakeManager.getTokenAddress();
       expect(tokenAddress).to.be.equal(token.address);

@@ -68,7 +68,7 @@ describe("Dispute", async () => {
     await approveDefendantTx.wait();
   });
 
-  context("createDispute()", () => {
+  context("#createDispute()", () => {
     it("should wait for other party fee", async () => {
       const hash = generateRandomHash();
       const totalValue = 100;
@@ -160,7 +160,7 @@ describe("Dispute", async () => {
       await expect(createDisputeTx2).to.be.reverted;
     });
   });
-  context("disputeTimeout()", () => {
+  context("#disputeTimeout()", () => {
     it("should execute ruling timeout for prosecution", async () => {
       const hash = generateRandomHash();
       const totalValue = 100;
@@ -292,7 +292,7 @@ describe("Dispute", async () => {
     });
   });
 
-  context("payArbitrationFee()", () => {
+  context("#payArbitrationFee()", () => {
     it("should raise dispute with defendant paying", async () => {
       const hash = generateRandomHash();
       const totalValue = 100;
@@ -463,7 +463,7 @@ describe("Dispute", async () => {
     });
   });
 
-  context("raiseDispute()", () => {
+  context("#raiseDispute()", () => {
     it("should refund overpaid fee", async () => {
       const hash = generateRandomHash();
       const totalValue = 100;
@@ -504,7 +504,7 @@ describe("Dispute", async () => {
     });
   });
 
-  context("rule()", () => {
+  context("#rule()", () => {
     it("should rule even", async () => {
       const hash = generateRandomHash();
       const totalValue = 100;

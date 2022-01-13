@@ -14,7 +14,7 @@ describe("PercentageLib", async () => {
     await percentageLib.deployed();
   });
 
-  it("calculate percentage correctly", async () => {
+  it("$calculateTotalFromPercentage()", async () => {
     const total = 1000;
     const percentage = 100; // 10%
     const result = await percentageLib.calculateTotalFromPercentage(
@@ -47,14 +47,14 @@ describe("DagoraLib", async () => {
     [, seller, buyer, token] = await ethers.getSigners();
   });
 
-  it("hash listing", async () => {
+  it("#hashListing()", async () => {
     const listing = generateListing(seller.address);
     const result = await dagoraLibTest.hashListing(listing);
 
     const hash = hashListing(listing);
     expect(result).to.be.equal(hash);
   });
-  it("hash order", async () => {
+  it("#hashOrder()", async () => {
     const listing = generateListing(seller.address);
 
     const order = generateOrder(listing, buyer.address, token.address, 100);

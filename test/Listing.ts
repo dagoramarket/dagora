@@ -79,7 +79,7 @@ describe("Listing", async () => {
     await stakeTx.wait();
   });
 
-  context("requireValidListing()", () => {
+  context("#requireValidListing()", () => {
     it("should return hash", async () => {
       const listing = generateListing(seller.address);
       const hash = hashListing(listing);
@@ -135,7 +135,7 @@ describe("Listing", async () => {
     });
   });
 
-  context("createListing()", () => {
+  context("#createListing()", () => {
     it("should create a listing", async () => {
       const listing = generateListing(seller.address);
       const hash = hashListing(listing);
@@ -164,7 +164,7 @@ describe("Listing", async () => {
       await expect(createListingTx).to.be.revertedWith("You must be seller");
     });
   });
-  context("updateListing()", () => {
+  context("#updateListing()", () => {
     it("should update a listing", async () => {
       const listing = generateListing(seller.address);
       const hash = hashListing(listing);
@@ -187,7 +187,7 @@ describe("Listing", async () => {
       await expect(updateListingTx).to.be.revertedWith("You must be seller");
     });
   });
-  context("cancelListing()", () => {
+  context("#cancelListing()", () => {
     it("should cancel a listing", async () => {
       const listing = generateListing(seller.address);
       const hash = hashListing(listing);
@@ -216,7 +216,7 @@ describe("Listing", async () => {
       expect(cancelled).to.be.false;
     });
   });
-  context("report()", () => {
+  context("#report()", () => {
     it("should report listing and finalize in favor of reporter", async () => {
       const listing = generateListing(seller.address);
       const hash = hashListing(listing);
@@ -257,7 +257,7 @@ describe("Listing", async () => {
       );
     });
   });
-  context("rulingCallback()", () => {
+  context("#rulingCallback()", () => {
     let hash: string;
     let tokensReported: BigNumber;
     beforeEach(async () => {

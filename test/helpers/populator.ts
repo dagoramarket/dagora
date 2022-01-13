@@ -32,9 +32,9 @@ export function generateListing(
   return {
     ipfsHash: generateRandomHash(),
     seller: sellerAddress,
-    commissionPercentage: Math.floor(Math.random() * 10) * 10,
+    commissionPercentage: (Math.floor(Math.random() * 10) + 1) * 10,
     warranty: warranty ? Math.floor(Math.random() * 7) + 1 : 0,
-    cashbackPercentage: Math.floor(Math.random() * 10) * 10,
+    cashbackPercentage: (Math.floor(Math.random() * 10) + 1) * 10,
     expiration:
       expiration > 0
         ? BigNumber.from(
@@ -50,7 +50,7 @@ export function generateOrder(
   tokenAddress: string,
   protocol_percentage: number,
   nonce = 0,
-  timeout = false
+  timeout = true
 ): Order {
   const price = Math.floor(Math.random() * 1000) + 100;
   return {

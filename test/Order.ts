@@ -9,7 +9,7 @@ import type {
 import { ethers } from "hardhat";
 
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { expect } from "chai";
+import { expect, should } from "chai";
 import {
   generateListing,
   generateOrder,
@@ -23,6 +23,8 @@ import { BigNumber } from "ethers";
 const MINIMUM_STAKE = 1000; // 1000 DGR
 const PERCENTAGE_BURN = 1000; // 10%
 const PERCENTAGE_FEE = 100; // 1%
+
+should();
 
 describe("Order", async () => {
   let token: DagoraToken;
@@ -108,7 +110,7 @@ describe("Order", async () => {
     await stakeTx.wait();
   });
 
-  context("requireValidOrder()", () => {
+  context("#requireValidOrder()", () => {
     let listing: Listing;
     let hash: string;
     let order: Order;
@@ -162,7 +164,7 @@ describe("Order", async () => {
     });
   });
 
-  context("createOrder()", () => {
+  context("#createOrder()", () => {
     let listing: Listing;
     let hash: string;
     let order: Order;
@@ -228,7 +230,7 @@ describe("Order", async () => {
     });
   });
 
-  context("cancelOrder()", () => {
+  context("#cancelOrder()", () => {
     let listing: Listing;
     let hash: string;
     let order: Order;
@@ -247,29 +249,35 @@ describe("Order", async () => {
       await createOrderTx.wait();
     });
     it("should cancel order by buyer", async () => {
+      const balanceBefore = await token.balanceOf(buyer.address);
       const cancelOrderTx = await orderManager
         .connect(buyer)
         .cancelOrder(order);
       await cancelOrderTx.wait();
 
       const transactions = await orderManager.transactions(hash);
-      expect(transactions.status).to.be.equal(0); // Canceled
-      expect(transactions.lastStatusUpdate).to.be.equal(0);
+      const balanceAfter = await token.balanceOf(buyer.address);
 
+      transactions.status.should.be.equal(0); // Canceled
+      expect(transactions.lastStatusUpdate).to.be.equal(0);
+      expect(balanceAfter.sub(balanceBefore)).to.be.equal(order.total);
       expect(cancelOrderTx)
         .to.emit(orderManager, "TransactionCancelled")
         .withArgs(hash);
     });
     it("should cancel order by seller", async () => {
+      const balanceBefore = await token.balanceOf(buyer.address);
       const cancelOrderTx = await orderManager
         .connect(seller)
         .cancelOrder(order);
       await cancelOrderTx.wait();
 
       const transactions = await orderManager.transactions(hash);
+      const balanceAfter = await token.balanceOf(buyer.address);
+
       expect(transactions.status).to.be.equal(0); // Canceled
       expect(transactions.lastStatusUpdate).to.be.equal(0);
-
+      expect(balanceAfter.sub(balanceBefore)).to.be.equal(order.total);
       expect(cancelOrderTx)
         .to.emit(orderManager, "TransactionCancelled")
         .withArgs(hash);
@@ -293,92 +301,425 @@ describe("Order", async () => {
         "Order must be waiting for seller"
       );
     });
-
-    context("acceptOrder()", () => {
-      let listing: Listing;
-      let hash: string;
-      let order: Order;
-      beforeEach(async () => {
-        listing = generateListing(seller.address);
-        order = generateOrder(
-          listing,
-          buyer.address,
-          token.address,
-          PERCENTAGE_FEE
-        );
-        hash = hashOrder(order);
-        const createOrderTx = await orderManager
-          .connect(buyer)
-          .createOrder(order);
-        await createOrderTx.wait();
-      });
-      it("should accept order", async () => {
-        const acceptOrderTx = await orderManager
-          .connect(seller)
-          .acceptOrder(order);
-        await acceptOrderTx.wait();
-
-        const transactions = await orderManager.transactions(hash);
-
-        expect(transactions.status).to.be.equal(2); // WaitingConfirmation
-        expect(acceptOrderTx)
-          .to.emit(orderManager, "TransactionAccepted")
-          .withArgs(hash);
-      });
-      it("shouldn't accept order if not seller", async () => {
-        const acceptOrderTx = orderManager.acceptOrder(order);
-        await expect(acceptOrderTx).to.be.revertedWith("You must be seller");
-      });
-      it("shouldn't accept order that doesn't exist", async () => {
-        order = order = generateOrder(
-          listing,
-          buyer.address,
-          token.address,
-          PERCENTAGE_FEE,
-          1
-        );
-        const acceptOrderTx = orderManager.connect(seller).acceptOrder(order);
-        await expect(acceptOrderTx).to.be.revertedWith(
-          "Order must be waiting for seller"
-        );
-      });
+  });
+  context("#acceptOrder()", () => {
+    let listing: Listing;
+    let hash: string;
+    let order: Order;
+    beforeEach(async () => {
+      listing = generateListing(seller.address);
+      order = generateOrder(
+        listing,
+        buyer.address,
+        token.address,
+        PERCENTAGE_FEE
+      );
+      hash = hashOrder(order);
+      const createOrderTx = await orderManager
+        .connect(buyer)
+        .createOrder(order);
+      await createOrderTx.wait();
     });
-    context("confirmReceipt()", () => {
-      let listing: Listing;
-      let hash: string;
-      let order: Order;
-      beforeEach(async () => {
-        listing = generateListing(seller.address);
-        order = generateOrder(
-          listing,
-          buyer.address,
-          token.address,
-          PERCENTAGE_FEE
+    it("should accept order", async () => {
+      const acceptOrderTx = await orderManager
+        .connect(seller)
+        .acceptOrder(order);
+      await acceptOrderTx.wait();
+
+      const transactions = await orderManager.transactions(hash);
+
+      expect(transactions.status).to.be.equal(2); // WaitingConfirmation
+      expect(acceptOrderTx)
+        .to.emit(orderManager, "TransactionAccepted")
+        .withArgs(hash);
+    });
+    it("shouldn't accept order if not seller", async () => {
+      const acceptOrderTx = orderManager.acceptOrder(order);
+      await expect(acceptOrderTx).to.be.revertedWith("You must be seller");
+    });
+    it("shouldn't accept order that doesn't exist", async () => {
+      order = order = generateOrder(
+        listing,
+        buyer.address,
+        token.address,
+        PERCENTAGE_FEE,
+        1
+      );
+      const acceptOrderTx = orderManager.connect(seller).acceptOrder(order);
+      await expect(acceptOrderTx).to.be.revertedWith(
+        "Order must be waiting for seller"
+      );
+    });
+  });
+  context("#confirmReceipt()", () => {
+    let listing: Listing;
+    let hash: string;
+    let order: Order;
+    beforeEach(async () => {
+      listing = generateListing(seller.address, true);
+      order = generateOrder(
+        listing,
+        buyer.address,
+        token.address,
+        PERCENTAGE_FEE
+      );
+      hash = hashOrder(order);
+      const createOrderTx = await orderManager
+        .connect(buyer)
+        .createOrder(order);
+      await createOrderTx.wait();
+
+      const acceptOrderTx = await orderManager
+        .connect(seller)
+        .acceptOrder(order);
+      await acceptOrderTx.wait();
+    });
+    it("should confirm receipt and finalize transaction", async () => {
+      const confirmReceiptTx = await orderManager
+        .connect(buyer)
+        .confirmReceipt(order);
+      await confirmReceiptTx.wait();
+
+      const transactions = await orderManager.transactions(hash);
+
+      expect(transactions.status).to.be.equal(3); // Warranty
+      expect(confirmReceiptTx)
+        .to.emit(orderManager, "TransactionConfirmed")
+        .withArgs(hash);
+    });
+    it("only buyer can confirm receipt", async () => {
+      const confirmReceiptTx = orderManager.confirmReceipt(order);
+      await expect(confirmReceiptTx).to.be.revertedWith("You must be buyer");
+    });
+    it("only waiting for confirmation orders", async () => {
+      order = generateOrder(
+        listing,
+        buyer.address,
+        token.address,
+        PERCENTAGE_FEE,
+        1
+      );
+      const confirmReceiptTx = orderManager
+        .connect(buyer)
+        .confirmReceipt(order);
+      await expect(confirmReceiptTx).to.be.revertedWith(
+        "You must be waiting for confirmation"
+      );
+    });
+    it("listing doesn't have warranty", async () => {
+      listing = generateListing(seller.address, false);
+      order = generateOrder(
+        listing,
+        buyer.address,
+        token.address,
+        PERCENTAGE_FEE,
+        1
+      );
+      const createOrderTx = await orderManager
+        .connect(buyer)
+        .createOrder(order);
+      await createOrderTx.wait();
+
+      const acceptOrderTx = await orderManager
+        .connect(seller)
+        .acceptOrder(order);
+      await acceptOrderTx.wait();
+      const confirmReceiptTx = orderManager
+        .connect(buyer)
+        .confirmReceipt(order);
+      await expect(confirmReceiptTx).to.be.revertedWith(
+        "Not eligible for warranty"
+      );
+    });
+    it("refunded order not eligible", async () => {
+      const updateRefundTx = await orderManager
+        .connect(seller)
+        .updateRefund(
+          order,
+          order.total - order.protocolFee - order.commission
         );
-        hash = hashOrder(order);
-        const createOrderTx = await orderManager
-          .connect(buyer)
-          .createOrder(order);
-        await createOrderTx.wait();
+      await updateRefundTx.wait();
+      const confirmReceiptTx = orderManager
+        .connect(buyer)
+        .confirmReceipt(order);
+      await expect(confirmReceiptTx).to.be.revertedWith(
+        "Not eligible for warranty"
+      );
+    });
+  });
+  context("#executeOrder()", () => {
+    let listing: Listing;
+    let hash: string;
+    let order: Order;
+    beforeEach(async () => {
+      listing = generateListing(seller.address);
+      order = generateOrder(
+        listing,
+        buyer.address,
+        token.address,
+        PERCENTAGE_FEE
+      );
+      hash = hashOrder(order);
+      const createOrderTx = await orderManager
+        .connect(buyer)
+        .createOrder(order);
+      await createOrderTx.wait();
 
-        const acceptOrderTx = await orderManager
-          .connect(seller)
-          .acceptOrder(order);
-        await acceptOrderTx.wait();
-      });
-      it("should confirm receipt and finalize transaction", async () => {
-        const confirmReceiptTx = await orderManager
-          .connect(buyer)
-          .confirmReceipt(order);
-        await confirmReceiptTx.wait();
+      const acceptOrderTx = await orderManager
+        .connect(seller)
+        .acceptOrder(order);
+      await acceptOrderTx.wait();
+    });
+    it("should confirm receipt and finalize transaction", async () => {
+      const executeOrderTx = await orderManager
+        .connect(buyer)
+        .executeOrder(order);
+      await executeOrderTx.wait();
 
-        const transactions = await orderManager.transactions(hash);
+      const transactions = await orderManager.transactions(hash);
 
-        expect(transactions.status).to.be.equal(6); // Finalized
-        expect(confirmReceiptTx)
-          .to.emit(orderManager, "TransactionFinalized")
-          .withArgs(hash);
-      });
+      expect(transactions.status).to.be.equal(6); // Finalized
+      expect(executeOrderTx)
+        .to.emit(orderManager, "TransactionFinalized")
+        .withArgs(hash);
+      // TODO Check for balances
+    });
+  });
+  context("#claimWarranty()", () => {
+    let listing: Listing;
+    let hash: string;
+    let order: Order;
+    beforeEach(async () => {
+      listing = generateListing(seller.address, true);
+      order = generateOrder(
+        listing,
+        buyer.address,
+        token.address,
+        PERCENTAGE_FEE
+      );
+      hash = hashOrder(order);
+      const createOrderTx = await orderManager
+        .connect(buyer)
+        .createOrder(order);
+      await createOrderTx.wait();
+
+      const acceptOrderTx = await orderManager
+        .connect(seller)
+        .acceptOrder(order);
+      await acceptOrderTx.wait();
+      const confirmReceiptTx = await orderManager
+        .connect(buyer)
+        .confirmReceipt(order);
+      await confirmReceiptTx.wait();
+    });
+    it("should claim warranty", async () => {
+      const claimWarrantyTx = await orderManager
+        .connect(buyer)
+        .claimWarranty(order);
+      await claimWarrantyTx.wait();
+
+      const transactions = await orderManager.transactions(hash);
+
+      expect(transactions.status).to.be.equal(4); // WaitingWarranty
+      expect(claimWarrantyTx)
+        .to.emit(orderManager, "WarrantyClaimed")
+        .withArgs(hash);
+    });
+  });
+  context("#confirmWarrantyReceipt()", () => {
+    let listing: Listing;
+    let hash: string;
+    let order: Order;
+    beforeEach(async () => {
+      listing = generateListing(seller.address, true);
+      order = generateOrder(
+        listing,
+        buyer.address,
+        token.address,
+        PERCENTAGE_FEE
+      );
+      hash = hashOrder(order);
+      const createOrderTx = await orderManager
+        .connect(buyer)
+        .createOrder(order);
+      await createOrderTx.wait();
+
+      const acceptOrderTx = await orderManager
+        .connect(seller)
+        .acceptOrder(order);
+      await acceptOrderTx.wait();
+      const confirmReceiptTx = await orderManager
+        .connect(buyer)
+        .confirmReceipt(order);
+      await confirmReceiptTx.wait();
+      const claimWarrantyTx = await orderManager
+        .connect(buyer)
+        .claimWarranty(order);
+      await claimWarrantyTx.wait();
+    });
+    it("should claim warranty", async () => {
+      const confirmWarrantyReceiptTx = await orderManager
+        .connect(seller)
+        .confirmWarrantyReceipt(order);
+      await confirmWarrantyReceiptTx.wait();
+
+      const transactions = await orderManager.transactions(hash);
+
+      expect(transactions.status).to.be.equal(6); // Finalized
+      expect(confirmWarrantyReceiptTx)
+        .to.emit(orderManager, "TransactionFinalized")
+        .withArgs(hash);
+      // TODO Check for balances
+    });
+  });
+
+  context("#disputeOrder()", () => {
+    let listing: Listing;
+    let hash: string;
+    let order: Order;
+    beforeEach(async () => {
+      listing = generateListing(seller.address);
+      order = generateOrder(
+        listing,
+        buyer.address,
+        token.address,
+        PERCENTAGE_FEE
+      );
+      hash = hashOrder(order);
+      const createOrderTx = await orderManager
+        .connect(buyer)
+        .createOrder(order);
+      await createOrderTx.wait();
+
+      const acceptOrderTx = await orderManager
+        .connect(seller)
+        .acceptOrder(order);
+      await acceptOrderTx.wait();
+    });
+
+    it("should dispute order", async () => {
+      const disputeOrderTx = await orderManager
+        .connect(buyer)
+        .disputeOrder(order);
+      await disputeOrderTx.wait();
+
+      const transactions = await orderManager.transactions(hash);
+
+      expect(transactions.status).to.be.equal(5); // InDispute
+      expect(disputeOrderTx)
+        .to.emit(disputeManager, "HasToPayFee")
+        .withArgs(hash, 1);
+    });
+  });
+  context("#disputeSeller()", () => {
+    let listing: Listing;
+    let hash: string;
+    let order: Order;
+    beforeEach(async () => {
+      listing = generateListing(seller.address, true);
+      order = generateOrder(
+        listing,
+        buyer.address,
+        token.address,
+        PERCENTAGE_FEE
+      );
+      hash = hashOrder(order);
+      const createOrderTx = await orderManager
+        .connect(buyer)
+        .createOrder(order);
+      await createOrderTx.wait();
+
+      const acceptOrderTx = await orderManager
+        .connect(seller)
+        .acceptOrder(order);
+      await acceptOrderTx.wait();
+      const confirmReceiptTx = await orderManager
+        .connect(buyer)
+        .confirmReceipt(order);
+      await confirmReceiptTx.wait();
+      const claimWarrantyTx = await orderManager
+        .connect(buyer)
+        .claimWarranty(order);
+      await claimWarrantyTx.wait();
+    });
+
+    it("should dispute order", async () => {
+      const disputeWarrantyTx = await orderManager
+        .connect(seller)
+        .disputeWarranty(order);
+      await disputeWarrantyTx.wait();
+
+      const transactions = await orderManager.transactions(hash);
+
+      expect(transactions.status).to.be.equal(5); // InDispute
+      expect(disputeWarrantyTx)
+        .to.emit(disputeManager, "HasToPayFee")
+        .withArgs(hash, 1);
+    });
+  });
+  context("#rullingCallback()", () => {
+    let listing: Listing;
+    let hash: string;
+    let order: Order;
+    beforeEach(async () => {
+      listing = generateListing(seller.address);
+      order = generateOrder(
+        listing,
+        buyer.address,
+        token.address,
+        PERCENTAGE_FEE
+      );
+      hash = hashOrder(order);
+      const createOrderTx = await orderManager
+        .connect(buyer)
+        .createOrder(order);
+      await createOrderTx.wait();
+
+      const acceptOrderTx = await orderManager
+        .connect(seller)
+        .acceptOrder(order);
+      await acceptOrderTx.wait();
+      const disputeOrderTx = await orderManager
+        .connect(buyer)
+        .disputeOrder(order);
+      await disputeOrderTx.wait();
+    });
+
+    it("rule in favor of buyer", async () => {
+      const ruleTx = await disputeManager.rule(hash, 1);
+      await ruleTx.wait();
+
+      const transactions = await orderManager.transactions(hash);
+
+      expect(transactions.status).to.be.equal(6); // Finalized
+      expect(ruleTx)
+        .to.emit(orderManager, "TransactionFinalized")
+        .withArgs(hash);
+      // TODO Check for balances
+    });
+    it("rule in favor of seller", async () => {
+      const ruleTx = await disputeManager.rule(hash, 2);
+      await ruleTx.wait();
+
+      const transactions = await orderManager.transactions(hash);
+
+      expect(transactions.status).to.be.equal(6); // Finalized
+      expect(ruleTx)
+        .to.emit(orderManager, "TransactionFinalized")
+        .withArgs(hash);
+      // TODO Check for balances
+    });
+    it("rule in favor of neither", async () => {
+      const ruleTx = await disputeManager.rule(hash, 0);
+      await ruleTx.wait();
+
+      const transactions = await orderManager.transactions(hash);
+
+      expect(transactions.status).to.be.equal(6); // Finalized
+      expect(ruleTx)
+        .to.emit(orderManager, "TransactionFinalized")
+        .withArgs(hash);
+      // TODO Check for balances
     });
   });
 });

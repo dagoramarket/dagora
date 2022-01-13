@@ -30,14 +30,9 @@ contract Disputable is IDisputable, Ownable {
         managerAllowed[address(disputeManager)] = true;
     }
 
-    function onDispute(bytes32 _hash)
-        external
-        virtual
-        override
-        onlyDisputeManager
-    {}
+    function onDispute(bytes32) external virtual override onlyDisputeManager {}
 
-    function rulingCallback(bytes32 _hash, uint256 _ruling)
+    function rulingCallback(bytes32, uint256)
         external
         virtual
         override

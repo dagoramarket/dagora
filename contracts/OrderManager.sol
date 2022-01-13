@@ -13,7 +13,7 @@ import "hardhat/console.sol";
 contract OrderManager is Context, IOrderManager, Disputable {
     IListingManager public listingManager;
 
-    mapping(bytes32 => bool) public cancelledOrders;
+    // mapping(bytes32 => bool) public cancelledOrders;
     /* Transactions running in the contract */
     mapping(bytes32 => DagoraLib.Transaction) public transactions; // Order Hash to Transaction
     /* Order approve */
@@ -125,28 +125,45 @@ contract OrderManager is Context, IOrderManager, Disputable {
             transaction.status == DagoraLib.Status.WaitingSeller,
             "Order must be waiting for seller"
         );
+        _order.token.transfer(_order.buyer, _order.total);
         delete transaction.lastStatusUpdate;
         delete transaction.status;
 
         emit TransactionCancelled(_hash);
     }
 
-    function confirmReceipt(DagoraLib.Order calldata _order) public override {
+    function confirmReceipt(DagoraLib.Order calldata _order)
+        public
+        override
+        onlyBuyer(_order)
+    {
         bytes32 _hash = DagoraLib.hashOrder(_order);
         DagoraLib.Transaction storage transaction = transactions[_hash];
         require(
-            (transaction.status == DagoraLib.Status.WaitingConfirmation &&
-                _msgSender() == _order.buyer) ||
-                (transaction.status == DagoraLib.Status.WarrantyConfirmation &&
-                    _msgSender() == _order.listing.seller),
-            "You must be seller or buyer in the right phase."
+            transaction.status == DagoraLib.Status.WaitingConfirmation,
+            "You must be waiting for confirmation"
         );
-        if (transaction.refund == 0 && _order.listing.warranty > 0) {
-            transaction.status = DagoraLib.Status.Warranty;
-            transaction.lastStatusUpdate = block.timestamp;
-        } else {
-            _finalizeTransaction(_order, false);
-        }
+        require(
+            transaction.refund == 0 && _order.listing.warranty > 0,
+            "Not eligible for warranty"
+        );
+        transaction.status = DagoraLib.Status.Warranty;
+        transaction.lastStatusUpdate = block.timestamp;
+        emit TransactionConfirmed(_hash);
+    }
+
+    function confirmWarrantyReceipt(DagoraLib.Order calldata _order)
+        public
+        override
+        onlySeller(_order)
+    {
+        bytes32 _hash = DagoraLib.hashOrder(_order);
+        DagoraLib.Transaction storage transaction = transactions[_hash];
+        require(
+            transaction.status == DagoraLib.Status.WarrantyConfirmation,
+            "You must be waiting for confirmation"
+        );
+        _finalizeTransaction(_order, false);
     }
 
     function executeOrder(DagoraLib.Order calldata _order) public override {
@@ -160,17 +177,64 @@ contract OrderManager is Context, IOrderManager, Disputable {
                 transaction.status == DagoraLib.Status.Warranty,
             "Invalid phase"
         );
+        bool warrantyEligible = transaction.refund == 0 &&
+            _order.listing.warranty > 0;
+
+        bool timeout = block.timestamp >=
+            transaction.lastStatusUpdate +
+                ((
+                    waitingForConfirmation
+                        ? _order.confirmationTimeout
+                        : _order.listing.warranty
+                ) * (1 days));
         require(
-            block.timestamp >=
-                transaction.lastStatusUpdate +
-                    ((
-                        waitingForConfirmation
-                            ? _order.confirmationTimeout
-                            : _order.listing.warranty
-                    ) * (1 days)),
+            timeout || (!warrantyEligible && _msgSender() == _order.buyer),
             "Timeout time has not passed yet."
         );
-        _finalizeTransaction(_order, waitingForConfirmation);
+        bool executed = waitingForConfirmation && timeout;
+        _finalizeTransaction(_order, executed);
+    }
+
+    function _finalizeTransaction(DagoraLib.Order memory _order, bool _executed)
+        internal
+    {
+        bytes32 _hash = DagoraLib.hashOrder(_order);
+        DagoraLib.Transaction storage transaction = transactions[_hash];
+        uint256 refund = transaction.refund;
+        uint256 price = _order.total;
+        transaction.status = DagoraLib.Status.Finalized;
+        delete transaction.lastStatusUpdate;
+        delete transaction.refund;
+        if (refund == price) {
+            // Warranty refund, we don't want to pay for any comissions
+            _order.token.transfer(_order.buyer, refund);
+        } else {
+            if (_order.protocolFee > 0) {
+                price -= _order.protocolFee;
+                _order.token.transfer(protocolFeeRecipient, _order.protocolFee);
+            }
+
+            if (_order.commission > 0) {
+                price -= _order.commission;
+                _order.token.transfer(_order.commissioner, _order.commission);
+            }
+
+            if (!_executed) {
+                // We are giving a refund, the buyer doesn't need cashback
+                uint256 refundOrCashback = refund > 0
+                    ? refund
+                    : _order.cashback;
+                if (refundOrCashback > 0) {
+                    price -= refundOrCashback;
+                    _order.token.transfer(_order.buyer, refundOrCashback);
+                }
+            }
+
+            if (price > 0) {
+                _order.token.transfer(_order.listing.seller, price);
+            }
+        }
+        emit TransactionFinalized(_hash);
     }
 
     function claimWarranty(DagoraLib.Order calldata _order)
@@ -230,12 +294,12 @@ contract OrderManager is Context, IOrderManager, Disputable {
         public
         payable
         override
+        onlyBuyer(_order)
     {
         bytes32 _hash = DagoraLib.hashOrder(_order);
         DagoraLib.Transaction storage transaction = transactions[_hash];
         require(
-            transaction.status == DagoraLib.Status.WaitingConfirmation ||
-                transaction.status == DagoraLib.Status.WarrantyConfirmation,
+            transaction.status == DagoraLib.Status.WaitingConfirmation,
             "Invalid phase"
         );
         require(
@@ -244,23 +308,9 @@ contract OrderManager is Context, IOrderManager, Disputable {
                     (_order.confirmationTimeout * (1 days)),
             "Confirmation time has timed out."
         );
-        address payable prosecution;
-        address payable defendant;
-        if (transaction.status == DagoraLib.Status.WaitingConfirmation) {
-            require(_msgSender() == _order.buyer, "Only buyer can dispute.");
-            prosecution = _order.buyer;
-            defendant = _order.listing.seller;
-        } else {
-            require(
-                _msgSender() == _order.listing.seller,
-                "Only seller can dispute."
-            );
-            prosecution = _order.listing.seller;
-            defendant = _order.buyer;
-        }
-        transaction.status = DagoraLib.Status.InDispute;
-        transaction.lastStatusUpdate = block.timestamp;
-        disputeManager.createDispute{ value: msg.value }(
+        address payable prosecution = _order.buyer;
+        address payable defendant = _order.listing.seller;
+        _raiseDispute(
             _hash,
             prosecution,
             defendant,
@@ -269,55 +319,83 @@ contract OrderManager is Context, IOrderManager, Disputable {
         );
     }
 
+    function disputeWarranty(DagoraLib.Order calldata _order)
+        public
+        payable
+        override
+        onlySeller(_order)
+    {
+        bytes32 _hash = DagoraLib.hashOrder(_order);
+        DagoraLib.Transaction storage transaction = transactions[_hash];
+        require(
+            transaction.status == DagoraLib.Status.WarrantyConfirmation,
+            "Invalid phase"
+        );
+        require(
+            block.timestamp <=
+                transaction.lastStatusUpdate +
+                    (_order.confirmationTimeout * (1 days)),
+            "Confirmation time has timed out."
+        );
+        address payable prosecution = _order.listing.seller;
+        address payable defendant = _order.buyer;
+        _raiseDispute(
+            _hash,
+            prosecution,
+            defendant,
+            _order.token,
+            _order.total
+        );
+    }
+
+    function _raiseDispute(
+        bytes32 _hash,
+        address payable _prosecution,
+        address payable _defendant,
+        ERC20 _token,
+        uint256 _total
+    ) internal {
+        DagoraLib.Transaction storage transaction = transactions[_hash];
+        transaction.status = DagoraLib.Status.InDispute;
+        transaction.lastStatusUpdate = block.timestamp;
+        disputeManager.createDispute{ value: msg.value }(
+            _hash,
+            _prosecution,
+            _defendant,
+            _token,
+            _total
+        );
+    }
+
     // IDisputable Functions
 
-    function onDispute(bytes32 _hash) public override onlyDisputeManager {}
+    function onDispute(bytes32)
+        public
+        view
+        virtual
+        override
+        onlyDisputeManager
+    {}
 
     function rulingCallback(bytes32 _hash, uint256 _ruling)
         public
         override
         onlyDisputeManager
-    {}
-
-    // Internal Functions
-
-    function _finalizeTransaction(DagoraLib.Order memory _order, bool _executed)
-        internal
     {
-        bytes32 _hash = DagoraLib.hashOrder(_order);
-        DagoraLib.Transaction storage transaction = transactions[_hash];
-        uint256 refund = transaction.refund;
-        uint256 price = _order.total;
-        transaction.status = DagoraLib.Status.Finalized;
-        delete transaction.lastStatusUpdate;
-        delete transaction.refund;
-        if (refund == price) {
-            // Warranty refund, we don't want to pay for any comissions
-            _order.token.transfer(_order.buyer, refund);
+        DisputeLib.Dispute memory dispute = IDisputeManager(_msgSender())
+            .getDispute(_hash);
+        uint256 amount = dispute.amount;
+        if (_ruling == uint256(DisputeLib.RulingOptions.ProsecutionWins)) {
+            dispute.token.transfer(dispute.prosecution, amount);
+        } else if (_ruling == uint256(DisputeLib.RulingOptions.DefendantWins)) {
+            dispute.token.transfer(dispute.defendant, amount);
         } else {
-            if (_order.protocolFee > 0) {
-                price -= _order.protocolFee;
-                _order.token.transfer(protocolFeeRecipient, _order.protocolFee);
-            }
-
-            if (_order.commission > 0) {
-                price -= _order.commission;
-                _order.token.transfer(_order.commissioner, _order.commission);
-            }
-
-            if (!_executed) {
-                // We are giving a refund, the buyer doesn't need cashback
-                uint256 totalRefund = refund > 0 ? refund : _order.cashback;
-                if (totalRefund > 0) {
-                    price -= totalRefund;
-                    _order.token.transfer(_order.buyer, totalRefund);
-                }
-            }
-
-            if (price > 0) {
-                _order.token.transfer(_order.listing.seller, price);
-            }
+            uint256 half = amount / 2;
+            dispute.token.transfer(dispute.defendant, amount - half);
+            dispute.token.transfer(dispute.prosecution, half);
         }
+        /* Finalizing transaction */
+        transactions[_hash].status = DagoraLib.Status.Finalized;
         emit TransactionFinalized(_hash);
     }
 

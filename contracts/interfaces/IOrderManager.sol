@@ -18,6 +18,7 @@ interface IOrderManager {
 
     event TransactionAccepted(bytes32 indexed hash);
     event TransactionCancelled(bytes32 indexed hash);
+    event TransactionConfirmed(bytes32 indexed hash);
     event TransactionRefunded(bytes32 indexed hash, uint256 value);
     event TransactionFinalized(bytes32 indexed hash);
 
@@ -33,6 +34,8 @@ interface IOrderManager {
 
     function confirmReceipt(DagoraLib.Order calldata _order) external;
 
+    function confirmWarrantyReceipt(DagoraLib.Order calldata _order) external;
+
     function executeOrder(DagoraLib.Order calldata _order) external;
 
     function claimWarranty(DagoraLib.Order calldata _order) external;
@@ -41,4 +44,6 @@ interface IOrderManager {
         external;
 
     function disputeOrder(DagoraLib.Order calldata _order) external payable;
+
+    function disputeWarranty(DagoraLib.Order calldata _order) external payable;
 }

@@ -8,7 +8,6 @@ import "./interfaces/IDisputeManager.sol";
 import "./libraries/DagoraLib.sol";
 import "./libraries/PercentageLib.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "hardhat/console.sol";
 
 contract OrderManager is Context, IOrderManager, Disputable {
     IListingManager public listingManager;
@@ -28,18 +27,18 @@ contract OrderManager is Context, IOrderManager, Disputable {
         require(
             _msgSender() == _order.listing.seller ||
                 _msgSender() == _order.buyer,
-            "You must be the buyer or seller"
+            "MBBS"
         );
         _;
     }
 
     modifier onlySeller(DagoraLib.Order calldata _order) {
-        require(_msgSender() == _order.listing.seller, "You must be seller");
+        require(_msgSender() == _order.listing.seller, "MBS");
         _;
     }
 
     modifier onlyBuyer(DagoraLib.Order calldata _order) {
-        require(_msgSender() == _order.buyer, "You must be buyer");
+        require(_msgSender() == _order.buyer, "MBB");
         _;
     }
 
@@ -63,19 +62,11 @@ contract OrderManager is Context, IOrderManager, Disputable {
         bytes32 listingHash;
         (_hash, listingHash) = requireValidOrder(_order);
         DagoraLib.Transaction storage transaction = transactions[_hash];
-        require(
-            transaction.status == DagoraLib.Status.NoTransaction,
-            "Order already has been processed"
-        );
+        require(transaction.status == DagoraLib.Status.NoTransaction, "OAP");
         transaction.lastStatusUpdate = block.timestamp;
         transaction.status = DagoraLib.Status.WaitingSeller;
         require(
-            _order.token.transferFrom(
-                _order.buyer,
-                address(this),
-                _order.total
-            ),
-            "Failed to transfer buyer's funds."
+            _order.token.transferFrom(_order.buyer, address(this), _order.total)
         );
         // orderApprove[_hash] = true;
 
@@ -99,10 +90,7 @@ contract OrderManager is Context, IOrderManager, Disputable {
     {
         bytes32 _hash = DagoraLib.hashOrder(_order);
         DagoraLib.Transaction storage transaction = transactions[_hash];
-        require(
-            transaction.status == DagoraLib.Status.WaitingSeller,
-            "Order must be waiting for seller"
-        );
+        require(transaction.status == DagoraLib.Status.WaitingSeller, "OMWS");
         // require(
         //     block.timestamp < transaction.lastStatusUpdate + SELLER_CONFIRMATION_TIMEOUT,
         //     "Order has expired"
@@ -121,10 +109,7 @@ contract OrderManager is Context, IOrderManager, Disputable {
     {
         bytes32 _hash = DagoraLib.hashOrder(_order);
         DagoraLib.Transaction storage transaction = transactions[_hash];
-        require(
-            transaction.status == DagoraLib.Status.WaitingSeller,
-            "Order must be waiting for seller"
-        );
+        require(transaction.status == DagoraLib.Status.WaitingSeller, "OMWS");
         _order.token.transfer(_order.buyer, _order.total);
         delete transaction.lastStatusUpdate;
         delete transaction.status;
@@ -141,12 +126,9 @@ contract OrderManager is Context, IOrderManager, Disputable {
         DagoraLib.Transaction storage transaction = transactions[_hash];
         require(
             transaction.status == DagoraLib.Status.WaitingConfirmation,
-            "You must be waiting for confirmation"
+            "OMWC"
         );
-        require(
-            transaction.refund == 0 && _order.listing.warranty > 0,
-            "Not eligible for warranty"
-        );
+        require(transaction.refund == 0 && _order.listing.warranty > 0, "NEW");
         transaction.status = DagoraLib.Status.Warranty;
         transaction.lastStatusUpdate = block.timestamp;
         emit TransactionConfirmed(_hash);
@@ -157,11 +139,12 @@ contract OrderManager is Context, IOrderManager, Disputable {
         override
         onlySeller(_order)
     {
-        bytes32 _hash = DagoraLib.hashOrder(_order);
-        DagoraLib.Transaction storage transaction = transactions[_hash];
+        DagoraLib.Transaction storage transaction = transactions[
+            DagoraLib.hashOrder(_order)
+        ];
         require(
             transaction.status == DagoraLib.Status.WarrantyConfirmation,
-            "You must be waiting for confirmation"
+            "OMWW"
         );
         _finalizeTransaction(_order, false);
     }
@@ -175,7 +158,7 @@ contract OrderManager is Context, IOrderManager, Disputable {
         require(
             waitingForConfirmation ||
                 transaction.status == DagoraLib.Status.Warranty,
-            "Invalid phase"
+            "IP"
         );
         bool warrantyEligible = transaction.refund == 0 &&
             _order.listing.warranty > 0;
@@ -189,7 +172,7 @@ contract OrderManager is Context, IOrderManager, Disputable {
                 ) * (1 days));
         require(
             timeout || (!warrantyEligible && _msgSender() == _order.buyer),
-            "Timeout time has not passed yet."
+            "TNPY"
         );
         bool executed = waitingForConfirmation && timeout;
         _finalizeTransaction(_order, executed);
@@ -244,15 +227,12 @@ contract OrderManager is Context, IOrderManager, Disputable {
     {
         bytes32 _hash = DagoraLib.hashOrder(_order);
         DagoraLib.Transaction storage transaction = transactions[_hash];
-        require(
-            transaction.status == DagoraLib.Status.Warranty,
-            "Invalid phase"
-        );
+        require(transaction.status == DagoraLib.Status.Warranty, "IP");
         require(
             block.timestamp <=
                 transaction.lastStatusUpdate +
                     (_order.listing.warranty * (1 days)),
-            "Warranty time has timed out."
+            "WTO"
         );
         transaction.status = DagoraLib.Status.WarrantyConfirmation;
         transaction.refund = _order.total;
@@ -269,22 +249,19 @@ contract OrderManager is Context, IOrderManager, Disputable {
         DagoraLib.Transaction storage transaction = transactions[_hash];
         require(
             transaction.status == DagoraLib.Status.WaitingConfirmation,
-            "Invalid phase"
+            "IP"
         );
         require(
             block.timestamp <=
                 transaction.lastStatusUpdate +
                     (_order.confirmationTimeout * (1 days)),
-            "Confirmation time has timed out."
+            "CTO"
         );
 
-        require(
-            _refund > _order.cashback,
-            "Refund must be greater than cashback."
-        );
+        require(_refund > _order.cashback, "RGC");
         require(
             _refund + (_order.protocolFee + _order.commission) <= _order.total,
-            "Refund can't be greater than total allowed."
+            "RGA"
         );
         transaction.refund = _refund;
         emit TransactionRefunded(_hash, _refund);
@@ -300,20 +277,18 @@ contract OrderManager is Context, IOrderManager, Disputable {
         DagoraLib.Transaction storage transaction = transactions[_hash];
         require(
             transaction.status == DagoraLib.Status.WaitingConfirmation,
-            "Invalid phase"
+            "IP"
         );
         require(
             block.timestamp <=
                 transaction.lastStatusUpdate +
                     (_order.confirmationTimeout * (1 days)),
-            "Confirmation time has timed out."
+            "CTO"
         );
-        address payable prosecution = _order.buyer;
-        address payable defendant = _order.listing.seller;
         _raiseDispute(
             _hash,
-            prosecution,
-            defendant,
+            _order.buyer,
+            _order.listing.seller,
             _order.token,
             _order.total
         );
@@ -329,20 +304,18 @@ contract OrderManager is Context, IOrderManager, Disputable {
         DagoraLib.Transaction storage transaction = transactions[_hash];
         require(
             transaction.status == DagoraLib.Status.WarrantyConfirmation,
-            "Invalid phase"
+            "IP"
         );
         require(
             block.timestamp <=
                 transaction.lastStatusUpdate +
                     (_order.confirmationTimeout * (1 days)),
-            "Confirmation time has timed out."
+            "CTO"
         );
-        address payable prosecution = _order.listing.seller;
-        address payable defendant = _order.buyer;
         _raiseDispute(
             _hash,
-            prosecution,
-            defendant,
+            _order.listing.seller,
+            _order.buyer,
             _order.token,
             _order.total
         );
@@ -406,7 +379,7 @@ contract OrderManager is Context, IOrderManager, Disputable {
     {
         listingHash = listingManager.requireValidListing(_order.listing);
         _hash = DagoraLib.hashOrder(_order);
-        require(_validateOrder(_order), "Invalid order");
+        require(_validateOrder(_order), "IO");
     }
 
     function _validateOrder(DagoraLib.Order memory _order)
@@ -427,7 +400,6 @@ contract OrderManager is Context, IOrderManager, Disputable {
 
         /* Buyer cannot be the seller. */
         if (_order.buyer == _order.listing.seller) {
-            console.log("Buyer cannot be the seller");
             return false;
         }
 
@@ -439,7 +411,6 @@ contract OrderManager is Context, IOrderManager, Disputable {
                 _order.listing.commissionPercentage
             )
         ) {
-            console.log("Commission not enough");
             return false;
         }
 
@@ -451,7 +422,6 @@ contract OrderManager is Context, IOrderManager, Disputable {
                 _order.listing.cashbackPercentage
             )
         ) {
-            console.log("Cashback not enough");
             return false;
         }
 
@@ -463,7 +433,6 @@ contract OrderManager is Context, IOrderManager, Disputable {
                 PROTOCOL_FEE_PERCENTAGE
             )
         ) {
-            console.log("ProtocolFee not enough");
             return false;
         }
 
@@ -472,7 +441,6 @@ contract OrderManager is Context, IOrderManager, Disputable {
             _order.total <
             (_order.cashback + _order.protocolFee + _order.commission)
         ) {
-            console.log("Not enough money for paying taxes");
             return false;
         }
 

@@ -211,9 +211,7 @@ describe("Order", async () => {
       await (await orderManager.connect(buyer).createOrder(order)).wait();
 
       const createOrderTx = orderManager.connect(buyer).createOrder(order);
-      await expect(createOrderTx).to.be.revertedWith(
-        "Order already has been processed"
-      );
+      await expect(createOrderTx).to.be.revertedWith("OAP");
     });
     it("transfer failed", async () => {
       const DagoraToken = await ethers.getContractFactory("DagoraToken");
@@ -284,9 +282,7 @@ describe("Order", async () => {
     });
     it("shouldn't cancel order not buyer or seller", async () => {
       const cancelOrderTx = orderManager.connect(owner).cancelOrder(order);
-      await expect(cancelOrderTx).to.be.revertedWith(
-        "You must be the buyer or seller"
-      );
+      await expect(cancelOrderTx).to.be.revertedWith("MBBS");
     });
     it("shouldn't cancel order that doesn't exist", async () => {
       order = order = generateOrder(
@@ -297,9 +293,7 @@ describe("Order", async () => {
         1
       );
       const cancelOrderTx = orderManager.connect(buyer).cancelOrder(order);
-      await expect(cancelOrderTx).to.be.revertedWith(
-        "Order must be waiting for seller"
-      );
+      await expect(cancelOrderTx).to.be.revertedWith("OMWS");
     });
   });
   context("#acceptOrder()", () => {
@@ -335,7 +329,7 @@ describe("Order", async () => {
     });
     it("shouldn't accept order if not seller", async () => {
       const acceptOrderTx = orderManager.acceptOrder(order);
-      await expect(acceptOrderTx).to.be.revertedWith("You must be seller");
+      await expect(acceptOrderTx).to.be.revertedWith("MBS");
     });
     it("shouldn't accept order that doesn't exist", async () => {
       order = order = generateOrder(
@@ -346,9 +340,7 @@ describe("Order", async () => {
         1
       );
       const acceptOrderTx = orderManager.connect(seller).acceptOrder(order);
-      await expect(acceptOrderTx).to.be.revertedWith(
-        "Order must be waiting for seller"
-      );
+      await expect(acceptOrderTx).to.be.revertedWith("OMWS");
     });
   });
   context("#confirmReceipt()", () => {
@@ -389,7 +381,7 @@ describe("Order", async () => {
     });
     it("only buyer can confirm receipt", async () => {
       const confirmReceiptTx = orderManager.confirmReceipt(order);
-      await expect(confirmReceiptTx).to.be.revertedWith("You must be buyer");
+      await expect(confirmReceiptTx).to.be.revertedWith("MBB");
     });
     it("only waiting for confirmation orders", async () => {
       order = generateOrder(
@@ -402,9 +394,7 @@ describe("Order", async () => {
       const confirmReceiptTx = orderManager
         .connect(buyer)
         .confirmReceipt(order);
-      await expect(confirmReceiptTx).to.be.revertedWith(
-        "You must be waiting for confirmation"
-      );
+      await expect(confirmReceiptTx).to.be.revertedWith("OMWC");
     });
     it("listing doesn't have warranty", async () => {
       listing = generateListing(seller.address, false);
@@ -427,9 +417,7 @@ describe("Order", async () => {
       const confirmReceiptTx = orderManager
         .connect(buyer)
         .confirmReceipt(order);
-      await expect(confirmReceiptTx).to.be.revertedWith(
-        "Not eligible for warranty"
-      );
+      await expect(confirmReceiptTx).to.be.revertedWith("NEW");
     });
     it("refunded order not eligible", async () => {
       const updateRefundTx = await orderManager
@@ -442,9 +430,7 @@ describe("Order", async () => {
       const confirmReceiptTx = orderManager
         .connect(buyer)
         .confirmReceipt(order);
-      await expect(confirmReceiptTx).to.be.revertedWith(
-        "Not eligible for warranty"
-      );
+      await expect(confirmReceiptTx).to.be.revertedWith("NEW");
     });
   });
   context("#executeOrder()", () => {

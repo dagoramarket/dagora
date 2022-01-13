@@ -131,12 +131,12 @@ contract ListingManager is Context, IListingManager, Disputable {
         payable
         virtual
         override
-        returns (bytes32 hash)
+        returns (bytes32 _hash)
     {
         /* CHECKS */
         require(_msgSender() != _listing.seller, "You can't report yourself");
         /* Calculate listing hash. */
-        hash = requireValidListing(_listing);
+        _hash = requireValidListing(_listing);
 
         address payable prosecution = payable(_msgSender());
         address payable defendant = _listing.seller;
@@ -145,12 +145,13 @@ contract ListingManager is Context, IListingManager, Disputable {
             PERCENTAGE_BURN
         );
         disputeManager.createDispute{ value: msg.value }(
-            hash,
+            _hash,
             prosecution,
             defendant,
             stakeManager.getTokenAddress(),
             amount
         );
+        emit ListingReported(_hash);
     }
 
     function onDispute(bytes32 _hash) external override onlyDisputeManager {
@@ -178,5 +179,6 @@ contract ListingManager is Context, IListingManager, Disputable {
             stakeManager.unlockStake(dispute.defendant, dispute.amount - split);
             stakeManager.burnLockedStake(dispute.defendant, split);
         }
+        emit ListingReportResult(_hash, _ruling);
     }
 }

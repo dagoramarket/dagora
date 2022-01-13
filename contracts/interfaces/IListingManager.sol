@@ -15,6 +15,10 @@ interface IListingManager {
     event ListingUpdated(bytes32 indexed hash, uint256 quantity);
     event ListingCancelled(bytes32 indexed hash);
 
+    event ListingReported(bytes32 indexed hash);
+
+    event ListingReportResult(bytes32 indexed hash, uint256 result);
+
     // Listing functions
     function createListing(
         DagoraLib.Listing calldata _listing,

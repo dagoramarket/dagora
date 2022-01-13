@@ -231,6 +231,9 @@ describe("Listing", async () => {
       await reportTx.wait();
       const afterLockedStake = await stakeManager.lockedTokens(seller.address);
 
+      expect(reportTx)
+        .to.emit(listingManager, "ListingReported")
+        .withArgs(hash);
       expect(reportTx).to.emit(disputeManager, "HasToPayFee").withArgs(hash, 1);
       expect(afterLockedStake.sub(beforeLockedStake)).to.be.equal(
         tokensReported
@@ -287,6 +290,9 @@ describe("Listing", async () => {
       expect(ruleTx)
         .to.emit(stakeManager, "BurnLockedStake")
         .withArgs(seller.address, tokensReported);
+      expect(ruleTx)
+        .to.emit(listingManager, "ListingReportResult")
+        .withArgs(hash, 1);
     });
     it("should finalize in favor of seller", async () => {
       const balanceBeforeRule = await stakeManager.balance(seller.address);
@@ -309,6 +315,9 @@ describe("Listing", async () => {
       expect(ruleTx)
         .to.emit(stakeManager, "UnlockStake")
         .withArgs(seller.address, tokensReported);
+      expect(ruleTx)
+        .to.emit(listingManager, "ListingReportResult")
+        .withArgs(hash, 2);
     });
     it("should finalize in favor of neither", async () => {
       const balanceBeforeRule = await stakeManager.balance(seller.address);
@@ -335,6 +344,9 @@ describe("Listing", async () => {
       expect(ruleTx)
         .to.emit(stakeManager, "BurnLockedStake")
         .withArgs(seller.address, half);
+      expect(ruleTx)
+        .to.emit(listingManager, "ListingReportResult")
+        .withArgs(hash, 0);
     });
   });
 });

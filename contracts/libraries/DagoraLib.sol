@@ -34,7 +34,6 @@ library DagoraLib {
         uint256 nonce; /* A buyer may want to buy the same product twice */
         // bytes32 extraData; switch from struct to extradata hash
         address payable commissioner;
-        uint256 quantity;
         uint256 cashback;
         uint256 commission;
     }
@@ -105,7 +104,6 @@ library DagoraLib {
                     _order.buyer,
                     _order.commissioner,
                     _order.token,
-                    _order.quantity,
                     _order.total,
                     _order.cashback,
                     _order.commission,

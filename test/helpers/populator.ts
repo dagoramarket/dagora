@@ -15,7 +15,6 @@ export type Order = {
   buyer: string;
   commissioner: string;
   token: string;
-  quantity: number;
   total: number;
   cashback: number;
   commission: number;
@@ -58,7 +57,6 @@ export function generateOrder(
     buyer: buyer,
     commissioner: buyer,
     token: tokenAddress,
-    quantity: Math.floor(Math.random() * 100) + 1,
     total: price,
     cashback: Math.floor((listing.cashbackPercentage * price) / 10000),
     commission: Math.floor((price * listing.commissionPercentage) / 10000),

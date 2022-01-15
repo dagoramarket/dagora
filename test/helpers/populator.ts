@@ -31,9 +31,9 @@ export function generateListing(
   return {
     ipfsHash: generateRandomHash(),
     seller: sellerAddress,
-    commissionPercentage: (Math.floor(Math.random() * 10) + 1) * 10,
+    commissionPercentage: (Math.floor(Math.random() * 10) + 1) * 50,
     warranty: warranty ? Math.floor(Math.random() * 7) + 1 : 0,
-    cashbackPercentage: (Math.floor(Math.random() * 10) + 1) * 10,
+    cashbackPercentage: (Math.floor(Math.random() * 10) + 1) * 50,
     expiration:
       expiration > 0
         ? BigNumber.from(
@@ -49,17 +49,21 @@ export function generateOrder(
   tokenAddress: string,
   protocol_percentage: number,
   nonce = 0,
-  timeout = true
+  timeout = true,
+  commissioner = ethers.constants.AddressZero
 ): Order {
-  const price = Math.floor(Math.random() * 1000) + 100;
+  const price = Math.floor(Math.random() * 1000) + 1000;
   return {
     listing: listing,
     buyer: buyer,
-    commissioner: buyer,
+    commissioner: commissioner,
     token: tokenAddress,
     total: price,
     cashback: Math.floor((listing.cashbackPercentage * price) / 10000),
-    commission: Math.floor((price * listing.commissionPercentage) / 10000),
+    commission:
+      commissioner != ethers.constants.AddressZero
+        ? Math.floor((price * listing.commissionPercentage) / 10000)
+        : 0,
     protocolFee: Math.floor((price * protocol_percentage) / 10000),
     confirmationTimeout: timeout ? Math.floor(Math.random() * 30) + 1 : 0,
     nonce: nonce,

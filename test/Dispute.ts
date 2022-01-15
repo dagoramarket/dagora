@@ -1,6 +1,6 @@
 import type {
   DagoraToken,
-  DisputeManager,
+  Disputable,
   TestDisputable,
   TestDisputeManager,
 } from "../typechain";
@@ -606,6 +606,18 @@ describe("Dispute", async () => {
       expect(appealTx)
         .to.emit(disputeManager, "Appeal")
         .withArgs(hash, prosecution.address);
+    });
+  });
+  context("Disputable coverage", () => {
+    it("#rulingCallback", async () => {
+      const hash = generateRandomHash();
+
+      const Disputable = await ethers.getContractFactory("Disputable");
+
+      const disputable = (await Disputable.deploy(owner.address)) as Disputable;
+
+      const createDisputeTx = await disputable.rulingCallback(hash, 0);
+      await createDisputeTx.wait();
     });
   });
 });

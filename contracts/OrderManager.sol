@@ -54,6 +54,13 @@ contract OrderManager is Context, IOrderManager, Disputable {
         // SELLER_CONFIRMATION_TIMEOUT = _sellerConfirmationTimeout;
     }
 
+    function updateProtocolFeePercentage(uint256 _protocolFeePercentage)
+        public
+        onlyOwner
+    {
+        PROTOCOL_FEE_PERCENTAGE = _protocolFeePercentage;
+    }
+
     function createOrder(DagoraLib.Order calldata _order)
         public
         override
@@ -62,7 +69,7 @@ contract OrderManager is Context, IOrderManager, Disputable {
         bytes32 listingHash;
         (_hash, listingHash) = requireValidOrder(_order);
         DagoraLib.Transaction storage transaction = transactions[_hash];
-        require(transaction.status == DagoraLib.Status.NoTransaction, "OAP");
+        require(transaction.status == DagoraLib.Status.NoTransaction, "IP");
         transaction.lastStatusUpdate = block.timestamp;
         transaction.status = DagoraLib.Status.WaitingSeller;
         require(
@@ -90,7 +97,7 @@ contract OrderManager is Context, IOrderManager, Disputable {
     {
         bytes32 _hash = DagoraLib.hashOrder(_order);
         DagoraLib.Transaction storage transaction = transactions[_hash];
-        require(transaction.status == DagoraLib.Status.WaitingSeller, "OMWS");
+        require(transaction.status == DagoraLib.Status.WaitingSeller, "IP");
         // require(
         //     block.timestamp < transaction.lastStatusUpdate + SELLER_CONFIRMATION_TIMEOUT,
         //     "Order has expired"
@@ -109,7 +116,7 @@ contract OrderManager is Context, IOrderManager, Disputable {
     {
         bytes32 _hash = DagoraLib.hashOrder(_order);
         DagoraLib.Transaction storage transaction = transactions[_hash];
-        require(transaction.status == DagoraLib.Status.WaitingSeller, "OMWS");
+        require(transaction.status == DagoraLib.Status.WaitingSeller, "IP");
         _order.token.transfer(_order.buyer, _order.total);
         delete transaction.lastStatusUpdate;
         delete transaction.status;
@@ -126,7 +133,7 @@ contract OrderManager is Context, IOrderManager, Disputable {
         DagoraLib.Transaction storage transaction = transactions[_hash];
         require(
             transaction.status == DagoraLib.Status.WaitingConfirmation,
-            "OMWC"
+            "IP"
         );
         require(transaction.refund == 0 && _order.listing.warranty > 0, "NEW");
         transaction.status = DagoraLib.Status.Warranty;
@@ -144,7 +151,7 @@ contract OrderManager is Context, IOrderManager, Disputable {
         ];
         require(
             transaction.status == DagoraLib.Status.WarrantyConfirmation,
-            "OMWW"
+            "IP"
         );
         _finalizeTransaction(_order, false);
     }
@@ -340,15 +347,17 @@ contract OrderManager is Context, IOrderManager, Disputable {
         );
     }
 
-    // IDisputable Functions
+    // // IDisputable Functions
 
-    function onDispute(bytes32)
-        public
-        view
-        virtual
-        override
-        onlyDisputeManager
-    {}
+    // function onDispute(bytes32)
+    //     public
+    //     view
+    //     virtual
+    //     override
+    // /** onlyDisputeManager */
+    // {
+
+    // }
 
     function rulingCallback(bytes32 _hash, uint256 _ruling)
         public
@@ -403,8 +412,20 @@ contract OrderManager is Context, IOrderManager, Disputable {
             return false;
         }
 
+        if (
+            _order.commissioner == _order.listing.seller ||
+            _order.commissioner == _order.buyer
+        ) {
+            return false;
+        }
+
+        if (_order.commission > 0 && _order.commissioner == address(0)) {
+            return false;
+        }
+
         /* Commission not enough */
         if (
+            _order.commissioner != address(0) &&
             _order.commission <
             PercentageLib.calculateTotalFromPercentage(
                 _order.total,

@@ -1,5 +1,5 @@
 import { ethers } from "hardhat";
-import { DagoraToken } from "../typechain";
+import { DagoraToken } from "../../typechain";
 
 async function main() {
   // const [deployer] = await ethers.getSigners();
@@ -9,7 +9,15 @@ async function main() {
   const token = (await DagoraToken.deploy()) as DagoraToken;
   await token.deployed();
 
-  console.log("Dagora Token (DGR) deployed to:", token.address);
+  const txHash = token.deployTransaction.hash;
+  const txReceipt = await ethers.provider.waitForTransaction(txHash);
+
+  console.log(
+    "Dagora Token (DGR) deployed to:",
+    txReceipt.contractAddress,
+    "Tx hash:",
+    txHash
+  );
 }
 
 main().catch((error) => {

@@ -151,7 +151,7 @@ describe("Listing", async () => {
         .withArgs(
           hash,
           listing.seller,
-          toHex(listing.ipfsHash),
+          listing.ipfsHash,
           listing.expiration,
           quantity
         );

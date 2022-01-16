@@ -7,7 +7,7 @@ interface IListingManager {
     event ListingCreated(
         bytes32 indexed hash,
         address indexed seller,
-        bytes32 ipfs,
+        string ipfs,
         uint256 expiration,
         uint256 quantity
     );

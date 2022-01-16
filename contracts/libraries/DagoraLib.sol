@@ -15,7 +15,7 @@ library DagoraLib {
     }
 
     struct Listing {
-        bytes32 ipfsHash;
+        string ipfsHash;
         address payable seller;
         uint256 expiration;
         // bytes32 extraData; switch from struct to extradata hash

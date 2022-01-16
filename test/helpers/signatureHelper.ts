@@ -3,7 +3,7 @@ import { Listing, Order } from "./populator";
 
 export function hashListing(_listing: Listing) {
   return solidityKeccak256(
-    ["bytes32", "address", "uint256", "uint256", "uint256", "uint256"],
+    ["string", "address", "uint256", "uint256", "uint256", "uint256"],
     [
       _listing.ipfsHash,
       _listing.seller,

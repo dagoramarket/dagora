@@ -2,7 +2,7 @@ import { ethers } from "hardhat";
 import { BigNumber } from "@ethersproject/bignumber";
 
 export type Listing = {
-  ipfsHash: Uint8Array;
+  ipfsHash: string;
   seller: string;
   commissionPercentage: number;
   warranty: number;
@@ -29,7 +29,7 @@ export function generateListing(
   expiration: number = 0
 ): Listing {
   return {
-    ipfsHash: generateRandomHash(),
+    ipfsHash: generateRandomHash().toString(),
     seller: sellerAddress,
     commissionPercentage: (Math.floor(Math.random() * 10) + 1) * 50,
     warranty: warranty ? Math.floor(Math.random() * 7) + 1 : 0,

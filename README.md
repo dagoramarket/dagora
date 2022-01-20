@@ -1,11 +1,13 @@
 ## Testnet deploy Mumbai
 
 Dagora Token (DGR) deployed to: 0x783EECa49C84A33382e39e8571F248a1E91C20BB
-Percentage Lib deployed at: 0x60A7ED1786FCc86dAed02886A3ADCD52f051d624
-Dagora Lib deployed at: 0xC9C60F378ABD65233dE7b4cc907768Baa3a2499C
-Stake Manager deployed at: 0xB08ce80548889021ca11E5F00A2Ed504F35E93b2
-Dispute Manager deployed at: 0xA679836aCCC53Ce351d89eF8577CD5dccb4895DC
+
+
+Percentage Lib deployed at: 0x05F4A5eF0Cf249078c2BA8B3f616C0d2a9Cf3B1F
+Dagora Lib deployed at: 0x15a01cd020502Ca4515Df3F6bc846e17B611D89a
+Stake Manager deployed at: 0x29d27aeA0Dce914F834d035cc974C18cC456694b
+Dispute Manager deployed at: 0x0e7243A94A610EbE020033D5c74ea896724E110D
 Arbitration fee updated to  1000000000
-Listing Manager deployed at: 0xCbA7601994bfe5c06e7164c083e7f72e19cF870C
-Stake Manager operator updated to: 0xB08ce80548889021ca11E5F00A2Ed504F35E93b2
-Order Manager deployed at: 0x76fCa999aEC3f7B547E9a187DD7139d68744c7E5
+Listing Manager deployed at: 0x6049443D72B23B146059861Bd509686Df78eC2fF
+Stake Manager operator updated to: 0x29d27aeA0Dce914F834d035cc974C18cC456694b
+Order Manager deployed at: 0xEE2239BAd4842e57FC2F4aC7e4e0b17Ffeb5F194

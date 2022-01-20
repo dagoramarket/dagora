@@ -1,0 +1,1476 @@
+[
+  {
+    "inputs": [
+      {
+        "internalType": "contract IListingManager",
+        "name": "_listingManager",
+        "type": "address"
+      },
+      {
+        "internalType": "contract IDisputeManager",
+        "name": "_disputeManager",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_protocolFeeRecipient",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_protocolFeePercentage",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "previousOwner",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "newOwner",
+        "type": "address"
+      }
+    ],
+    "name": "OwnershipTransferred",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "hash",
+        "type": "bytes32"
+      }
+    ],
+    "name": "TransactionAccepted",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "hash",
+        "type": "bytes32"
+      }
+    ],
+    "name": "TransactionCancelled",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "hash",
+        "type": "bytes32"
+      }
+    ],
+    "name": "TransactionConfirmed",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "orderHash",
+        "type": "bytes32"
+      },
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "listingHash",
+        "type": "bytes32"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "buyer",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "commissioner",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "contract ERC20",
+        "name": "token",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "total",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "commission",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "cashback",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "confirmationTimeout",
+        "type": "uint256"
+      }
+    ],
+    "name": "TransactionCreated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "hash",
+        "type": "bytes32"
+      }
+    ],
+    "name": "TransactionFinalized",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "hash",
+        "type": "bytes32"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "value",
+        "type": "uint256"
+      }
+    ],
+    "name": "TransactionRefunded",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "hash",
+        "type": "bytes32"
+      }
+    ],
+    "name": "WarrantyClaimed",
+    "type": "event"
+  },
+  {
+    "inputs": [],
+    "name": "PROTOCOL_FEE_PERCENTAGE",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "components": [
+          {
+            "components": [
+              {
+                "internalType": "string",
+                "name": "ipfsHash",
+                "type": "string"
+              },
+              {
+                "internalType": "address payable",
+                "name": "seller",
+                "type": "address"
+              },
+              {
+                "internalType": "uint256",
+                "name": "expiration",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "commissionPercentage",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "warranty",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "cashbackPercentage",
+                "type": "uint256"
+              }
+            ],
+            "internalType": "struct DagoraLib.Listing",
+            "name": "listing",
+            "type": "tuple"
+          },
+          {
+            "internalType": "address payable",
+            "name": "buyer",
+            "type": "address"
+          },
+          {
+            "internalType": "contract ERC20",
+            "name": "token",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "total",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "protocolFee",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "confirmationTimeout",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "nonce",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address payable",
+            "name": "commissioner",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "cashback",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "commission",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct DagoraLib.Order",
+        "name": "_order",
+        "type": "tuple"
+      }
+    ],
+    "name": "acceptOrder",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "components": [
+          {
+            "components": [
+              {
+                "internalType": "string",
+                "name": "ipfsHash",
+                "type": "string"
+              },
+              {
+                "internalType": "address payable",
+                "name": "seller",
+                "type": "address"
+              },
+              {
+                "internalType": "uint256",
+                "name": "expiration",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "commissionPercentage",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "warranty",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "cashbackPercentage",
+                "type": "uint256"
+              }
+            ],
+            "internalType": "struct DagoraLib.Listing",
+            "name": "listing",
+            "type": "tuple"
+          },
+          {
+            "internalType": "address payable",
+            "name": "buyer",
+            "type": "address"
+          },
+          {
+            "internalType": "contract ERC20",
+            "name": "token",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "total",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "protocolFee",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "confirmationTimeout",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "nonce",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address payable",
+            "name": "commissioner",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "cashback",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "commission",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct DagoraLib.Order",
+        "name": "_order",
+        "type": "tuple"
+      }
+    ],
+    "name": "cancelOrder",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "components": [
+          {
+            "components": [
+              {
+                "internalType": "string",
+                "name": "ipfsHash",
+                "type": "string"
+              },
+              {
+                "internalType": "address payable",
+                "name": "seller",
+                "type": "address"
+              },
+              {
+                "internalType": "uint256",
+                "name": "expiration",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "commissionPercentage",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "warranty",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "cashbackPercentage",
+                "type": "uint256"
+              }
+            ],
+            "internalType": "struct DagoraLib.Listing",
+            "name": "listing",
+            "type": "tuple"
+          },
+          {
+            "internalType": "address payable",
+            "name": "buyer",
+            "type": "address"
+          },
+          {
+            "internalType": "contract ERC20",
+            "name": "token",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "total",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "protocolFee",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "confirmationTimeout",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "nonce",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address payable",
+            "name": "commissioner",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "cashback",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "commission",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct DagoraLib.Order",
+        "name": "_order",
+        "type": "tuple"
+      }
+    ],
+    "name": "claimWarranty",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "components": [
+          {
+            "components": [
+              {
+                "internalType": "string",
+                "name": "ipfsHash",
+                "type": "string"
+              },
+              {
+                "internalType": "address payable",
+                "name": "seller",
+                "type": "address"
+              },
+              {
+                "internalType": "uint256",
+                "name": "expiration",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "commissionPercentage",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "warranty",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "cashbackPercentage",
+                "type": "uint256"
+              }
+            ],
+            "internalType": "struct DagoraLib.Listing",
+            "name": "listing",
+            "type": "tuple"
+          },
+          {
+            "internalType": "address payable",
+            "name": "buyer",
+            "type": "address"
+          },
+          {
+            "internalType": "contract ERC20",
+            "name": "token",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "total",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "protocolFee",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "confirmationTimeout",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "nonce",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address payable",
+            "name": "commissioner",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "cashback",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "commission",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct DagoraLib.Order",
+        "name": "_order",
+        "type": "tuple"
+      }
+    ],
+    "name": "confirmReceipt",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "components": [
+          {
+            "components": [
+              {
+                "internalType": "string",
+                "name": "ipfsHash",
+                "type": "string"
+              },
+              {
+                "internalType": "address payable",
+                "name": "seller",
+                "type": "address"
+              },
+              {
+                "internalType": "uint256",
+                "name": "expiration",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "commissionPercentage",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "warranty",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "cashbackPercentage",
+                "type": "uint256"
+              }
+            ],
+            "internalType": "struct DagoraLib.Listing",
+            "name": "listing",
+            "type": "tuple"
+          },
+          {
+            "internalType": "address payable",
+            "name": "buyer",
+            "type": "address"
+          },
+          {
+            "internalType": "contract ERC20",
+            "name": "token",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "total",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "protocolFee",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "confirmationTimeout",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "nonce",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address payable",
+            "name": "commissioner",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "cashback",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "commission",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct DagoraLib.Order",
+        "name": "_order",
+        "type": "tuple"
+      }
+    ],
+    "name": "confirmWarrantyReceipt",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "components": [
+          {
+            "components": [
+              {
+                "internalType": "string",
+                "name": "ipfsHash",
+                "type": "string"
+              },
+              {
+                "internalType": "address payable",
+                "name": "seller",
+                "type": "address"
+              },
+              {
+                "internalType": "uint256",
+                "name": "expiration",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "commissionPercentage",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "warranty",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "cashbackPercentage",
+                "type": "uint256"
+              }
+            ],
+            "internalType": "struct DagoraLib.Listing",
+            "name": "listing",
+            "type": "tuple"
+          },
+          {
+            "internalType": "address payable",
+            "name": "buyer",
+            "type": "address"
+          },
+          {
+            "internalType": "contract ERC20",
+            "name": "token",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "total",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "protocolFee",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "confirmationTimeout",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "nonce",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address payable",
+            "name": "commissioner",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "cashback",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "commission",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct DagoraLib.Order",
+        "name": "_order",
+        "type": "tuple"
+      }
+    ],
+    "name": "createOrder",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "_hash",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "disputeManager",
+    "outputs": [
+      {
+        "internalType": "contract IDisputeManager",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "components": [
+          {
+            "components": [
+              {
+                "internalType": "string",
+                "name": "ipfsHash",
+                "type": "string"
+              },
+              {
+                "internalType": "address payable",
+                "name": "seller",
+                "type": "address"
+              },
+              {
+                "internalType": "uint256",
+                "name": "expiration",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "commissionPercentage",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "warranty",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "cashbackPercentage",
+                "type": "uint256"
+              }
+            ],
+            "internalType": "struct DagoraLib.Listing",
+            "name": "listing",
+            "type": "tuple"
+          },
+          {
+            "internalType": "address payable",
+            "name": "buyer",
+            "type": "address"
+          },
+          {
+            "internalType": "contract ERC20",
+            "name": "token",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "total",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "protocolFee",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "confirmationTimeout",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "nonce",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address payable",
+            "name": "commissioner",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "cashback",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "commission",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct DagoraLib.Order",
+        "name": "_order",
+        "type": "tuple"
+      }
+    ],
+    "name": "disputeOrder",
+    "outputs": [],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "components": [
+          {
+            "components": [
+              {
+                "internalType": "string",
+                "name": "ipfsHash",
+                "type": "string"
+              },
+              {
+                "internalType": "address payable",
+                "name": "seller",
+                "type": "address"
+              },
+              {
+                "internalType": "uint256",
+                "name": "expiration",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "commissionPercentage",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "warranty",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "cashbackPercentage",
+                "type": "uint256"
+              }
+            ],
+            "internalType": "struct DagoraLib.Listing",
+            "name": "listing",
+            "type": "tuple"
+          },
+          {
+            "internalType": "address payable",
+            "name": "buyer",
+            "type": "address"
+          },
+          {
+            "internalType": "contract ERC20",
+            "name": "token",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "total",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "protocolFee",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "confirmationTimeout",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "nonce",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address payable",
+            "name": "commissioner",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "cashback",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "commission",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct DagoraLib.Order",
+        "name": "_order",
+        "type": "tuple"
+      }
+    ],
+    "name": "disputeWarranty",
+    "outputs": [],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "components": [
+          {
+            "components": [
+              {
+                "internalType": "string",
+                "name": "ipfsHash",
+                "type": "string"
+              },
+              {
+                "internalType": "address payable",
+                "name": "seller",
+                "type": "address"
+              },
+              {
+                "internalType": "uint256",
+                "name": "expiration",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "commissionPercentage",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "warranty",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "cashbackPercentage",
+                "type": "uint256"
+              }
+            ],
+            "internalType": "struct DagoraLib.Listing",
+            "name": "listing",
+            "type": "tuple"
+          },
+          {
+            "internalType": "address payable",
+            "name": "buyer",
+            "type": "address"
+          },
+          {
+            "internalType": "contract ERC20",
+            "name": "token",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "total",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "protocolFee",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "confirmationTimeout",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "nonce",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address payable",
+            "name": "commissioner",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "cashback",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "commission",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct DagoraLib.Order",
+        "name": "_order",
+        "type": "tuple"
+      }
+    ],
+    "name": "executeOrder",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "listingManager",
+    "outputs": [
+      {
+        "internalType": "contract IListingManager",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "name": "managerAllowed",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "name": "onDispute",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "owner",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "protocolFeeRecipient",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "renounceOwnership",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "components": [
+          {
+            "components": [
+              {
+                "internalType": "string",
+                "name": "ipfsHash",
+                "type": "string"
+              },
+              {
+                "internalType": "address payable",
+                "name": "seller",
+                "type": "address"
+              },
+              {
+                "internalType": "uint256",
+                "name": "expiration",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "commissionPercentage",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "warranty",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "cashbackPercentage",
+                "type": "uint256"
+              }
+            ],
+            "internalType": "struct DagoraLib.Listing",
+            "name": "listing",
+            "type": "tuple"
+          },
+          {
+            "internalType": "address payable",
+            "name": "buyer",
+            "type": "address"
+          },
+          {
+            "internalType": "contract ERC20",
+            "name": "token",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "total",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "protocolFee",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "confirmationTimeout",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "nonce",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address payable",
+            "name": "commissioner",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "cashback",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "commission",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct DagoraLib.Order",
+        "name": "_order",
+        "type": "tuple"
+      }
+    ],
+    "name": "requireValidOrder",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "_hash",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "listingHash",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "_hash",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_ruling",
+        "type": "uint256"
+      }
+    ],
+    "name": "rulingCallback",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "name": "transactions",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "lastStatusUpdate",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "refund",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "gasFee",
+        "type": "uint256"
+      },
+      {
+        "internalType": "enum DagoraLib.Status",
+        "name": "status",
+        "type": "uint8"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "newOwner",
+        "type": "address"
+      }
+    ],
+    "name": "transferOwnership",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "contract IDisputeManager",
+        "name": "_disputeManager",
+        "type": "address"
+      }
+    ],
+    "name": "updateDisputeManager",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_protocolFeePercentage",
+        "type": "uint256"
+      }
+    ],
+    "name": "updateProtocolFeePercentage",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "components": [
+          {
+            "components": [
+              {
+                "internalType": "string",
+                "name": "ipfsHash",
+                "type": "string"
+              },
+              {
+                "internalType": "address payable",
+                "name": "seller",
+                "type": "address"
+              },
+              {
+                "internalType": "uint256",
+                "name": "expiration",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "commissionPercentage",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "warranty",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "cashbackPercentage",
+                "type": "uint256"
+              }
+            ],
+            "internalType": "struct DagoraLib.Listing",
+            "name": "listing",
+            "type": "tuple"
+          },
+          {
+            "internalType": "address payable",
+            "name": "buyer",
+            "type": "address"
+          },
+          {
+            "internalType": "contract ERC20",
+            "name": "token",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "total",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "protocolFee",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "confirmationTimeout",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "nonce",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address payable",
+            "name": "commissioner",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "cashback",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "commission",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct DagoraLib.Order",
+        "name": "_order",
+        "type": "tuple"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_refund",
+        "type": "uint256"
+      }
+    ],
+    "name": "updateRefund",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  }
+]

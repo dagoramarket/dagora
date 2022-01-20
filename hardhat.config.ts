@@ -5,6 +5,7 @@ import "@typechain/hardhat";
 import "@nomiclabs/hardhat-ethers";
 import "@nomiclabs/hardhat-waffle";
 import "hardhat-gas-reporter";
+import "hardhat-abi-exporter";
 import "solidity-coverage";
 
 dotenv.config();
@@ -42,6 +43,10 @@ const config: HardhatUserConfig = {
   gasReporter: {
     enabled: process.env.REPORT_GAS !== undefined,
     currency: "BRL",
+  },
+  abiExporter: {
+    clear: true,
+    only: ["DisputeManager", "ListingManager", "OrderManager", "StakeManager"],
   },
   typechain: {
     outDir: "typechain",

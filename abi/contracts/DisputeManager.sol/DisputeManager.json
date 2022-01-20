@@ -1,0 +1,346 @@
+[
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "_hashI",
+        "type": "bytes32"
+      },
+      {
+        "indexed": false,
+        "internalType": "enum DisputeLib.Party",
+        "name": "_party",
+        "type": "uint8"
+      }
+    ],
+    "name": "HasToPayFee",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "previousOwner",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "newOwner",
+        "type": "address"
+      }
+    ],
+    "name": "OwnershipTransferred",
+    "type": "event"
+  },
+  {
+    "inputs": [],
+    "name": "DISPUTE_TIMEOUT",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "_hash",
+        "type": "bytes32"
+      }
+    ],
+    "name": "appeal",
+    "outputs": [],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "arbitrationCost",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "_hash",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "address payable",
+        "name": "_prosecution",
+        "type": "address"
+      },
+      {
+        "internalType": "address payable",
+        "name": "_defendant",
+        "type": "address"
+      },
+      {
+        "internalType": "contract ERC20",
+        "name": "_token",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "createDispute",
+    "outputs": [],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "_hash",
+        "type": "bytes32"
+      }
+    ],
+    "name": "disputeTimeout",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "name": "disputes",
+    "outputs": [
+      {
+        "internalType": "address payable",
+        "name": "prosecution",
+        "type": "address"
+      },
+      {
+        "internalType": "address payable",
+        "name": "defendant",
+        "type": "address"
+      },
+      {
+        "internalType": "contract ERC20",
+        "name": "token",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "prosecutionFee",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "defendantFee",
+        "type": "uint256"
+      },
+      {
+        "internalType": "contract IDisputable",
+        "name": "disputable",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "lastInteraction",
+        "type": "uint256"
+      },
+      {
+        "internalType": "enum DisputeLib.Status",
+        "name": "status",
+        "type": "uint8"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "_hash",
+        "type": "bytes32"
+      }
+    ],
+    "name": "getDispute",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "address payable",
+            "name": "prosecution",
+            "type": "address"
+          },
+          {
+            "internalType": "address payable",
+            "name": "defendant",
+            "type": "address"
+          },
+          {
+            "internalType": "contract ERC20",
+            "name": "token",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "amount",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "prosecutionFee",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "defendantFee",
+            "type": "uint256"
+          },
+          {
+            "internalType": "contract IDisputable",
+            "name": "disputable",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "lastInteraction",
+            "type": "uint256"
+          },
+          {
+            "internalType": "enum DisputeLib.Status",
+            "name": "status",
+            "type": "uint8"
+          }
+        ],
+        "internalType": "struct DisputeLib.Dispute",
+        "name": "",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "_hash",
+        "type": "bytes32"
+      }
+    ],
+    "name": "inDispute",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "owner",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "_hash",
+        "type": "bytes32"
+      }
+    ],
+    "name": "payArbitrationFee",
+    "outputs": [],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "renounceOwnership",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "_hash",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "string",
+        "name": "_evidence",
+        "type": "string"
+      }
+    ],
+    "name": "submitEvidence",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "newOwner",
+        "type": "address"
+      }
+    ],
+    "name": "transferOwnership",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_timeout",
+        "type": "uint256"
+      }
+    ],
+    "name": "updateDisputeTimeout",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  }
+]

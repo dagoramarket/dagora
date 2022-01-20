@@ -9,6 +9,9 @@ interface IListingManager {
         address indexed seller,
         string ipfs,
         uint256 expiration,
+        uint256 commissionPercentage,
+        uint256 cashbackPercentage,
+        uint256 warranty,
         uint256 quantity
     );
 

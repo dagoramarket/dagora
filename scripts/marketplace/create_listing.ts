@@ -30,6 +30,15 @@ async function main() {
       Authorization: `Basic ${process.env.IPFS_API_KEY}`,
     },
   });
+  const thegraph = create({
+    host: "api.thegraph.com",
+    port: 443,
+    apiPath: "/ipfs/api/v0",
+    protocol: "https",
+    // headers: {
+    //   Authorization: `Basic ${process.env.IPFS_API_KEY}`,
+    // },
+  });
 
   const file = await client.add({
     path: "./ps4-image.png",
@@ -42,6 +51,10 @@ async function main() {
     content: readFileSync("./scripts/marketplace/listing.json"),
   });
   console.log(listingIpfs);
+
+  const catListing = client.cat(listingIpfs.cid);
+
+  await thegraph.add(catListing);
 
   const listing = {
     ipfsHash: listingIpfs.path,
@@ -58,8 +71,8 @@ async function main() {
   await createListingTx.wait();
 
   console.log(
-    MINIMUM_STAKE.toString().toString(),
-    "DGR staked",
+    "Listing created",
+    createListingTx.raw,
     "tx hash:",
     createListingTx.hash
   );

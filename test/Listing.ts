@@ -153,6 +153,9 @@ describe("Listing", async () => {
           listing.seller,
           listing.ipfsHash,
           listing.expiration,
+          listing.commissionPercentage,
+          listing.cashbackPercentage,
+          listing.warranty,
           quantity
         );
     });

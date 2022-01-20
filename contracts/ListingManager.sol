@@ -50,6 +50,9 @@ contract ListingManager is Context, IListingManager, Disputable {
             _listing.seller,
             _listing.ipfsHash,
             _listing.expiration,
+            _listing.commissionPercentage,
+            _listing.cashbackPercentage,
+            _listing.warranty,
             _quantity
         );
     }

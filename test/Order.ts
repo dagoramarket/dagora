@@ -117,6 +117,10 @@ describe("Order", async () => {
     let order: Order;
     beforeEach(async () => {
       listing = generateListing(seller.address);
+      const createListingTx = await listingManager
+        .connect(seller)
+        .createListing(listing, 10);
+      await createListingTx.wait();
       order = generateOrder(
         listing,
         buyer.address,
@@ -192,6 +196,10 @@ describe("Order", async () => {
     let order: Order;
     beforeEach(async () => {
       listing = generateListing(seller.address);
+      const createListingTx = await listingManager
+        .connect(seller)
+        .createListing(listing, 10);
+      await createListingTx.wait();
       order = generateOrder(
         listing,
         buyer.address,
@@ -256,6 +264,10 @@ describe("Order", async () => {
     let order: Order;
     beforeEach(async () => {
       listing = generateListing(seller.address);
+      const createListingTx = await listingManager
+        .connect(seller)
+        .createListing(listing, 10);
+      await createListingTx.wait();
       order = generateOrder(
         listing,
         buyer.address,
@@ -324,6 +336,10 @@ describe("Order", async () => {
     let order: Order;
     beforeEach(async () => {
       listing = generateListing(seller.address);
+      const createListingTx = await listingManager
+        .connect(seller)
+        .createListing(listing, 10);
+      await createListingTx.wait();
       order = generateOrder(
         listing,
         buyer.address,
@@ -371,6 +387,10 @@ describe("Order", async () => {
     let order: Order;
     beforeEach(async () => {
       listing = generateListing(seller.address, true);
+      const createListingTx = await listingManager
+        .connect(seller)
+        .createListing(listing, 10);
+      await createListingTx.wait();
       order = generateOrder(
         listing,
         buyer.address,
@@ -420,6 +440,10 @@ describe("Order", async () => {
     });
     it("listing doesn't have warranty", async () => {
       listing = generateListing(seller.address, false);
+      const createListingTx = await listingManager
+        .connect(seller)
+        .createListing(listing, 10);
+      await createListingTx.wait();
       order = generateOrder(
         listing,
         buyer.address,
@@ -461,6 +485,10 @@ describe("Order", async () => {
     let order: Order;
     beforeEach(async () => {
       listing = generateListing(seller.address);
+      const createListingTx = await listingManager
+        .connect(seller)
+        .createListing(listing, 10);
+      await createListingTx.wait();
       order = generateOrder(
         listing,
         buyer.address,
@@ -559,6 +587,10 @@ describe("Order", async () => {
     });
     it("warranty ineligible because of refund", async () => {
       listing = generateListing(seller.address, true);
+      const createListingTx = await listingManager
+        .connect(seller)
+        .createListing(listing, 10);
+      await createListingTx.wait();
       order = generateOrder(
         listing,
         buyer.address,
@@ -684,6 +716,10 @@ describe("Order", async () => {
     it("no cashback or refund", async () => {
       listing = generateListing(seller.address);
       listing.cashbackPercentage = 0;
+      const createListingTx = await listingManager
+        .connect(seller)
+        .createListing(listing, 10);
+      await createListingTx.wait();
       order = generateOrder(
         listing,
         buyer.address,
@@ -780,6 +816,10 @@ describe("Order", async () => {
     let order: Order;
     beforeEach(async () => {
       listing = generateListing(seller.address);
+      const createListingTx = await listingManager
+        .connect(seller)
+        .createListing(listing, 10);
+      await createListingTx.wait();
       order = generateOrder(
         listing,
         buyer.address,
@@ -873,6 +913,10 @@ describe("Order", async () => {
     let order: Order;
     beforeEach(async () => {
       listing = generateListing(seller.address, true);
+      const createListingTx = await listingManager
+        .connect(seller)
+        .createListing(listing, 10);
+      await createListingTx.wait();
       order = generateOrder(
         listing,
         buyer.address,
@@ -968,6 +1012,10 @@ describe("Order", async () => {
     let order: Order;
     beforeEach(async () => {
       listing = generateListing(seller.address, true);
+      const createListingTx = await listingManager
+        .connect(seller)
+        .createListing(listing, 10);
+      await createListingTx.wait();
       order = generateOrder(
         listing,
         buyer.address,
@@ -1097,6 +1145,10 @@ describe("Order", async () => {
     let order: Order;
     beforeEach(async () => {
       listing = generateListing(seller.address);
+      const createListingTx = await listingManager
+        .connect(seller)
+        .createListing(listing, 10);
+      await createListingTx.wait();
       order = generateOrder(
         listing,
         buyer.address,
@@ -1173,6 +1225,10 @@ describe("Order", async () => {
     let order: Order;
     beforeEach(async () => {
       listing = generateListing(seller.address, true);
+      const createListingTx = await listingManager
+        .connect(seller)
+        .createListing(listing, 10);
+      await createListingTx.wait();
       order = generateOrder(
         listing,
         buyer.address,
@@ -1273,6 +1329,10 @@ describe("Order", async () => {
     let order: Order;
     beforeEach(async () => {
       listing = generateListing(seller.address);
+      const createListingTx = await listingManager
+        .connect(seller)
+        .createListing(listing, 10);
+      await createListingTx.wait();
       order = generateOrder(
         listing,
         buyer.address,

@@ -14,7 +14,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "hardhat/console.sol";
 
 contract ListingManager is Context, IListingManager, Disputable {
-    mapping(bytes32 => bool) public cancelledListings;
+    mapping(bytes32 => bool) public approvedListings;
 
     IStakeManager public stakeManager;
 
@@ -44,6 +44,8 @@ contract ListingManager is Context, IListingManager, Disputable {
     ) public override onlySeller(_listing) returns (bytes32 hash) {
         /* Calculate listing hash. */
         hash = requireValidListing(_listing);
+
+        approvedListings[hash] = true;
 
         emit ListingCreated(
             hash,
@@ -80,7 +82,7 @@ contract ListingManager is Context, IListingManager, Disputable {
 
         /* EFFECTS */
 
-        cancelledListings[hash] = true;
+        approvedListings[hash] = false;
 
         /* Log cancel event. */
         emit ListingCancelled(hash);
@@ -114,19 +116,18 @@ contract ListingManager is Context, IListingManager, Disputable {
             return false;
         }
 
-        /* Listing must have not been canceled or already filled. */
-        if (cancelledListings[_hash]) {
-            console.log("Listing canceled");
-            return false;
-        }
-
         /* Listing must not be in dispute */
         if (disputeManager.inDispute(_hash)) {
             console.log("Listing in dispute");
             return false;
         }
 
-        return true;
+        /* Listing must have not been canceled or already filled. */
+        if (approvedListings[_hash]) {
+            return true;
+        }
+
+        return _msgSender() == _listing.seller;
     }
 
     function report(DagoraLib.Listing memory _listing)
@@ -147,6 +148,10 @@ contract ListingManager is Context, IListingManager, Disputable {
             stakeManager.balance(defendant),
             PERCENTAGE_BURN
         );
+        require(
+            stakeManager.unlockedTokens(prosecution) >= amount,
+            "Not enough tokens"
+        );
         disputeManager.createDispute{ value: msg.value }(
             _hash,
             prosecution,
@@ -160,6 +165,7 @@ contract ListingManager is Context, IListingManager, Disputable {
     function onDispute(bytes32 _hash) external override onlyDisputeManager {
         DisputeLib.Dispute memory dispute = IDisputeManager(_msgSender())
             .getDispute(_hash);
+        stakeManager.lockStake(dispute.prosecution, dispute.amount);
         stakeManager.lockStake(dispute.defendant, dispute.amount);
     }
 
@@ -173,14 +179,21 @@ contract ListingManager is Context, IListingManager, Disputable {
             .getDispute(_hash);
         if (_ruling == uint256(DisputeLib.RulingOptions.DefendantWins)) {
             stakeManager.unlockStake(dispute.defendant, dispute.amount);
+            stakeManager.burnLockedStake(dispute.prosecution, dispute.amount);
         } else if (
             _ruling == uint256(DisputeLib.RulingOptions.ProsecutionWins)
         ) {
+            stakeManager.unlockStake(dispute.prosecution, dispute.amount);
             stakeManager.burnLockedStake(dispute.defendant, dispute.amount);
         } else {
             uint256 split = dispute.amount / 2;
             stakeManager.unlockStake(dispute.defendant, dispute.amount - split);
+            stakeManager.unlockStake(
+                dispute.prosecution,
+                dispute.amount - split
+            );
             stakeManager.burnLockedStake(dispute.defendant, split);
+            stakeManager.burnLockedStake(dispute.prosecution, split);
         }
         emit ListingReportResult(_hash, _ruling);
     }

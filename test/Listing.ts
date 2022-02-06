@@ -9,7 +9,7 @@ import { ethers } from "hardhat";
 
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { expect } from "chai";
-import { generateListing } from "./helpers/populator";
+import { generateListing, Listing } from "./helpers/populator";
 import { hashListing, toHex } from "./helpers/signatureHelper";
 import { advanceTimeAndBlock } from "./helpers/testHelper";
 import { BigNumber } from "ethers";
@@ -77,6 +77,17 @@ describe("Listing", async () => {
       .connect(seller)
       .stakeTokens(MINIMUM_STAKE * 2);
     await stakeTx.wait();
+
+    await (
+      await token
+        .connect(owner)
+        .approve(stakeManager.address, ethers.constants.MaxUint256)
+    ).wait();
+
+    const stakeOwnerTx = await stakeManager
+      .connect(owner)
+      .stakeTokens(MINIMUM_STAKE * 2);
+    await stakeOwnerTx.wait();
   });
 
   context("#requireValidListing()", () => {
@@ -84,14 +95,19 @@ describe("Listing", async () => {
       const listing = generateListing(seller.address);
       const hash = hashListing(listing);
 
-      const listingHash = await listingManager.requireValidListing(listing);
+      const listingHash = await listingManager
+        .connect(seller)
+        .requireValidListing(listing);
 
       expect(listingHash).to.be.equal(hash);
     });
     it("seller doesn't have minimum staked", async () => {
       const listing = generateListing(buyer.address);
 
-      const listingHash = listingManager.requireValidListing(listing);
+      const listingHash = listingManager
+        .connect(seller)
+        .connect(seller)
+        .requireValidListing(listing);
 
       await expect(listingHash).to.be.reverted;
     });
@@ -111,7 +127,9 @@ describe("Listing", async () => {
       const listing = generateListing(seller.address, false, 3);
       await advanceTimeAndBlock(4 * 86400);
 
-      const listingHash = listingManager.requireValidListing(listing);
+      const listingHash = listingManager
+        .connect(seller)
+        .requireValidListing(listing);
 
       await expect(listingHash).to.be.reverted;
     });
@@ -129,7 +147,9 @@ describe("Listing", async () => {
       });
       await reportTx.wait();
 
-      const listingHash = listingManager.requireValidListing(listing);
+      const listingHash = listingManager
+        .connect(seller)
+        .requireValidListing(listing);
 
       await expect(listingHash).to.be.reverted;
     });
@@ -191,38 +211,54 @@ describe("Listing", async () => {
     });
   });
   context("#cancelListing()", () => {
-    it("should cancel a listing", async () => {
-      const listing = generateListing(seller.address);
-      const hash = hashListing(listing);
+    let listing: Listing;
+    let hash: string;
+    beforeEach(async () => {
+      listing = generateListing(seller.address);
+      hash = hashListing(listing);
 
+      const createListingTx = await listingManager
+        .connect(seller)
+        .createListing(listing, 10);
+      await createListingTx.wait();
+    });
+
+    it("should cancel a listing", async () => {
       const cancelListingTx = await listingManager
         .connect(seller)
         .cancelListing(listing);
       await cancelListingTx.wait();
 
-      const cancelled = await listingManager.cancelledListings(hash);
+      const approved = await listingManager.approvedListings(hash);
 
       expect(cancelListingTx)
         .to.emit(listingManager, "ListingCancelled")
         .withArgs(hash);
-      expect(cancelled).to.be.true;
+      expect(approved).to.be.false;
     });
     it("shouldn't cancel listing if not seller", async () => {
-      const listing = generateListing(seller.address);
-      const hash = hashListing(listing);
-
       const cancelListingTx = listingManager.cancelListing(listing);
       await expect(cancelListingTx).to.be.revertedWith("You must be seller");
 
-      const cancelled = await listingManager.cancelledListings(hash);
+      const approved = await listingManager.approvedListings(hash);
 
-      expect(cancelled).to.be.false;
+      expect(approved).to.be.true;
     });
   });
   context("#report()", () => {
+    let listing: Listing;
+    let hash: string;
+    before(async () => {
+      listing = generateListing(seller.address);
+      hash = hashListing(listing);
+
+      const createListingTx = await listingManager
+        .connect(seller)
+        .createListing(listing, 10);
+      await createListingTx.wait();
+    });
+
     it("should report listing and finalize in favor of reporter", async () => {
-      const listing = generateListing(seller.address);
-      const hash = hashListing(listing);
       const balanceStake = await stakeManager.balance(seller.address);
       const tokensReported = balanceStake.mul(PERCENTAGE_BURN).div(10000);
 
@@ -243,17 +279,18 @@ describe("Listing", async () => {
       );
     });
     it("shouldn't report itself", async () => {
-      const listing = generateListing(seller.address);
-
       const reportTx = listingManager.connect(seller).report(listing, {
         value: arbCost,
       });
       await expect(reportTx).to.be.revertedWith("You can't report yourself");
     });
+    it("should revert invalid listing", async () => {
+      const onDisputeTx = listingManager.onDispute(hash);
+      await expect(onDisputeTx).to.be.revertedWith(
+        "Only dispute manager can call this function"
+      );
+    });
     it("should revert only dispute manager", async () => {
-      const listing = generateListing(seller.address);
-      const hash = hashListing(listing);
-
       const onDisputeTx = listingManager.onDispute(hash);
       await expect(onDisputeTx).to.be.revertedWith(
         "Only dispute manager can call this function"
@@ -266,6 +303,11 @@ describe("Listing", async () => {
     beforeEach(async () => {
       const listing = generateListing(seller.address);
       hash = hashListing(listing);
+      const createListingTx = await listingManager
+        .connect(seller)
+        .createListing(listing, 10);
+      await createListingTx.wait();
+
       const balanceStake = await stakeManager.balance(seller.address);
       tokensReported = balanceStake.mul(PERCENTAGE_BURN).div(10000);
       const reportTx = await listingManager.report(listing, {

@@ -1170,7 +1170,9 @@ describe("Order", async () => {
     it("should dispute order", async () => {
       const disputeOrderTx = await orderManager
         .connect(buyer)
-        .disputeOrder(order);
+        .disputeOrder(order, {
+          value: arbCost,
+        });
       await disputeOrderTx.wait();
 
       const transactions = await orderManager.transactions(hash);
@@ -1182,7 +1184,9 @@ describe("Order", async () => {
     });
     it("dispute timed out", async () => {
       advanceTimeAndBlock(order.confirmationTimeout * 24 * 60 * 60); // x days
-      const disputeOrderTx = orderManager.connect(buyer).disputeOrder(order);
+      const disputeOrderTx = orderManager.connect(buyer).disputeOrder(order, {
+        value: arbCost,
+      });
       await expect(disputeOrderTx).to.be.revertedWith("CTO");
     });
     it("invalid phase", async () => {
@@ -1194,7 +1198,9 @@ describe("Order", async () => {
         1
       );
 
-      let disputeOrderTx = orderManager.connect(buyer).disputeOrder(order);
+      let disputeOrderTx = orderManager.connect(buyer).disputeOrder(order, {
+        value: arbCost,
+      });
       await expect(disputeOrderTx).to.be.revertedWith("IP");
 
       const createOrderTx = await orderManager
@@ -1202,7 +1208,9 @@ describe("Order", async () => {
         .createOrder(order);
       await createOrderTx.wait();
 
-      disputeOrderTx = orderManager.connect(buyer).disputeOrder(order);
+      disputeOrderTx = orderManager.connect(buyer).disputeOrder(order, {
+        value: arbCost,
+      });
       await expect(disputeOrderTx).to.be.revertedWith("IP");
 
       const acceptOrderTx = await orderManager
@@ -1215,7 +1223,9 @@ describe("Order", async () => {
         .executeOrder(order);
       await executeOrderTx.wait();
 
-      disputeOrderTx = orderManager.connect(buyer).disputeOrder(order);
+      disputeOrderTx = orderManager.connect(buyer).disputeOrder(order, {
+        value: arbCost,
+      });
       await expect(disputeOrderTx).to.be.revertedWith("IP");
     });
   });
@@ -1258,7 +1268,9 @@ describe("Order", async () => {
     it("should dispute warranty", async () => {
       const disputeWarrantyTx = await orderManager
         .connect(seller)
-        .disputeWarranty(order);
+        .disputeWarranty(order, {
+          value: arbCost,
+        });
       await disputeWarrantyTx.wait();
 
       const transactions = await orderManager.transactions(hash);
@@ -1272,7 +1284,9 @@ describe("Order", async () => {
       advanceTimeAndBlock(order.confirmationTimeout * 24 * 60 * 60); // x days
       const disputeOrderTx = orderManager
         .connect(seller)
-        .disputeWarranty(order);
+        .disputeWarranty(order, {
+          value: arbCost,
+        });
       await expect(disputeOrderTx).to.be.revertedWith("CTO");
     });
     it("invalid phase", async () => {
@@ -1283,14 +1297,18 @@ describe("Order", async () => {
         PERCENTAGE_FEE,
         1
       );
-      let disputeOrderTx = orderManager.connect(seller).disputeWarranty(order);
+      let disputeOrderTx = orderManager.connect(seller).disputeWarranty(order, {
+        value: arbCost,
+      });
       await expect(disputeOrderTx).to.be.revertedWith("IP");
       const createOrderTx = await orderManager
         .connect(buyer)
         .createOrder(order);
       await createOrderTx.wait();
 
-      disputeOrderTx = orderManager.connect(seller).disputeWarranty(order);
+      disputeOrderTx = orderManager.connect(seller).disputeWarranty(order, {
+        value: arbCost,
+      });
       await expect(disputeOrderTx).to.be.revertedWith("IP");
 
       const acceptOrderTx = await orderManager
@@ -1298,7 +1316,9 @@ describe("Order", async () => {
         .acceptOrder(order);
       await acceptOrderTx.wait();
 
-      disputeOrderTx = orderManager.connect(seller).disputeWarranty(order);
+      disputeOrderTx = orderManager.connect(seller).disputeWarranty(order, {
+        value: arbCost,
+      });
       await expect(disputeOrderTx).to.be.revertedWith("IP");
 
       const confirmReceiptTx = await orderManager
@@ -1306,7 +1326,9 @@ describe("Order", async () => {
         .confirmReceipt(order);
       await confirmReceiptTx.wait();
 
-      disputeOrderTx = orderManager.connect(seller).disputeWarranty(order);
+      disputeOrderTx = orderManager.connect(seller).disputeWarranty(order, {
+        value: arbCost,
+      });
       await expect(disputeOrderTx).to.be.revertedWith("IP");
 
       const claimWarrantyTx = await orderManager
@@ -1319,7 +1341,9 @@ describe("Order", async () => {
         .confirmWarrantyReceipt(order);
       await confirmWarrantyReceiptTx.wait();
 
-      disputeOrderTx = orderManager.connect(seller).disputeWarranty(order);
+      disputeOrderTx = orderManager.connect(seller).disputeWarranty(order, {
+        value: arbCost,
+      });
       await expect(disputeOrderTx).to.be.revertedWith("IP");
     });
   });
@@ -1351,7 +1375,9 @@ describe("Order", async () => {
       await acceptOrderTx.wait();
       const disputeOrderTx = await orderManager
         .connect(buyer)
-        .disputeOrder(order);
+        .disputeOrder(order, {
+          value: arbCost,
+        });
       await disputeOrderTx.wait();
     });
 

@@ -36,7 +36,7 @@
       {
         "indexed": false,
         "internalType": "uint256",
-        "name": "expiration",
+        "name": "expirationBlock",
         "type": "uint256"
       },
       {
@@ -134,7 +134,7 @@
           },
           {
             "internalType": "uint256",
-            "name": "expiration",
+            "name": "expirationBlock",
             "type": "uint256"
           },
           {
@@ -179,7 +179,7 @@
           },
           {
             "internalType": "uint256",
-            "name": "expiration",
+            "name": "expirationBlock",
             "type": "uint256"
           },
           {
@@ -235,7 +235,7 @@
           },
           {
             "internalType": "uint256",
-            "name": "expiration",
+            "name": "expirationBlock",
             "type": "uint256"
           },
           {
@@ -286,7 +286,7 @@
           },
           {
             "internalType": "uint256",
-            "name": "expiration",
+            "name": "expirationBlock",
             "type": "uint256"
           },
           {
@@ -337,7 +337,7 @@
           },
           {
             "internalType": "uint256",
-            "name": "expiration",
+            "name": "expirationBlock",
             "type": "uint256"
           },
           {

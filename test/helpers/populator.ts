@@ -7,7 +7,7 @@ export type Listing = {
   commissionPercentage: number;
   warranty: number;
   cashbackPercentage: number;
-  expiration: BigNumber;
+  expirationBlock: BigNumber;
 };
 
 export type Order = {
@@ -26,7 +26,7 @@ export type Order = {
 export function generateListing(
   sellerAddress: string,
   warranty: boolean = false,
-  expiration: number = 0
+  expirationBlock: number = 0
 ): Listing {
   return {
     ipfsHash: generateRandomHash().toString(),
@@ -34,12 +34,10 @@ export function generateListing(
     commissionPercentage: (Math.floor(Math.random() * 10) + 1) * 50,
     warranty: warranty ? Math.floor(Math.random() * 7) + 1 : 0,
     cashbackPercentage: (Math.floor(Math.random() * 10) + 1) * 50,
-    expiration:
-      expiration > 0
-        ? BigNumber.from(
-            Math.floor(new Date().getTime() / 1000) + expiration * 86400
-          )
-        : ethers.constants.MaxUint256, // Days
+    expirationBlock:
+      expirationBlock > 0
+        ? BigNumber.from(expirationBlock)
+        : ethers.constants.MaxUint256, // Blocks
   };
 }
 

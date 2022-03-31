@@ -8,7 +8,7 @@ interface IListingManager {
         bytes32 indexed hash,
         address indexed seller,
         string ipfs,
-        uint256 expiration,
+        uint256 expirationBlock,
         uint256 commissionPercentage,
         uint256 cashbackPercentage,
         uint256 warranty,

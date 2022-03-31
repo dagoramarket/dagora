@@ -10,7 +10,7 @@ export function hashListing(_listing: Listing) {
       _listing.commissionPercentage,
       _listing.warranty,
       _listing.cashbackPercentage,
-      _listing.expiration,
+      _listing.expirationBlock,
     ]
   ) as string;
 }

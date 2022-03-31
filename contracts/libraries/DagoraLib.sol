@@ -17,7 +17,7 @@ library DagoraLib {
     struct Listing {
         string ipfsHash;
         address payable seller;
-        uint256 expiration;
+        uint256 expirationBlock;
         // bytes32 extraData; switch from struct to extradata hash
         uint256 commissionPercentage; /* two decimal places */
         uint256 warranty; /* In days */
@@ -83,7 +83,7 @@ library DagoraLib {
                     _listing.commissionPercentage,
                     _listing.warranty,
                     _listing.cashbackPercentage,
-                    _listing.expiration
+                    _listing.expirationBlock
                 )
             );
     }

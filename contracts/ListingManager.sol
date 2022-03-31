@@ -51,7 +51,7 @@ contract ListingManager is Context, IListingManager, Disputable {
             hash,
             _listing.seller,
             _listing.ipfsHash,
-            _listing.expiration,
+            _listing.expirationBlock,
             _listing.commissionPercentage,
             _listing.cashbackPercentage,
             _listing.warranty,
@@ -106,7 +106,7 @@ contract ListingManager is Context, IListingManager, Disputable {
         returns (bool)
     {
         /* Listing has expired */
-        if (block.timestamp > _listing.expiration) {
+        if (block.number > _listing.expirationBlock) {
             console.log("Listing expired");
             return false;
         }

@@ -11,8 +11,8 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { expect } from "chai";
 import { generateListing, Listing } from "./helpers/populator";
 import { hashListing, toHex } from "./helpers/signatureHelper";
-import { advanceTimeAndBlock } from "./helpers/testHelper";
 import { BigNumber } from "ethers";
+import { advanceBlocks, getBlock } from "./helpers/testHelper";
 
 const MINIMUM_STAKE = 1000;
 const PERCENTAGE_BURN = 1000;
@@ -124,8 +124,13 @@ describe("Listing", async () => {
       await expect(listingHash).to.be.reverted;
     });
     it("listing expired", async () => {
-      const listing = generateListing(seller.address, false, 3);
-      await advanceTimeAndBlock(4 * 86400);
+      const currentBlock = await getBlock();
+      const listing = generateListing(
+        seller.address,
+        false,
+        currentBlock.number + 3
+      );
+      await advanceBlocks(4);
 
       const listingHash = listingManager
         .connect(seller)
@@ -172,7 +177,7 @@ describe("Listing", async () => {
           hash,
           listing.seller,
           listing.ipfsHash,
-          listing.expiration,
+          listing.expirationBlock,
           listing.commissionPercentage,
           listing.cashbackPercentage,
           listing.warranty,

@@ -42,11 +42,17 @@ const config: HardhatUserConfig = {
   },
   gasReporter: {
     enabled: process.env.REPORT_GAS !== undefined,
-    currency: "BRL",
+    currency: "USD",
   },
   abiExporter: {
     clear: true,
-    only: ["DisputeManager", "ListingManager", "OrderManager", "StakeManager"],
+    only: [
+      "DisputeManager",
+      "ListingManager",
+      "OrderManager",
+      "StakeManager",
+      "DagoraToken",
+    ],
   },
   typechain: {
     outDir: "typechain",

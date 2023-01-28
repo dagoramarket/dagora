@@ -44,6 +44,7 @@ async function main() {
   );
   const DagoraLib = await ethers.getContractFactory("DagoraLib");
   const dagoraLib = await DagoraLib.deploy();
+  await dagoraLib.deployed();
   const dagoraLibReceipt = await ethers.provider.waitForTransaction(
     dagoraLib.deployTransaction.hash
   );
@@ -62,7 +63,7 @@ async function main() {
   });
 
   const stakeManager = (await StakeManager.deploy(dgrAddress)) as StakeManager;
-  stakeManager.deployed();
+  await stakeManager.deployed();
   const stakeReceipt = await ethers.provider.waitForTransaction(
     stakeManager.deployTransaction.hash
   );

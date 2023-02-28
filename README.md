@@ -1,13 +1,11 @@
-## Testnet deploy Mumbai
+## Mumbai contracts
 
-Dagora Token (DGR) deployed to: 0x783EECa49C84A33382e39e8571F248a1E91C20BB
+| Contract        | Address                                    |
+|-----------------|--------------------------------------------|
+| DGR Token       | 0x19E8ED343318c0e17fED240863157c7Da4A26326 | 
+| Stake Manager   | 0xf8b78b86d486f2C42e2481E7529E18E126EA38FF |
+| Dispute Manager | 0x03732344E1Ed8245f0a978C4059701D2b3B0E87a |
+| Listing Manager | 0xf891DA914F15fb7E9604fD7e51Deb8D0AF79de8b |
+| Order Manager   | 0x92757372eB5f2d1E6fF59Aa2429122e730f76386 |
 
 
-Percentage Lib deployed at: 0xc2DA424b5cFb3C4E3ce5a0d030BE034892A7Ff10
-Dagora Lib deployed at: 0xF8cd387221E9c5052F47CFB57cB5Fb36669e986a
-Stake Manager deployed at: 0xE2d93E02Ca41Ef164CA76146951Aa44b36003f25
-Dispute Manager deployed at: 0x78deD74c48687f26a8983917f53330F9cf86e96B
-Arbitration fee updated to  1000000000
-Listing Manager deployed at: 0xa9dC19A766c14A5E38C4a6370B376f042eC8CB94
-Stake Manager operator updated to: 0xE2d93E02Ca41Ef164CA76146951Aa44b36003f25
-Order Manager deployed at: 0x3cD2f3927dfabe54e5Ec1c78F51cA1868B062E0a

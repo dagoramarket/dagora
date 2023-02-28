@@ -7,7 +7,7 @@ library PercentageLib {
     uint256 public constant INVERSE_BASIS_POINT = 10000;
 
     function calculateTotalFromPercentage(uint256 _total, uint256 _percentage)
-        external
+        internal
         pure
         returns (uint256)
     {

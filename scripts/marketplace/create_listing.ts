@@ -8,6 +8,7 @@ const listingManagerAddress = process.env.LISTING_MANAGER_ADDRESS || "";
 const percentageLibAddress = process.env.PERCENTAGE_LIB_ADDRESS || "";
 const dagoraLibAddress = process.env.PERCENTAGE_LIB_ADDRESS || "";
 const MINIMUM_STAKE = BigNumber.from(10000).mul(BigNumber.from(10).pow(18)); // 1000000 * 10 ^ 18
+const BLOCK_TIME = 3; // 3 seconds
 
 async function main() {
   const ListingManager = await ethers.getContractFactory("ListingManager", {
@@ -56,15 +57,16 @@ async function main() {
 
   await thegraph.add(catListing);
 
+  const blockNumber = await ethers.provider.getBlockNumber();
+  const blocks = Math.floor((60 * 60 * 24 * 30) / BLOCK_TIME); // 30 days in blocks
+
   const listing = {
     ipfsHash: listingIpfs.path,
     seller: deployer.address,
     commissionPercentage: 0, // 0%
     warranty: 0,
     cashbackPercentage: 100, // 1%
-    expiration: BigNumber.from(
-      Math.floor(new Date().getTime() / 1000) + 30 * 86400
-    ), // 30 days
+    expirationBlock: BigNumber.from(blockNumber + blocks),
   };
 
   const createListingTx = await listingManager.createListing(listing, 1);

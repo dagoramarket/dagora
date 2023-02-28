@@ -70,7 +70,7 @@ library DagoraLib {
     event TokenDeposited(address indexed sender, uint256 value);
     event TokenWithdrawed(address indexed sender, uint256 value);
 
-    function _hashListing(Listing calldata _listing)
+    function _hashListing(Listing memory _listing)
         internal
         pure
         returns (bytes32)
@@ -88,15 +88,15 @@ library DagoraLib {
             );
     }
 
-    function hashListing(Listing calldata _listing)
-        external
+    function hashListing(Listing memory _listing)
+        internal
         pure
         returns (bytes32)
     {
         return _hashListing(_listing);
     }
 
-    function hashOrder(Order calldata _order) external pure returns (bytes32) {
+    function hashOrder(Order memory _order) internal pure returns (bytes32) {
         return
             keccak256(
                 abi.encodePacked(

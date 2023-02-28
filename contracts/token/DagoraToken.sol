@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Capped.sol";
 
 contract DagoraToken is ERC20Mintable, ERC20Burnable, ERC20Capped {
-    /* 1 billion + 18 decimal plates */
+    /* 1 billion + 18 decimal places */
     constructor()
         ERC20("DagoraToken", "DGR")
         ERC20Capped(1000000000000000000000000000)

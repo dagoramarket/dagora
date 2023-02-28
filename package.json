@@ -37,11 +37,12 @@
     "test": "hardhat test",
     "clean": "hardhat clean",
     "coverage": "hardhat coverage",
-    "build": "hardhat compile"
+    "build": "hardhat compile",
+    "codegen": "hardhat typechain"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/flametuner/dagora.git"
+    "url": "git+https://github.com/dagoramarket/dagora.git"
   },
   "author": "GustavoInacio",
   "license": "MIT",

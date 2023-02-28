@@ -1,5 +1,5 @@
 import { ethers } from "hardhat";
-import { DagoraToken } from "../../typechain";
+import { DagoraToken } from "../../../typechain";
 
 async function main() {
   // const [deployer] = await ethers.getSigners();

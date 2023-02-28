@@ -4,6 +4,7 @@ import { HardhatUserConfig, task } from "hardhat/config";
 import "@typechain/hardhat";
 import "@nomiclabs/hardhat-ethers";
 import "@nomiclabs/hardhat-waffle";
+import "@nomiclabs/hardhat-etherscan";
 import "hardhat-gas-reporter";
 import "hardhat-abi-exporter";
 import "solidity-coverage";
@@ -34,10 +35,16 @@ const config: HardhatUserConfig = {
       accounts:
         process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
-    mumbai: {
+    polygonMumbai: {
       url: process.env.MUMBAI_URL || "",
       accounts:
         process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+    },
+  },
+  etherscan: {
+    apiKey: {
+      polygonMumbai: process.env.ETHERSCAN_POLYGON_API_KEY || "",
+      polygon: process.env.ETHERSCAN_POLYGON_API_KEY || "",
     },
   },
   gasReporter: {

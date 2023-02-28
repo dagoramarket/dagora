@@ -10,3 +10,4 @@ coverage/
 coverage.json
 bin/
 *-old/
+mythx.json

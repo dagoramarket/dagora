@@ -1,0 +1,11 @@
+output: mythx.json
+format: json
+
+analyze:
+  mode: standard
+  create-group: true
+  group-name: Dagora
+  solc: 0.8.0
+  remappings:
+    - "@openzeppelin/=./node_modules/@openzeppelin/"
+    - "hardhat/=./node_modules/hardhat/"
